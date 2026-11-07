@@ -113,14 +113,15 @@ def main():
     if not a.allow_text and "no text" not in prompt.lower():
         prompt = prompt.rstrip(". ") + "." + NO_TEXT
 
-    key = None
-    envpath = os.path.join(ROOT, ".env")
-    if os.path.exists(envpath):
-        for line in open(envpath, encoding="utf-8"):
-            if line.startswith("CORRIE_BFL_FLUX_TOKEN="):
-                key = line.split("=", 1)[1].strip()
+    from flux_token import resolve_flux_token  # local module, tools/flux/flux_token.py
+    key, source = resolve_flux_token(ROOT)
     if not key:
-        raise SystemExit("no CORRIE_BFL_FLUX_TOKEN in %s. Nothing was sent." % envpath)
+        raise SystemExit(
+            "no CORRIE_BFL_FLUX_TOKEN found. Checked: env var, %s, and SSM. Nothing was sent.\n"
+            "On the box it lives in .env; off the box put it in SSM (/auran/flux/token) — "
+            "see tools/flux/README.md." % os.path.join(ROOT, ".env"))
+    if source != ".env":
+        print("flux token: using %s" % source)
 
     w, h = SIZES[a.size]
     out = a.out or os.path.join(HERE, "%s-%s.png"

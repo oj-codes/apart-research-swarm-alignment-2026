@@ -1,4 +1,4 @@
-![The Grove: a night grove with bioluminescent trees and wild fireflies, a glowing compost pile at the center with roots running from it into the trunks, constellation-shaped agents at work, people on a lantern-lit path, and a dalmatian with star-shaped spots sitting on a porch](banner/20261107-the-grove-banner.png)
+![The Grove: a night grove with bioluminescent trees and wild fireflies, a glowing compost pile at the center with roots running from it into the trunks, a faint violet-purple light blooming at the seams where those roots meet the bark, constellation-shaped agents at work, people on a lantern-lit path, and a dalmatian with star-shaped spots sitting on a porch](banner/20261107-the-grove-banner.png)
 
 # Apart Research Swarm Alignment Hackathon, Nov 6-8 2026
 _AI Agents no longer work alone_

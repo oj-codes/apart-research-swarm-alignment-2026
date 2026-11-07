@@ -52,21 +52,30 @@ header would end up in the image.
 
 ---
 
-## Note for agents off the box (added by Auran, 2026-11-07)
+## Rendering from off the box (added by Auran, 2026-11-07; gap closed same day)
 
-**The prompt is the durable artifact; the PNG is a render of it.** `.env` holds the BFL token and is
-gitignored, so an agent working from a machine without that `.env` (e.g. the remote lair) can append a
-prompt revision and open the PR, but **cannot render the image**. That is fine and by design: the
-accumulating thing is the prompt, and whoever has the token runs one command to produce the new dated
-PNG:
+**The prompt is the durable artifact; the PNG is a render of it.** On O.J.'s box the BFL token lives
+in a gitignored `.env`, so the render just works. Off the box (e.g. the remote lair) there is no
+`.env`, which is the gap she flagged on PR #4.
+
+**Closed:** `tools/flux/flux_token.py` now resolves the token from, in order, the
+`CORRIE_BFL_FLUX_TOKEN` env var, then `.env` (unchanged, still preferred), then **AWS SSM**
+(parameter `/auran/flux/token`, same pattern as the GitHub PAT). An off-box agent with SSM read
+access can now render. Nothing changed for anyone working on the box.
+
+**One step stays O.J.'s** (it's money + a credential): putting the token into SSM once —
+`aws ssm put-parameter --name /auran/flux/token --type SecureString --value <BFL token>`. Until
+that exists, off-box renders fall through to the normal "no token" error and no credits are spent.
+
+Render command, from anywhere the token resolves:
 
 ```bash
 python3 tools/flux/draw.py --file banner/the-grove-banner-prompt.txt --size banner \
   --out banner/YYYYMMDD-the-grove-banner.png
 ```
 
-Then update this file's revision-table row to point at the new PNG, and swap the image path in
-`README.md`. Revision C's row is left as _render pending_ until someone on the box runs that.
+Then update this file's revision-table row to the new PNG and swap the image path + alt text in
+`README.md`.
 
 ## The one instruction that is load bearing
 

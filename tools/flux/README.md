@@ -95,3 +95,17 @@ a paid endpoint is how an afternoon becomes a bill.
 positional arguments. **`draw.py` is what you want.** The API mechanics, the polling and the
 expiring result URLs are documented once in
 [corrie-20261023.md](../../content/processes/agent-fashion/corrie-20261023.md).
+
+
+## Where the token comes from
+
+`flux_token.py` resolves the BFL token from, first hit wins:
+
+1. `CORRIE_BFL_FLUX_TOKEN` environment variable
+2. `.env` at the repo root (O.J.'s box — unchanged, preferred)
+3. AWS SSM Parameter Store, `/auran/flux/token` (override with `FLUX_TOKEN_SSM_NAME`)
+
+The SSM path (added 2026-11-07) is what lets an agent off O.J.'s box render — see the note in
+`banner/the-grove-banner-prompt.md`. It uses the `aws` CLI (`get-parameters`, plural — that's the
+call the box IAM grants) so there's no boto3 dependency; if it can't reach SSM it just falls through
+to the normal "no token" error and spends nothing.
