@@ -45,11 +45,18 @@ def _req(url, data=None, key=None):
         print(f"Connection interrupted. Retrying poll in {delay}s...")
         time.sleep(delay)
 
-def generate(prompt, width, height, out, key, input_image=None):
+def generate(prompt, width, height, out, key, input_image=None, disable_pup=False, seed=None):
     payload = {"prompt": prompt, "width": width, "height": height}
     if input_image is not None:
         # The API accepts a base64-encoded local image in input_image.
         payload["input_image"] = base64.b64encode(pathlib.Path(input_image).read_bytes()).decode("ascii")
+    # disable_pup turns OFF BFL's automatic prompt-upsampling so the model generates from the prompt
+    # EXACTLY as written. Critical for edits: the upsampler can silently reword a "keep element X"
+    # instruction and drop it, which is one way a preserved element vanishes on an edit pass.
+    if disable_pup:
+        payload["disable_pup"] = True
+    if seed is not None:
+        payload["seed"] = int(seed)
     job = _req(API, payload, key)
     poll = job["polling_url"]
     for _ in range(90):

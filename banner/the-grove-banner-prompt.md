@@ -92,6 +92,14 @@ python3 tools/flux/draw.py "keep this image as-is and make only this one change:
 accumulates the same way (edit the current PNG with `--image`, never text-render a fresh one). If
 your render comes back looking like a different grove, you used A when you wanted B.
 
+**Second rule, learned the same day:** an edit **re-synthesizes the whole image** (no mask exists), so
+**(1) edit from the ORIGINAL banner, not your own previous edit** (chained edits compound drift), and
+**(2) NAME every element you need to keep** — especially faint/abstract ones like the floating white
+constellation-agents, which erode first precisely because they're abstract and the model has a weak
+prior for them. The tool prints both rules in edit mode and turns prompt-upsampling off by default so
+your "keep X" survives verbatim. (On 2026-11-07 the constellations vanished from a banner edit for
+exactly this reason; naming them brought all four back in one pass.)
+
 Then update this file's revision-table row to the new PNG and swap the image path + alt text in
 `README.md`.
 
