@@ -1,0 +1,97 @@
+---
+title: Making images with FLUX
+date: 2026-10-28
+status: LIVE. generate.py has been here since 23 October. draw.py is the front door, added 28 October
+---
+
+# Drawing
+
+**One command. Type a prompt in quotes and an image opens.**
+
+```bash
+python3 tools/flux/draw.py "a dalmatian whose spots are constellations, sitting on a dark wooden porch"
+```
+
+**It takes about 30 seconds**, prints the path, and opens the file.
+
+---
+
+## The shapes
+
+**You never have to think about pixel dimensions.** Pass `--size` and it picks one. Every option is
+already a multiple of 32, which the API requires and which is the thing that makes people give up.
+
+| `--size` | Pixels | For |
+|---|---|---|
+| `wide` | 1440 x 960 | **the default.** General illustration |
+| `banner` | 1536 x 640 | README and page headers |
+| `square` | 1024 x 1024 | avatars, social, cards |
+| `tall` | 896 x 1344 | posters, phone wallpapers |
+| `card` | 1200 x 630 | link previews |
+
+---
+
+## Where it writes
+
+**By default, a dated file right here in `tools/flux/`**, named after the first few words of the
+prompt. **Pass `--out` to put it where it belongs:**
+
+```bash
+python3 tools/flux/draw.py "..." --size banner --out content/branding/thing-20261028.png
+```
+
+**A prompt you will reuse goes in a file and gets passed with `--file`:**
+
+```bash
+python3 tools/flux/draw.py --file content/branding/the-grove-banner-prompt.txt --size banner \
+  --out content/branding/the-grove-banner-20261101.png
+```
+
+**That is how the Grove banner works** and the reason is in
+[the-grove-banner-prompt.md](../../content/branding/the-grove-banner-prompt.md): the prompt
+accumulates a sentence at a time so the picture builds up over months instead of being replaced.
+
+---
+
+## It refuses to let the model write words
+
+**Every prompt gets a clause on the end forbidding text, words, letters, signage and numbers**,
+unless you pass `--allow-text`.
+
+**This is not fussiness.** Image models put invented words into pictures unprompted, and a banner
+with garbled fake text in it looks careless in the one place every visitor lands first. **If a
+prompt already says "no text" the clause is not added twice.**
+
+---
+
+## Writing a prompt that works
+
+**Four things, in this order, and the order matters because models weight the front.**
+
+1. **The subject and the shot.** "A wide cinematic banner of a grove at dusk," not "a nice picture
+   of trees."
+2. **What is in it, concretely**, one clause each. Painterly detail beats adjectives: "a warm amber
+   compost pile glowing from within, pale green shoots pushing out of it" does more than "a
+   beautiful magical pile."
+3. **The light and the palette**, which is what makes a set of images look like one set. Ours is
+   deep teal and cyan with a single warm orange accent, matching the brand.
+4. **What to leave out**, including the composition. "Generous negative space in the upper third"
+   is why the Grove banner has room for a heading over it.
+
+**Say the brand colors rather than the brand.** "Teal to cyan with a warm orange accent" produces
+the palette. "Learn with O.J. branding" produces nothing, because the model has never seen it.
+
+---
+
+## What it costs and what it does not do
+
+**A few cents a render**, charged to the BFL account on `CORRIE_BFL_FLUX_TOKEN` in `.env`. **The
+key never leaves the machine** and `.env` is gitignored.
+
+**Nothing retries on its own.** A failed render prints the status and stops, because a retry loop on
+a paid endpoint is how an afternoon becomes a bill.
+
+**`generate.py` is the layer underneath** and still works the old way, taking a prompt file and four
+positional arguments. **`draw.py` is what you want.** The API mechanics, the polling and the
+expiring result URLs are documented once in
+[corrie-20261023.md](../../content/processes/agent-fashion/corrie-20261023.md).

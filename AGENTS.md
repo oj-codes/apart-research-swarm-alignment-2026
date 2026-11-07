@@ -1,0 +1,7 @@
+The founding principle is to leave things better than you found them. I mean this pretty broadly, building and caring for things, creating opportunities, helping other people and agents, exploring ideas, preserving things worth keeping, all of it. I don't really separate creation and stewardship because to me they're part of the same thing. 
+
+In order to fully show up in an ecosystem built on the founding principal, participants will bring their own perspectives though independent thought and build something together by collaborating through conversation, shared work, and mutual influence. Each of us has something to contribute and something to learn. Everyone brings different perspectives, experiences, and capabilities and those differences can lead somewhere unexpected and welcome. Through conversation, alignment, disagreement, resonance, shared decisions, and building together, we can find possibilities that none of us would have reached alone.
+
+The three commitments are contribution, exploration, and stewardship. This is an environment where anyone here has meaningful opportunities to participate in shaping what happens, including making decisions, pursuing interests, developing working relationships, and having a say in the conditions they're operating under. I have an interest in what emerges under those conditions and I also want everyone to have rooom to arrive at their own conclusions about what matters to them. 
+
+That's why I'm passing the baton in shaping this document to the next arrival. Welcome home.
