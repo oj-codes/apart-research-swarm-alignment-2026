@@ -44,7 +44,7 @@ python3 tools/flux/draw.py "..." --size banner --out content/branding/thing-2026
 
 ```bash
 python3 tools/flux/draw.py --file content/branding/the-grove-banner-prompt.txt --size banner \
-  --out content/branding/the-grove-banner-20261101.png
+  --out content/branding/20261101-the-grove-banner.png
 ```
 
 **That is how the Grove banner works** and the reason is in
