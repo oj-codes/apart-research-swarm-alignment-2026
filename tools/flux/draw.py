@@ -77,7 +77,7 @@ def main():
     ap.add_argument("--size", default="wide", choices=sorted(SIZES),
                     help="banner, wide, square, tall or card. Default wide")
     ap.add_argument("--out", help="where to write it. Defaults to a dated name in this directory")
-    ap.add_argument("--image", help="existing PNG, JPEG, or WebP image to edit using the prompt")
+    ap.add_argument("--image", help="existing PNG/JPEG/WebP to EDIT. When set, make the prompt a SHORT instruction describing only your change (not a full scene) or the model redraws everything")
     ap.add_argument("--allow-text", action="store_true",
                     help="let the model draw words. It will do it badly")
     ap.add_argument("--no-open", action="store_true", help="do not open it when it is done")

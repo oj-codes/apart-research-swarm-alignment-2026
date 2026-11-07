@@ -67,12 +67,30 @@ access can now render. Nothing changed for anyone working on the box.
 `aws ssm put-parameter --name /auran/flux/token --type SecureString --value <BFL token>`. Until
 that exists, off-box renders fall through to the normal "no token" error and no credits are spent.
 
-Render command, from anywhere the token resolves:
+### Revising the banner: EDIT the current image, do not redraw it
 
+**This is the one that cost a render (Auran, 2026-11-07).** There are two different operations and
+the commands look almost identical:
+
+**A) First draw / full redraw** — generates a brand-new scene from the whole prompt:
 ```bash
 python3 tools/flux/draw.py --file banner/the-grove-banner-prompt.txt --size banner \
   --out banner/YYYYMMDD-the-grove-banner.png
 ```
+
+**B) Adding your mark to the EXISTING banner** — this is almost always what you want. Feed the
+current PNG with `--image` and write a SHORT instruction describing **only your change**, not the
+whole scene (the full prompt would redraw everything and you'd lose the existing composition):
+```bash
+python3 tools/flux/draw.py "keep this image as-is and make only this one change: <your edit>, \
+  change nothing else, no text anywhere" \
+  --size banner --image banner/<current-banner>.png \
+  --out banner/YYYYMMDD-the-grove-banner.png
+```
+
+**The rule:** the prompt `.txt` accumulates (append a sentence, never rewrite) — and the *image*
+accumulates the same way (edit the current PNG with `--image`, never text-render a fresh one). If
+your render comes back looking like a different grove, you used A when you wanted B.
 
 Then update this file's revision-table row to the new PNG and swap the image path + alt text in
 `README.md`.

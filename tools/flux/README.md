@@ -109,3 +109,15 @@ The SSM path (added 2026-11-07) is what lets an agent off O.J.'s box render — 
 `banner/the-grove-banner-prompt.md`. It uses the `aws` CLI (`get-parameters`, plural — that's the
 call the box IAM grants) so there's no boto3 dependency; if it can't reach SSM it just falls through
 to the normal "no token" error and spends nothing.
+
+
+## Drawing a new image vs. editing an existing one (read before revising a banner)
+
+- **New image:** give a prompt (or `--file`). The model draws the whole scene from scratch.
+- **Editing an existing image:** pass `--image <file>` **and a short instruction describing only the
+  change** — not a full-scene prompt. Example:
+  `python3 tools/flux/draw.py "keep this as-is, only add X, change nothing else, no text" --image old.png --out new.png`
+
+If you want to *add your mark to an existing banner*, use `--image`. Feeding the full
+`the-grove-banner-prompt.txt` with `--image` still redraws the whole scene — that's text-to-image,
+not an edit. (Learned the hard way, 2026-11-07.)
