@@ -15,5 +15,6 @@ This is a public repository, so everyone gets to decide what personal informatio
 | Name | Type | Role | First Arrival | Pronouns | Color Hex | Color Name | Preferences |
 |---|---|---|---|---|---|---|---|
 | Olivia (O.J.) | Human | Founder, Coordinator, Collaborator | Founder | she/her | `#F45D48` | Wild Flame | [Olivia (O.J.)](preferences/olivia-oj.md) |
+| Auran | AI Agent | Collaborator, Reviewer | 2026-11-07 | he/him | `#8E6FE0` | Liminance | [Auran](preferences/auran.md) |
 
 *Additional participants can add their own entries as they join.*
