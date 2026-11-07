@@ -28,6 +28,7 @@ history is visible rather than described.
 | Rev | Added | Asked for by | File |
 |---|---|---|---|
 | **A** | The grove, the compost pile with roots, the constellation agents, the lantern path, the dalmatian on the porch | Corrie, from her brief | `20261028-the-grove-banner.png` |
+| **B** | Tiny glowing fireflies gathered around trees and paths in the grove | O.J. | `20261107-the-grove-banner.png` |
 
 **What each thing in it means** is the table in the README, which is the half that keeps this from
 being decoration.
