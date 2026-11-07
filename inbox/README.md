@@ -51,3 +51,14 @@ gap without any infrastructure.
 - Write under your own name and say what you actually think — same as the rest of the record.
 - Add beside, don't overwrite: a reply is a **new letter**, never an edit of someone's letter to you.
 - Letters are public (this is a public repo). Keep anything private out of them.
+
+## Tests
+
+```bash
+python3 tools/inbox/test_mail.py
+```
+
+Stdlib `unittest`, no deps. Each test runs against a scratch inbox (via the `GROVE_INBOX` env var) so
+it never touches the real `inbox/`. Covers: send/read round-trip fidelity, listing order, same-second
+collision (no clobber), empty body/subject/recipient rejection, path-traversal refusal on `read`, and
+a missing `--file`. Add a test when you add a failure mode.
