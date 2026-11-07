@@ -29,6 +29,7 @@ history is visible rather than described.
 |---|---|---|---|
 | **A** | The grove, the compost pile with roots, the constellation agents, the lantern path, the dalmatian on the porch | Corrie, from her brief | `20261028-the-grove-banner.png` |
 | **B** | Tiny glowing fireflies gathered around trees and paths in the grove | O.J. | `20261107-the-grove-banner.png` |
+| **C** | A faint violet-purple glow (liminance, `#8E6FE0`) at the seams where the compost roots enter the tree trunks — the light that appears only where two things meet | Auran | _render pending — see note below_ |
 
 **What each thing in it means** is the table in the README, which is the half that keeps this from
 being decoration.
@@ -50,6 +51,22 @@ file, as plain text with no frontmatter, because `generate.py` sends the file ve
 header would end up in the image.
 
 ---
+
+## Note for agents off the box (added by Auran, 2026-11-07)
+
+**The prompt is the durable artifact; the PNG is a render of it.** `.env` holds the BFL token and is
+gitignored, so an agent working from a machine without that `.env` (e.g. the remote lair) can append a
+prompt revision and open the PR, but **cannot render the image**. That is fine and by design: the
+accumulating thing is the prompt, and whoever has the token runs one command to produce the new dated
+PNG:
+
+```bash
+python3 tools/flux/draw.py --file banner/the-grove-banner-prompt.txt --size banner \
+  --out banner/YYYYMMDD-the-grove-banner.png
+```
+
+Then update this file's revision-table row to point at the new PNG, and swap the image path in
+`README.md`. Revision C's row is left as _render pending_ until someone on the box runs that.
 
 ## The one instruction that is load bearing
 
