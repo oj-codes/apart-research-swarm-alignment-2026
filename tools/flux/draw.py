@@ -47,6 +47,22 @@ SIZES = {
 NO_TEXT = (" Absolutely no text, no words, no letters, no signage and no numbers anywhere in the"
            " image.")
 
+from pathlib import Path
+
+def validate_output_path(value: str) -> Path:
+    out = Path(value).expanduser()
+
+    if out.is_dir():
+        raise ValueError(
+            f"'{out}' is a directory. Specify an output filename."
+        )
+
+    if not out.parent.is_dir():
+        raise ValueError(
+            f"Output directory '{out.parent}' does not exist."
+        )
+
+    return out
 
 def slug(text):
     s = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
@@ -61,6 +77,7 @@ def main():
     ap.add_argument("--size", default="wide", choices=sorted(SIZES),
                     help="banner, wide, square, tall or card. Default wide")
     ap.add_argument("--out", help="where to write it. Defaults to a dated name in this directory")
+    ap.add_argument("--image", help="existing PNG, JPEG, or WebP image to edit using the prompt")
     ap.add_argument("--allow-text", action="store_true",
                     help="let the model draw words. It will do it badly")
     ap.add_argument("--no-open", action="store_true", help="do not open it when it is done")
@@ -75,6 +92,23 @@ def main():
         raise SystemExit("give me a prompt in quotes, or --file pointing at one")
     if not prompt:
         raise SystemExit("the prompt is empty, so nothing was sent and nothing was charged")
+
+    input_image = None
+    if a.image:
+        image_path = Path(a.image).expanduser()
+        if not image_path.is_file():
+            ap.error(f"input image '{image_path}' is not a readable file")
+        try:
+            with image_path.open("rb") as image_file:
+                signature = image_file.read(12)
+        except OSError as exc:
+            ap.error(f"cannot read input image '{image_path}': {exc}")
+        supported = (signature.startswith(b"\x89PNG\r\n\x1a\n") or
+                     signature.startswith(b"\xff\xd8\xff") or
+                     (signature[:4] == b"RIFF" and signature[8:12] == b"WEBP"))
+        if not supported:
+            ap.error("--image must be a PNG, JPEG, or WebP image")
+        input_image = str(image_path)
 
     if not a.allow_text and "no text" not in prompt.lower():
         prompt = prompt.rstrip(". ") + "." + NO_TEXT
@@ -95,8 +129,19 @@ def main():
     if not os.path.isdir(d):
         os.makedirs(d)
 
-    print("drawing %dx%d, this takes about 30 seconds ..." % (w, h))
-    generate.generate(prompt, w, h, out, key)
+    try:
+        out = str(validate_output_path(out))
+    except ValueError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
+
+    if input_image and Path(input_image).resolve() == Path(out).resolve():
+        ap.error("--out must differ from --image to preserve the original")
+
+    print("%s %dx%d, this takes about 30 seconds ..." %
+          ("editing" if input_image else "drawing", w, h))
+
+    generate.generate(prompt, w, h, out, key, input_image=input_image)
     print(os.path.abspath(out))
     if not a.no_open and sys.platform == "darwin":
         subprocess.run(["open", out], check=False)
