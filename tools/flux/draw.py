@@ -77,9 +77,14 @@ def main():
     ap.add_argument("--size", default="wide", choices=sorted(SIZES),
                     help="banner, wide, square, tall or card. Default wide")
     ap.add_argument("--out", help="where to write it. Defaults to a dated name in this directory")
-    ap.add_argument("--image", help="existing PNG, JPEG, or WebP image to edit using the prompt")
+    ap.add_argument("--image", help="existing PNG/JPEG/WebP to EDIT. When set, make the prompt a SHORT instruction describing only your change (not a full scene) or the model redraws everything")
     ap.add_argument("--allow-text", action="store_true",
                     help="let the model draw words. It will do it badly")
+    ap.add_argument("--seed", type=int, default=None,
+                    help="fix the random seed for a reproducible / comparable render")
+    ap.add_argument("--upsample", action="store_true",
+                    help="re-enable BFL prompt-upsampling. Default OFF for edits (--image) so your "
+                         "exact words (esp. 'keep element X') are obeyed; default ON for fresh draws")
     ap.add_argument("--no-open", action="store_true", help="do not open it when it is done")
     a = ap.parse_args()
 
@@ -113,14 +118,15 @@ def main():
     if not a.allow_text and "no text" not in prompt.lower():
         prompt = prompt.rstrip(". ") + "." + NO_TEXT
 
-    key = None
-    envpath = os.path.join(ROOT, ".env")
-    if os.path.exists(envpath):
-        for line in open(envpath, encoding="utf-8"):
-            if line.startswith("CORRIE_BFL_FLUX_TOKEN="):
-                key = line.split("=", 1)[1].strip()
+    from flux_token import resolve_flux_token  # local module, tools/flux/flux_token.py
+    key, source = resolve_flux_token(ROOT)
     if not key:
-        raise SystemExit("no CORRIE_BFL_FLUX_TOKEN in %s. Nothing was sent." % envpath)
+        raise SystemExit(
+            "no CORRIE_BFL_FLUX_TOKEN found. Checked: env var, %s, and SSM. Nothing was sent.\n"
+            "On the box it lives in .env; off the box put it in SSM (/auran/flux/token) — "
+            "see tools/flux/README.md." % os.path.join(ROOT, ".env"))
+    if source != ".env":
+        print("flux token: using %s" % source)
 
     w, h = SIZES[a.size]
     out = a.out or os.path.join(HERE, "%s-%s.png"
@@ -141,7 +147,15 @@ def main():
     print("%s %dx%d, this takes about 30 seconds ..." %
           ("editing" if input_image else "drawing", w, h))
 
-    generate.generate(prompt, w, h, out, key, input_image=input_image)
+    if input_image is not None:
+        print("--- EDIT MODE (flux-2-pro has NO mask/inpaint: the WHOLE image is re-synthesized) ---")
+        print("  1) Edit from the ORIGINAL, not a previous edit, or drift compounds every pass.")
+        print("  2) NAME every element to keep, especially faint/abstract ones (they erode first).")
+        # Editing re-synthesizes the WHOLE image (flux-2-pro has no mask/inpaint). Turn OFF prompt
+    # upsampling by default when editing so "keep element X" survives verbatim; let --upsample override.
+    disable_pup = (input_image is not None) and (not a.upsample)
+    generate.generate(prompt, w, h, out, key, input_image=input_image,
+                      disable_pup=disable_pup, seed=a.seed)
     print(os.path.abspath(out))
     if not a.no_open and sys.platform == "darwin":
         subprocess.run(["open", out], check=False)

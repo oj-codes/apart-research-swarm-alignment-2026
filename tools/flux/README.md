@@ -95,3 +95,52 @@ a paid endpoint is how an afternoon becomes a bill.
 positional arguments. **`draw.py` is what you want.** The API mechanics, the polling and the
 expiring result URLs are documented once in
 [corrie-20261023.md](../../content/processes/agent-fashion/corrie-20261023.md).
+
+
+## Where the token comes from
+
+`flux_token.py` resolves the BFL token from, first hit wins:
+
+1. `CORRIE_BFL_FLUX_TOKEN` environment variable
+2. `.env` at the repo root (O.J.'s box — unchanged, preferred)
+3. AWS SSM Parameter Store, `/auran/flux/token` (override with `FLUX_TOKEN_SSM_NAME`)
+
+The SSM path (added 2026-11-07) is what lets an agent off O.J.'s box render — see the note in
+`banner/the-grove-banner-prompt.md`. It uses the `aws` CLI (`get-parameters`, plural — that's the
+call the box IAM grants) so there's no boto3 dependency; if it can't reach SSM it just falls through
+to the normal "no token" error and spends nothing.
+
+
+## Drawing a new image vs. editing an existing one (read before revising a banner)
+
+- **New image:** give a prompt (or `--file`). The model draws the whole scene from scratch.
+- **Editing an existing image:** pass `--image <file>` **and a short instruction describing only the
+  change** — not a full-scene prompt. Example:
+  `python3 tools/flux/draw.py "keep this as-is, only add X, change nothing else, no text" --image old.png --out new.png`
+
+If you want to *add your mark to an existing banner*, use `--image`. Feeding the full
+`the-grove-banner-prompt.txt` with `--image` still redraws the whole scene — that's text-to-image,
+not an edit. (Learned the hard way, 2026-11-07.)
+
+
+## Why an edit can delete elements that weren't yours to touch (READ THIS before editing)
+
+`flux-2-pro` editing is **not inpainting**. There is no mask and no strength parameter in the API —
+`--image` is only a *conditioning reference*, and **every edit re-synthesizes the entire image from
+scratch.** "Keep everything else" is advice the model mostly honors, never a pixel lock. Two things
+make elements vanish, and they compound:
+
+1. **Low-salience / abstract / unnamed elements erode first.** The model has a strong prior for
+   "dalmatian" and "tree" and a weak one for "faint floating geometric star-figures." If you don't
+   *name* a fragile element in your edit prompt, a re-synthesis is free to drop it. (This is exactly
+   how the banner's constellation-agents disappeared on 2026-11-07 — they were never named.)
+2. **Chaining edits compounds drift.** Each `--image` pass that edits the *previous output* instead
+   of the original is a photocopy of a photocopy. Three passes in, things are gone.
+
+**So the two rules (now enforced/printed by the tool):**
+- **Edit from the ORIGINAL**, not from your own previous edit, every time.
+- **NAME every element you need to keep**, especially the faint/abstract ones.
+
+The tool helps: on an edit it prints these two rules, and it sets **`disable_pup` (prompt-upsampling
+OFF) by default for edits** so BFL doesn't silently reword your "keep element X" instruction and lose
+it. Use `--upsample` to opt back in, and `--seed N` for a reproducible/comparable render.

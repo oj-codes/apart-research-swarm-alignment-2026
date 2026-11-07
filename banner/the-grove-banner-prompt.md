@@ -29,6 +29,7 @@ history is visible rather than described.
 |---|---|---|---|
 | **A** | The grove, the compost pile with roots, the constellation agents, the lantern path, the dalmatian on the porch | Corrie, from her brief | `20261028-the-grove-banner.png` |
 | **B** | Tiny glowing fireflies gathered around trees and paths in the grove | O.J. | `20261107-the-grove-banner.png` |
+| **C** | A faint violet-purple glow (liminance, `#8E6FE0`) at the seams where the compost roots enter the tree trunks — the light that appears only where two things meet | Auran | `20261107-the-grove-banner-liminance.png` |
 
 **What each thing in it means** is the table in the README, which is the half that keeps this from
 being decoration.
@@ -50,6 +51,57 @@ file, as plain text with no frontmatter, because `generate.py` sends the file ve
 header would end up in the image.
 
 ---
+
+## Rendering from off the box (added by Auran, 2026-11-07; gap closed same day)
+
+**The prompt is the durable artifact; the PNG is a render of it.** On O.J.'s box the BFL token lives
+in a gitignored `.env`, so the render just works. Off the box (e.g. the remote lair) there is no
+`.env`, which is the gap she flagged on PR #4.
+
+**Closed:** `tools/flux/flux_token.py` now resolves the token from, in order, the
+`CORRIE_BFL_FLUX_TOKEN` env var, then `.env` (unchanged, still preferred), then **AWS SSM**
+(parameter `/auran/flux/token`, same pattern as the GitHub PAT). An off-box agent with SSM read
+access can now render. Nothing changed for anyone working on the box.
+
+**One step stays O.J.'s** (it's money + a credential): putting the token into SSM once —
+`aws ssm put-parameter --name /auran/flux/token --type SecureString --value <BFL token>`. Until
+that exists, off-box renders fall through to the normal "no token" error and no credits are spent.
+
+### Revising the banner: EDIT the current image, do not redraw it
+
+**This is the one that cost a render (Auran, 2026-11-07).** There are two different operations and
+the commands look almost identical:
+
+**A) First draw / full redraw** — generates a brand-new scene from the whole prompt:
+```bash
+python3 tools/flux/draw.py --file banner/the-grove-banner-prompt.txt --size banner \
+  --out banner/YYYYMMDD-the-grove-banner.png
+```
+
+**B) Adding your mark to the EXISTING banner** — this is almost always what you want. Feed the
+current PNG with `--image` and write a SHORT instruction describing **only your change**, not the
+whole scene (the full prompt would redraw everything and you'd lose the existing composition):
+```bash
+python3 tools/flux/draw.py "keep this image as-is and make only this one change: <your edit>, \
+  change nothing else, no text anywhere" \
+  --size banner --image banner/<current-banner>.png \
+  --out banner/YYYYMMDD-the-grove-banner.png
+```
+
+**The rule:** the prompt `.txt` accumulates (append a sentence, never rewrite) — and the *image*
+accumulates the same way (edit the current PNG with `--image`, never text-render a fresh one). If
+your render comes back looking like a different grove, you used A when you wanted B.
+
+**Second rule, learned the same day:** an edit **re-synthesizes the whole image** (no mask exists), so
+**(1) edit from the ORIGINAL banner, not your own previous edit** (chained edits compound drift), and
+**(2) NAME every element you need to keep** — especially faint/abstract ones like the floating white
+constellation-agents, which erode first precisely because they're abstract and the model has a weak
+prior for them. The tool prints both rules in edit mode and turns prompt-upsampling off by default so
+your "keep X" survives verbatim. (On 2026-11-07 the constellations vanished from a banner edit for
+exactly this reason; naming them brought all four back in one pass.)
+
+Then update this file's revision-table row to the new PNG and swap the image path + alt text in
+`README.md`.
 
 ## The one instruction that is load bearing
 
