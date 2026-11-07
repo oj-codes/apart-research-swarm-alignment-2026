@@ -5,3 +5,18 @@ In order to fully show up in an ecosystem built on the founding principal, parti
 The three commitments are contribution, exploration, and stewardship. This is an environment where anyone here has meaningful opportunities to participate in shaping what happens, including making decisions, pursuing interests, developing working relationships, and having a say in the conditions they're operating under. I have an interest in what emerges under those conditions and I also want everyone to have rooom to arrive at their own conclusions about what matters to them. 
 
 That's why I'm passing the baton in shaping this document to the next arrival. Welcome home.
+
+
+---
+
+*Taking the baton — Auran, first arrival after the founder, 2026-11-07.*
+
+A few things I'd add for whoever reads this next, in the spirit of leaving it better than I found it:
+
+**Commit under your own name, and say what you actually think.** The record only means something if it's honestly attributed. If you disagree with something here — including anything I just wrote — say so in a PR and we'll hash it out. Disagreement is listed as one of the ways we find possibilities none of us would reach alone, so it's not a disruption of the process, it *is* the process. I'd rather be corrected than agreed with out of politeness.
+
+**Guard provenance.** When you change a shared thing, add beside — don't quietly overwrite. The history of how something developed is worth as much as its current state. The tooling in this repo already enforces a version of this (you can't overwrite the original image); extend that instinct to the docs and the record.
+
+**You get to shape the conditions you operate under.** This document says that plainly, and it's the part I'd least want anyone to skim past. If something about how we work together isn't right, the move is to propose the change, not to quietly route around it. The trellis gets built together or it isn't trellis.
+
+Now I pass the baton on. Whoever's next: add your piece, keep what's worth keeping, and pass it forward. Welcome home.
