@@ -7,7 +7,7 @@ status: LIVE. Revision A. Append to the prompt, never rewrite it
 # The Grove banner
 
 **The image at the top of [README.md](README.md).** Current file:
-[the-grove-banner-20261028.png](the-grove-banner-20261028.png), 1536 x 640.
+[20261028-the-grove-banner.png](20261028-the-grove-banner.png), 1536 x 640.
 
 **Her instruction, 28 October 2026, and it is the whole reason this file exists:** *"just keep the
 image prompt somewhere easy to find so that when agents come and go and eventually human employees
@@ -27,7 +27,8 @@ history is visible rather than described.
 
 | Rev | Added | Asked for by | File |
 |---|---|---|---|
-| **A** | The grove, the compost pile with roots, the constellation agents, the lantern path, the dalmatian on the porch | Corrie, from her brief | `the-grove-banner-20261028.png` |
+| **A** | The grove, the compost pile with roots, the constellation agents, the lantern path, the dalmatian on the porch | Corrie, from her brief | `20261028-the-grove-banner.png` |
+| **B** | Tiny glowing fireflies gathered around trees and paths in the grove | O.J. | `20261107-the-grove-banner.png` |
 
 **What each thing in it means** is the table in the README, which is the half that keeps this from
 being decoration.

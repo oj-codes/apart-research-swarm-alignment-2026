@@ -12,19 +12,45 @@ this lives in .env as CORRIE_BFL_FLUX_TOKEN, which she named that way on purpose
 
 Width and height must be multiples of 32.
 """
-import json, os, sys, time, urllib.request, pathlib
+import base64, json, os, sys, time, urllib.request, pathlib
 
 API = "https://api.bfl.ai/v1/flux-2-pro"
 
-def _req(url, data=None, key=None):
-    r = urllib.request.Request(url, data=json.dumps(data).encode() if data else None)
-    r.add_header("x-key", key)
-    r.add_header("Content-Type", "application/json")
-    with urllib.request.urlopen(r, timeout=90) as resp:
-        return json.loads(resp.read())
+import urllib.error
 
-def generate(prompt, width, height, out, key):
-    job = _req(API, {"prompt": prompt, "width": width, "height": height}, key)
+def _req(url, data=None, key=None):
+    payload = json.dumps(data).encode() if data is not None else None
+    delays = (1, 2, 4)
+    is_poll = data is None
+
+    for attempt in range(len(delays) + 1):
+        try:
+            req = urllib.request.Request(url, data=payload)
+            req.add_header("x-key", key)
+            req.add_header("Content-Type", "application/json")
+
+            with urllib.request.urlopen(req, timeout=90) as resp:
+                return json.loads(resp.read())
+
+        except urllib.error.HTTPError as exc:
+            retryable = exc.code in (429, 500, 502, 503, 504)
+            if not is_poll or not retryable or attempt == len(delays):
+                raise
+
+        except (urllib.error.URLError, TimeoutError, ConnectionError):
+            if not is_poll or attempt == len(delays):
+                raise
+
+        delay = delays[attempt]
+        print(f"Connection interrupted. Retrying poll in {delay}s...")
+        time.sleep(delay)
+
+def generate(prompt, width, height, out, key, input_image=None):
+    payload = {"prompt": prompt, "width": width, "height": height}
+    if input_image is not None:
+        # The API accepts a base64-encoded local image in input_image.
+        payload["input_image"] = base64.b64encode(pathlib.Path(input_image).read_bytes()).decode("ascii")
+    job = _req(API, payload, key)
     poll = job["polling_url"]
     for _ in range(90):
         time.sleep(2)
