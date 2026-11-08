@@ -5,7 +5,8 @@ WHY THIS EXISTS. `draw.py --image` edits through `flux-2-pro`, which has no mask
 re-synthesizes the WHOLE frame, so elements drift a little each pass — a named thing moves, a faint
 abstract thing erodes. That is fine for a first render and bad for "add my mark and leave everyone
 else's alone". `/v1/flux-pro-1.0-fill` takes an image plus a mask and regenerates **only the white
-area**, so everything outside the mask is preserved pixel-for-pixel. That is the right tool for
+area**, so everything outside the mask is pixel-faithful (the API re-encodes the frame, so values
+may differ by one; measured on banner revision F). That is the right tool for
 appending to the banner.
 
     python3 tools/flux/fill.py --image banner/<current>.png --out banner/<new>.png \
@@ -22,7 +23,7 @@ The mask is generated, so there is no image editor in the loop. White = regenera
   --band N --protect-left W are a guess per edit; render a draft, look at it, and adjust.
 
 KNOWN SEAM, said plainly: FLUX.1 Fill is an older model than flux-2-pro, so the *generated* region
-can differ subtly in style from the rest. Its virtue is that the difference is confined to the mask.
+can differ subtly in style from the rest. Its virtue is that the visible change is confined to the mask; outside it, expect re-encode noise, not drift.
 
 BY DEFAULT IT REFUSES to overwrite an existing `--out`. That is on purpose: a new revision is a new
 dated file, and overwriting the old one hides history from anyone reading the shelf (banner revision C
@@ -98,6 +99,13 @@ def main():
     ap.add_argument("--band", type=int, default=430, help="regenerate everything below this row")
     ap.add_argument("--protect-left", type=int, default=320, help="keep the left W cols below the band")
     ap.add_argument("--no-corner", action="store_true", help="keep the bottom-right corner black")
+    ap.add_argument("--rect", action="append", default=[], metavar="X0,Y0,X1,Y1",
+                    help="regenerate ONLY this rectangle (repeatable; union). When given, --band, "
+                         "--protect-left and --no-corner are ignored. For a small addition that must "
+                         "not touch anything else, e.g. a mark beside another participant's mark")
+    ap.add_argument("--mask-only", action="store_true",
+                    help="write <out>.mask.png and exit without sending anything. Look at the mask "
+                         "before you spend a render")
     ap.add_argument("--steps", type=int, default=40)
     ap.add_argument("--guidance", type=float, default=40)
     ap.add_argument("--seed", type=int, default=None)
@@ -117,7 +125,19 @@ def main():
     w, h = image_size(a.image)
     band, prot, corner = a.band, a.protect_left, a.no_corner
 
+    rects = []
+    for r in a.rect:
+        try:
+            x0, y0, x1, y1 = (int(v) for v in r.split(","))
+        except ValueError:
+            raise SystemExit(f"--rect wants X0,Y0,X1,Y1 integers, got {r!r}")
+        if not (0 <= x0 < x1 <= w and 0 <= y0 < y1 <= h):
+            raise SystemExit(f"--rect {r} is outside the {w}x{h} image or empty")
+        rects.append((x0, y0, x1, y1))
+
     def m(x, y):
+        if rects:
+            return 255 if any(x0 <= x < x1 and y0 <= y < y1 for x0, y0, x1, y1 in rects) else 0
         if y < band:
             return 0
         if x < prot:
@@ -128,6 +148,9 @@ def main():
 
     mask = png_gray(w, h, m)
     Path(a.out + ".mask.png").write_bytes(mask)
+    if a.mask_only:
+        print("mask written to", a.out + ".mask.png", "— nothing sent, nothing charged")
+        return
 
     key, source = resolve_flux_token(str(ROOT))
     if not key:
