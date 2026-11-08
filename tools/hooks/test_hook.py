@@ -69,10 +69,20 @@ def test_core():
         r = sh("git commit -m forced --no-verify", tmp)
         assert r.returncode == 0, "--no-verify should bypass the hook"
 
-        # 5. renamed file with appended secret is still caught (ACMRT, not ACM)
-        sh("printf 'line\\n%.0s' {1..50} > big.txt && git add big.txt && git commit -qm bigfile", tmp)
+        # 5. renamed file with appended secret is still caught (ACMRT, not ACM).
+        # The body must be large enough that Git classifies the change as a rename
+        # (R) rather than delete+add (D/A) -- otherwise the ACM filter already
+        # catches the added file and the test passes without exercising ACMRT at
+        # all (Codex's fixture-hollowness finding). a small body + a 2048-bit key is <50% similar => D+A;
+        # a large body keeps similarity high => R. (Brace expansion {1..N} is
+        # avoided: sh() runs via /bin/sh where it is not expanded and yields a
+        # tiny literal file -- the original cause of the hollow D+A fixture.)
+        sh("yes line | head -n 2000 > big.txt && git add big.txt && git commit -qm bigfile", tmp)
         sh("git mv big.txt renamed.txt", tmp)
         sh("openssl genrsa 2048 >> renamed.txt 2>/dev/null && git add renamed.txt", tmp)
+        status = sh("git diff --cached --name-status -M", tmp).stdout
+        assert status.startswith("R"), \
+            f"fixture must be a rename (R) to exercise ACMRT, Git reports: {status!r}"
         r = sh("git commit -m sneaky-rename", tmp)
         assert r.returncode != 0, "renamed file with a secret must be BLOCKED (ACMRT)"
         assert "sneaky-rename" not in sh("git log --oneline", tmp).stdout, \
