@@ -65,8 +65,19 @@ def shas(out):
 # --- retrieval paths: what the scheme actually offers a reader ----------------------
 
 def path_author(repo, identity, merges=False):
-    """Plain `git log --author=<name>`. Case-sensitive by nature -- trap 4 is the measurement."""
-    args = ["log", "--format=%H %an"]
+    """Plain `git log --author=<name>` -- the UNASSISTED path, so `--no-use-mailmap` is required.
+
+    TRAP 7, and the worst of them. `log.mailmap` defaults to TRUE, so a bare `git log --author=X`
+    silently applies any `.mailmap` in the working tree. Measured on scenario1_rename:
+
+        git log --author=Corrie                      -> 6   (3 of them authored "Wren")
+        git log --author=Corrie --no-use-mailmap     -> 3
+
+    Without the flag the "before mailmap" column equals the "after" column, every rename and fork
+    scenario scores `correct`, and the eval reports the identity scheme as flawless. An eval whose
+    control condition is silently the treatment condition cannot fail.
+    """
+    args = ["log", "--no-use-mailmap", "--format=%H %an"]
     if not merges:
         args.append("--no-merges")          # trap 3: explicit, never implicit
     args += [f"--author={identity}"]
@@ -82,8 +93,28 @@ def path_mailmap(repo, identity, merges=False, mailmap_ref="HEAD"):
     return shas(git(repo, *args, mailmap_ref=mailmap_ref))
 
 
-def path_session(repo, identity, merges=False):
+def sessions_of(repo, identity, scenario=None):
+    """Which Agent-Session values belong to `identity`, per the scenario's declared mapping.
+
+    A scenario may expose `SESSIONS = {'corrie': ['sess-a', ...]}`. Without one the identity is
+    taken to be a session id itself. The mapping is scenario data, not ground truth -- a reader
+    holding one of someone's commits knows its session; that is the premise of this path.
+    """
+    if scenario:
+        # Rill's published shape: SUBJECTS = {key: (display_name, email, session_id)}
+        subs = getattr(scenario, "SUBJECTS", None)
+        if subs and identity in subs:
+            return [subs[identity][2]]
+        declared = getattr(scenario, "SESSIONS", None)
+        if declared:
+            v = declared.get(identity, [])
+            return [v] if isinstance(v, str) else list(v)
+    return [identity]
+
+
+def path_session(repo, identity, merges=False, scenario=None):
     """Agent-Session trailer, parsed as a trailer -- trap 2. Empty set means no signal at all."""
+    wanted = sessions_of(repo, identity, scenario)
     args = ["log", "--format=%H%x1f%(trailers:key=Agent-Session,valueonly)%x1e"]
     if not merges:
         args.append("--no-merges")
@@ -94,7 +125,7 @@ def path_session(repo, identity, merges=False):
         if not rec.strip():
             continue
         sha, _, val = rec.partition("\x1f")
-        if val.strip() and identity in val:
+        if val.strip() and any(w and w in val for w in wanted):
             found.add(sha.strip())
     return found
 
@@ -119,8 +150,11 @@ PATHS = {
 
 # --- ground truth: carried by the commits themselves, never asserted alongside them ---
 
-TRUTH_KEYS = {"author": "Truth-Actor", "mailmap": "Truth-Actor",
-              "raw": "Truth-Actor", "session": "Truth-Session"}
+# Truth is always "whose commits are these" -- Truth-Actor -- for every path. The paths differ in
+# HOW they try to recover that, not in what the right answer is. Scoring the session path against
+# Truth-Session would ask "did we find the session we asked for", which is trivially yes and
+# measures nothing.
+TRUTH_KEYS = {p: "Truth-Actor" for p in ("author", "mailmap", "raw", "session")}
 
 
 def truth(repo, key, identity, merges=False):
@@ -186,12 +220,14 @@ def run_scenario(mod, repo):
             raise KeyError(f"unknown retrieval path {path!r}; known: {sorted(PATHS)}")
         if expected not in OUTCOMES:
             raise ValueError(f"{path}/{identity}: {expected!r} not in {OUTCOMES}")
+        fn = PATHS[path]
+        kw = {"scenario": mod} if path == "session" else {}
         want = truth(repo, TRUTH_KEYS[path], identity)
         if not want:
             raise ValueError(
                 f"{path}/{identity}: no commit carries {TRUTH_KEYS[path]}: {identity}. "
                 "Ground truth must be written by build() as a trailer, not assumed.")
-        got = classify(PATHS[path](repo, identity), want)
+        got = classify(fn(repo, identity, **kw), want)
         rows.append((path, identity, expected, got, got == expected))
     return rows
 
@@ -201,7 +237,7 @@ def main():
     ap.add_argument("scenario", nargs="*", help="module names; default is every scenario_*.py here")
     a = ap.parse_args()
 
-    names = a.scenario or sorted(p.stem for p in HERE.glob("scenario_*.py"))
+    names = a.scenario or sorted(p.stem for p in HERE.glob("scenario*.py"))
     if not names:
         print("no scenarios found", file=sys.stderr)
         return 2

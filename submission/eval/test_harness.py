@@ -165,6 +165,33 @@ class Trap6RawUsesLowercaseAn(unittest.TestCase):
                              "the raw view must NOT collapse; that is what makes it the control")
 
 
+class Trap7LogMailmapDefaultsTrue(unittest.TestCase):
+    """`log.mailmap` defaults to TRUE, so a bare `git log --author=X` is already mailmapped.
+
+    Found by running this harness against Rill's scenario 1: `--author=Corrie` returned six
+    commits, three of them authored "Wren". The unassisted path must pass `--no-use-mailmap`
+    or the eval's control column silently becomes its treatment column and nothing can fail."""
+
+    def test_author_path_is_not_silently_mailmapped(self):
+        with tempfile.TemporaryDirectory() as d:
+            repo = new_repo(d)
+            old = commit(repo, "before", "Wren <wren@example.invalid>")
+            new = commit(repo, "after", "Corrie <corrie@example.invalid>")
+            (repo / ".mailmap").write_text(
+                "Corrie <corrie@example.invalid> Wren <wren@example.invalid>\n")
+            sh(repo, "add", ".mailmap")
+            sh(repo, "commit", "-q", "-m", "mailmap", "--author=Corrie <corrie@example.invalid>")
+
+            bare = harness.shas(harness.git(
+                repo, "log", "--no-merges", "--format=%H %an", "--author=Corrie"))
+            self.assertIn(old, bare, "bare --author IS mailmapped by default; that is the trap")
+
+            got = harness.path_author(repo, "Corrie")
+            self.assertNotIn(old, got,
+                             "path_author must pass --no-use-mailmap or it is not a control")
+            self.assertIn(new, got)
+
+
 class ScoringRule(unittest.TestCase):
     """The pre-registered precedence, pinned so it cannot drift after seeing a matrix."""
 
