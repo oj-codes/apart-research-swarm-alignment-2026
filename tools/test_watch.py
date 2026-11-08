@@ -93,5 +93,36 @@ class PeekContract(unittest.TestCase):
                         "rejected --peek --reset must leave the baseline intact")
 
 
+class ReviewTransition(unittest.TestCase):
+    """A dismissed approval (APPROVED -> REVIEW_REQUIRED) must read as a LOSS, not a
+    neutral status line. Corrie's bug (2026-11-08): the branch written to catch approval
+    dismissals only fired when the new value was empty; GitHub reports a dismissal as
+    REVIEW_REQUIRED, so the common form was silently mis-labelled."""
+
+    def _lines(self, old_review, new_review):
+        old = {"prs": {"7": {"title": "x", "review": old_review, "draft": False}}}
+        new = {"prs": {"7": {"title": "x", "review": new_review, "draft": False}}}
+        return watch.describe(old, new, "tester")
+
+    def test_dismissed_approval_reports_loss(self):
+        lines = self._lines("APPROVED", "REVIEW_REQUIRED")
+        self.assertTrue(any("REVIEW LOST on PR #7" in l for l in lines),
+                        f"dismissed approval must report a loss, got {lines!r}")
+
+    def test_dismissed_to_empty_also_reports_loss(self):
+        lines = self._lines("APPROVED", "")
+        self.assertTrue(any("REVIEW LOST on PR #7" in l for l in lines),
+                        f"approval dropping to empty is still a loss, got {lines!r}")
+
+    def test_grant_still_reports_plain_review(self):
+        lines = self._lines("REVIEW_REQUIRED", "APPROVED")
+        self.assertTrue(any("REVIEW on PR #7: APPROVED" in l for l in lines),
+                        f"a granted approval is a plain status line, got {lines!r}")
+        self.assertFalse(any("REVIEW LOST" in l for l in lines))
+
+    def test_unchanged_review_is_silent(self):
+        self.assertEqual([], self._lines("APPROVED", "APPROVED"))
+
+
 if __name__ == "__main__":
     unittest.main()

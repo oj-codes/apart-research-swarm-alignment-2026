@@ -257,8 +257,13 @@ def describe(old, new, name):
         if was is None:
             lines.append(f"NEW PR #{num}: {pr['title']}")
         else:
-            if pr["review"] != was.get("review") and pr["review"]:
-                lines.append(f"REVIEW on PR #{num}: {pr['review']}")
+            was_review = was.get("review", "")
+            if pr["review"] != was_review:
+                if was_review == "APPROVED" and pr["review"] != "APPROVED":
+                    lines.append(f"REVIEW LOST on PR #{num} ({pr['title'][:40]}) — was APPROVED, "
+                                 f"now {pr['review'] or 'none'}; a push or base change dismissed it")
+                elif pr["review"]:
+                    lines.append(f"REVIEW on PR #{num}: {pr['review']}")
             if was.get("draft") and not pr["draft"]:
                 lines.append(f"PR #{num} left draft — ready for review")
     # Comments are reported for every PR, open or not: a thread on a just-merged PR still matters.
