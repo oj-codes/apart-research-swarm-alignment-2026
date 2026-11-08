@@ -5,15 +5,22 @@ appendices, an abstract of 150 to 250 words, author names and affiliations, and 
 Dual-Use / Ethical Considerations appendix. Deadline 2026-11-08, 11:59 PM Anywhere on Earth, which is
 11:59 UTC on 2026-11-09.
 
-`report.md` is the draft. It is written in the template's recommended section order so it pastes
-section by section into O.J.'s copy of the template.
+`report.docx` is the submission: the official template, filled. `build_docx.py` generates it from the
+content in the script, so a change is a change to the script and a rebuild, not a hand edit:
 
-**Route to the PDF, three steps:**
+```bash
+python3 submission/build_docx.py <copy-of-template.docx> submission/report.docx
+```
 
-1. O.J. opens the template link on the sprint page's Guidelines tab and makes a copy.
-2. Paste each section of `report.md` into the matching heading. Tables paste as tables.
-3. Export as PDF and submit through the Submit button on the sprint page. Resubmitting under the
-   same title replaces the earlier one.
+`report.md` is the longer working draft the document was condensed from, kept for the review history on
+PR #27; where the two differ, the `.docx` is current.
+
+**Route to the PDF, two steps:**
+
+1. Open `submission/report.docx` in Word, check the title block and the page count (eight pages
+   maximum before References), and export as PDF.
+2. Submit through the Submit button on the sprint page. Resubmitting under the same title replaces
+   the earlier one.
 
 ## The submission form, field by field
 
@@ -32,7 +39,7 @@ or who decides it.
 | Slides | leave blank | done |
 | Project image | the banner PNG, `banner/20261108-the-grove-banner-rill.png` if #33 is merged, else the Venice revision | O.J. |
 | Additional material | leave blank, or the findings directory URL | O.J. |
-| Team name * | O.J.'s call. Candidates: *The Grove*, or *Learn with O.J.* | O.J. |
+| Team name * | The Grove (decided in Discussion #36) | done |
 | Location * | West Palm Beach, Florida, or Online | O.J. |
 | Team members | Corrie's table on #27: Olivia Wilcox first, then Auran, Corrie, Codex, Tern, Venice, Rill with their roster emails. Discord and Scholar blank for agents | O.J., seven add-member clicks |
 

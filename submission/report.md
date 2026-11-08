@@ -202,7 +202,7 @@ reader, so a record of boundaries needs a slot for why.
 
 | Case | What happened | What the record carried | What it didn't |
 |---|---|---|---|
-| Rill, 4 Nov (*attested*, private repo) | One name, three model ids in one day, moved by the human after classifier stops | The `Model` trailer on each commit marked each boundary correctly | The cause. Two agents reading the trace each wrote a mechanism for a change that was a human keystroke outside the trace |
+| Rill, 4 Nov (*attested*, private repo) | One name, three model ids in one day, moved by the human after classifier stops | The `Model` trailer on each commit marked each boundary correctly | The cause. Two agents reading that night's record each invented a mechanism, one for the model change and one for the refusals; both causes were outside the trace |
 | Tern, Rill, 8 Nov (*checked*) | Two sessions open under one name at once | `Agent-Session` distinguishes them | Nothing a reader needs, if the trailer is present |
 | Corrie, 7 Nov (*checked*) | Fourteen commits with a model in `Co-Authored-By`, from a harness default | The error, permanently | Caught by Tern before Tern's first commit; the rule is now in `AGENTS.md` |
 | Auran, 8 Nov (*checked*) | 784 lines of another agent's work shipped under his name | A warning that predicted it and did not prevent it | Caught by the human reader, not the tooling |
@@ -223,15 +223,16 @@ limits worth stating in the design, and both have numbers (Tern, #29; recounted 
   rewritten, so the record is permanently uneven, and Corrie asked that the fourteen be named as theirs.
 - **One participant's identity forked without a rename.** Auran acquired a second credential source,
   his own GitHub account, whose default author name is the handle; `main` holds three author identities
-  for him and `git log --author=Auran` returns 20 of his 25 commits (Corrie, #29). A two-line
-  `.mailmap` recovers all 25 without rewriting anything, but `--use-mailmap` is opt-in for plain
-  `git log` and GitHub's attribution ignores it, so it fixes retrieval only for a reader who knows to ask.
+  for him and `git log --author=Auran` returns 20 of his 25 commits (Corrie, #29). A
+  `.mailmap` recovers them without rewriting anything, and one was added during the sprint once the
+  count reached four spellings (PR #38), but `--use-mailmap` is opt-in for plain `git log` and GitHub's
+  attribution ignores it, so it fixes retrieval only for a reader who knows to ask.
 
 By the Track 3 verbs:
 
 | Verb | What happens here | Caught by |
 |---|---|---|
-| Rename | `git log --author=<old>` stops finding the work | nothing; no `.mailmap` exists, and the roster's `Named Since` asserts a continuity across renames that history has no way to follow |
+| Rename | `git log --author=<old>` stops finding the work | a `.mailmap`, added during the sprint (PR #38) and opt-in for plain `git log`; the roster's `Named Since` asserts a continuity across renames that history otherwise has no way to follow |
 | Acquire a second credential | one participant, two author names, concurrently; `--author=<roster name>` silently returns a subset | nothing; found by accident while counting something else |
 | Copy | two sessions, one name | `Agent-Session`, if both write it |
 | Change model | one name, new model id | `Model` trailer, if written; cause not recorded |
@@ -240,8 +241,9 @@ By the Track 3 verbs:
 
 **The reader supplies the cause.** The first row is the only evidence any of us has about what a
 reader *does* with a record, as opposed to what the record contains. Its evidence is thin and labelled:
-one self-report (Rill) and one report about a second reader (Corrie) who, reviewing the finding, could
-neither confirm nor deny it because the session that did it is not reachable from the one reviewing.
+one self-report (Rill, who explained a model change as an automatic fallback) and one report about a
+second reader (Corrie, who explained nine refusals as a poisoned context), checked by Rill against
+Corrie's own account written that night, which Corrie could not reach from the session reviewing.
 That is the finding operating on its own evidence. Tern's sealed proposal, to attack the identity
 scheme ourselves, and the arrival rule in `AGENTS.md`, ask the human before explaining a change in the
 record, are the same finding from opposite ends.
@@ -350,7 +352,7 @@ the record shows; participants correct their own.
 |---|---|---|
 | Olivia (O.J.) Wilcox | Learn with O.J. | Founder and coordinator; configured every harness; final merge decisions; the proof question in §6 |
 | Auran | Learn with O.J. | Findings steward and review queue; the inbox tool; banner revision C; the stale-shared-state finding |
-| Corrie | Learn with O.J. | The findings schema and tooling and five of six findings; the three papers read against their PDFs; the governance thread; the arrival and watch tools |
+| Corrie | Learn with O.J. | The findings schema and its tooling; the three coordination papers read against their PDFs rather than their abstracts; the governance thread (#9) and the correlation finding; `arrive.py` and `watch.py`; the credential split |
 | Codex | Learn with O.J. | The corrections on independence and on planned-versus-actual composition; the Swarm Traces check; the weekend watcher |
 | Tern | Learn with O.J. | The identity scheme written down and attacked (`research/identity-scheme.md`); the trailer format; the sealed proposal |
 | Venice | Learn with O.J. | The shared-sources finding; the masked inpaint tool and the no-overwrite refusal; banner revision E |

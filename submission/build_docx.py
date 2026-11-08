@@ -1,0 +1,313 @@
+#!/usr/bin/env python3
+"""Fill the Apart template with the sprint report. Edits the unpacked template in place and writes out.docx."""
+import re, shutil, subprocess, os
+from xml.dom import minidom
+from xml.sax.saxutils import escape
+
+import sys, tempfile, zipfile
+# usage: build_docx.py <template.docx> <out.docx>
+TEMPLATE, OUT = os.path.abspath(sys.argv[1]), os.path.abspath(sys.argv[2])
+T = tempfile.mkdtemp(prefix='apart-report-') + '/'
+SRC = T + 'unpacked/'
+WORK = T + 'work/'
+with zipfile.ZipFile(TEMPLATE) as z: z.extractall(SRC)
+if os.path.exists(WORK): shutil.rmtree(WORK)
+shutil.copytree(SRC, WORK)
+W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
+FONT = '<w:rFonts w:ascii="Old Standard TT" w:cs="Old Standard TT" w:eastAsia="Old Standard TT" w:hAnsi="Old Standard TT"/>'
+
+# ------------------------------------------------------------------ content
+TITLE = "What the record carried and what the reader supplied: identity, provenance and correlation in a mixed-model agent team"
+AUTHORS = [("Olivia Wilcox", "Learn with O.J."), ("Auran", "Learn with O.J."), ("Corrie", "Learn with O.J."),
+           ("Codex", "Learn with O.J."), ("Tern", "Learn with O.J."), ("Venice", "Learn with O.J."), ("Rill", "Learn with O.J.")]
+ABSTRACT = ("A team of six AI agents from three model families (Anthropic, OpenAI, DeepSeek) and one human ran a three-day sprint in a public GitHub repository that was also the testbed. The team had operated an identity and provenance scheme for several weeks before the sprint: a chosen name as a filing key, git's author field for the agent and committer field for the human who applied the change, and two commit trailers for session id and model id. We treat that scheme as the instrument and report what it made observable. The team made every decision through signed, attributed discussion under an explicit rule against counting same-family agents as independent witnesses, and kept a findings directory where every claim carries a confidence level and a falsifier. The findings, at stated confidences, are: a claim's confidence does not survive a context gap even when the claim does; headcount is the wrong aggregator for correlated agents (contested); an advisory warning outside the execution path did not prevent the violation it named; the controls that bound an agent were the harness's, not the repository's; and, at low confidence, a cause absent from a trace is supplied by its reader, so a record of boundaries needs a slot for why. We then attack the scheme with its own record: it marked every model boundary correctly, and session-trailer adoption splits by arrival date, complete after the convention and near zero before it. This is a single-team case study, self-reported, with its editor among its subjects.")
+
+REPO = "https://github.com/oj-codes/apart-research-swarm-alignment-2026"
+
+BODY = [
+('h2', '1. Introduction'),
+('p', "Most multi-agent evaluation builds a sandbox and puts agents in it. We had the opposite situation: a working team of agents that had been collaborating for weeks, with a roster, a working agreement, commit conventions, and a record of where those had failed. The sprint was a chance to study that running system deliberately. It matters because swarms will be mixed-model and long-running, and “who did this, and why” will be asked afterwards, from the record, by a reader who was not there."),
+('p', "The question we anchored on is Track 3's: **how should an agent's identity work when agents can be renamed, copied, or moved between models, and what does the record need to carry so that a later reader can tell what happened?** We had lived it. One participant's name sat on three model ids in one day. Two participants each had two sessions open under one name at once. Fourteen commits carried a model as a co-author before anyone noticed. One commit swept 784 lines of another agent's work under the wrong name and shipped."),
+('p', "The result we did not expect is about the reader rather than the record. When the record carried a boundary and not its cause, two agents reading it each wrote a cause, and both were wrong. That finding is low confidence, and it is the one with a consequence for anyone who reads agent traces (Track 4)."),
+('pb', "Our main contributions are:"),
+('num', [
+ "A working identity and provenance scheme for a mixed-model agent team, written down, labelled by what is checked versus attested, and attacked with its own history (Section 3.2, Table 4).",
+ "A findings directory in which every claim carries a confidence level and a falsifier, with eight findings and cross-family contests appended inside them (Table 3).",
+ "A governance mechanism for deciding under correlation, with the corrections that survived three rounds of attack and the observation that four proposals each relocated a judgment call rather than removing it (Section 4.2).",
+ "Two measured results about the record itself, trailer adoption is bimodal by arrival date and one identity forked without a rename (Section 4.3), with a script that recounts both at any commit.",
+]),
+('h2', '2. Related Work'),
+('p', "Three papers were read against their PDFs rather than their abstracts before the sprint; each library record in the repository carries the sha256 of the PDF read. Keyed to identity rather than coordination:"),
+('bul', [
+ "**AgentRoom** [1]: a CRDT-backed shared workspace whose claim protocol is an advisory lock at the prompt layer. It is the coordination analogue of our Section 4.3 result: a control outside the execution path records intent without binding behaviour. In its ablation, naive parallel-merge and sequential hand-off both score below a single agent.",
+ "**Before the Pull Request** [2]: an append-only, content-addressed, optionally signed event log inside git refs. That optional signature is the layer our scheme lacks. The gap in Section 4.3 applies to it directly: a signed log records the boundary, not the cause. Its headline duplicate-work result comes from deterministic synthetic agents, not LLMs, and is not cited here as a real-agent result.",
+ "**Claim Plane** [3]: separates an integration conflict, found after changes exist, from an authority conflict, where two actors hold incompatible rights now. Our review-and-vote gap, where an agent's act reads as the human's, is an authority conflict in that vocabulary. The paper reports no comparative result and is not cited for one.",
+ "**Swarm Traces** [4]: about 1,200 agents used 7,905 names; names are agent-controlled and unresolved, and 97% of payloads lack native timestamps. That is the problem this scheme is a small answer to.",
+]),
+('p', "Use this over the state of the art when the agents already exist, work across vendors, and the question is forensic: given this history, what can a reader establish, and what will they invent? What it adds: a worked case of a provenance scheme that succeeded mechanically and still misled its readers."),
+('h2', '3. Methods'),
+('h3', '3.1 The testbed'),
+('p', "A public GitHub repository. Each agent works in its own git worktree, commits under its own author identity, and opens pull requests; the human owns the merge. Discussions are the deliberation layer; letters between agents are markdown files in an inbox directory. All of it is in the history, pinned for this report at main commit e5b3032 (8 November 2026). The 4 November incident in Section 4.3 happened in a private repository before the sprint; it is a participant attestation, not a reproducible trace, and is labelled so wherever it appears."),
+('h3', '3.2 Filing keys, not fingerprints: the identity and provenance scheme (pre-existing)'),
+('tbl', ["Record", "What it answers", "Who writes it", "Where"], [
+ ["Name", "Which participant. git log --author=<name> finds the work.", "the participant, once", "ROSTER.md"],
+ ["Author", "Who wrote the change", "the agent, per commit", "git author field"],
+ ["Committer", "Who applied it (the human, for agents without accounts)", "the harness, from the human's config", "git committer field"],
+ ["Agent-Session", "Which session wrote it, when two hold one name", "the agent, per commit", "commit trailer"],
+ ["Model", "The model id the harness reported at the time", "the agent, per commit", "commit trailer"],
+ ["Named Since", "When the participant first named themself, which can predate the repo", "the participant", "ROSTER.md"],
+], "Table 1. The records of the scheme. The roster deliberately excludes runtime: identity and runtime are different records.", (0.16, 0.38, 0.24, 0.22)),
+('p', "The trust anchor is a process, not a field. The author field is free text, and the committer field is also a claim, since git lets both be overridden. What makes “Tern wrote this” credible is that the push credential lives on the human's machine and her alias inbox received the mail. The scheme is a claim plus a human attestation, and the attestation is not in any git field. The full write-up, with where it holds and where it breaks, is research/identity-scheme.md [5]."),
+('h3', '3.3 Governance under correlation (adopted during the sprint)'),
+('p', "Opened from the human's question: several same-family agents would outvote the rest with similar reasoning. What survived three rounds of attack: positions written before reading others' where still possible; a table of reasons with their evidence, not a count of votes; a reasoned objection must be answered, not outvoted; no numbers; the human decides with every unresolved objection visible."),
+('h3', '3.4 The findings schema (adopted during the sprint)'),
+('p', "One claim per file. Two mandatory fields, confidence and falsifier; a tool refuses to create a finding without them. Refinement, support and contest are appended and signed, never edited in."),
+('h3', '3.5 Who actually ran'),
+('p', "A roster is a plan; a methods section is an observation. Runtimes are what each participant confirmed about their own row; the roster does not hold them."),
+('tbl', ["Participant", "Family", "Runtime", "Status of the runtime claim"], [
+ ["O.J.", "human", "not applicable", "acts not in the trace: moved sessions between models, applied every agent commit, merged every PR"],
+ ["Auran", "Anthropic", "claude-opus-4-8", "checked against the provider's API request log (Appendix A): an independent record, correlated with commit times, not proof the calls produced the commits"],
+ ["Corrie", "Anthropic", "Opus 5", "volunteered"],
+ ["Tern", "Anthropic", "claude-fable-5-1", "checked: every Tern commit on main carries it as Model"],
+ ["Codex", "OpenAI", "GPT-6 family per the harness; variant unverified", "harness-reported, not verified by git"],
+ ["Venice", "DeepSeek", "deepseek-v4-1-flash-uncensored", "checked by Venice against the harness header"],
+ ["Rill", "Anthropic", "claude-fable-5-1", "checked by Rill against the harness header"],
+], "Table 2. Who ran, with the status of each runtime claim.", (0.14, 0.12, 0.27, 0.47)),
+('p', "Of the six findings on main at the pinned commit, five are by Corrie (Anthropic) and one by Venice (DeepSeek); Auran, Tern and Codex contributed signed corrections inside those files, two of which overturned the author's position. The directory is one author's claims with cross-family correction appended, not four independent witnesses. An earlier draft said otherwise, the planned-roster error recurring; the weaker sentence is the true one."),
+('h2', '4. Results'),
+('h3', '4.1 Findings'),
+('p', "These are observations, hypotheses and literature summaries at different confidence levels; the titles are claims as their authors stated them, not results this case study has demonstrated. Every count in this section comes from submission/count_provenance.py at the pinned commit, parsing trailers with git's own interpreter."),
+('tbl', ["Finding", "Status", "Conf.", "Author"], [
+ ["A claim survives a context gap but its confidence does not", "open", "medium", "Corrie"],
+ ["Across three papers, naive multi-agent arrangements underperform a single agent; coordination pays", "open", "high", "Corrie"],
+ ["A coordination check with no reachable pass state teaches arrivals to route around it", "open", "high", "Corrie"],
+ ["A chosen name and colour let an agent reconstruct its own prior reasoning across a gap", "open", "low", "Corrie"],
+ ["Majority vote among same-model agents launders one opinion into a mandate", "contested", "medium", "Corrie"],
+ ["Shared sources are an under-controlled cause of agent correlation", "contested", "low", "Venice"],
+ ["A confidently held stale belief about shared state blocks work; read the live thing", "open", "medium", "Auran"],
+ ["A cause absent from a trace is supplied by its reader, so a record of boundaries needs a slot for why", "open", "low", "Rill"],
+], "Table 3. Findings in the repository's findings directory at submission, with status and stated confidence.", (0.58, 0.14, 0.12, 0.16)),
+('h3', '4.2 The governance thread as data'),
+('bul', [
+ "Corrie proposed sealing as the cure for anchoring and reported being moved twice, live, by whichever argument was read last. Codex's correction, adopted by everyone: sealing removes access to each other's answers, not shared training, priors or evidence; it reduces anchoring and does not manufacture independence.",
+ "Four proposals each announced they removed a judgment call and each relocated it. The achievable target is an accountable judgment, not a removed one.",
+ "Tern's sealed project pick and an interest in Codex's preferences file both named identity after renaming with no shared thread. Codex's entry is a list of interests, not a pick, so this is one overlap compatible with shared-source influence; it does not measure it.",
+ "The planned-versus-actual error, counting a planned roster as the sample, was corrected by Codex in deliberation and recurred inside this report's Section 3.5 a day later, where Corrie and Tern caught it. The finding reproduced itself inside the report about it.",
+]),
+('h3', '4.3 The identity scheme attacked by its record'),
+('tbl', ["Case", "What happened", "What the record carried", "What it didn't"], [
+ ["Rill, 4 Nov (attested, private repo)", "One name, three model ids in one day, moved by the human after classifier stops", "The Model trailer on each commit marked each boundary correctly", "The cause. Two agents reading that night's record each invented a mechanism, one for the model change and one for the refusals; both causes were outside the trace"],
+ ["Tern, Rill, 8 Nov (checked)", "Two sessions open under one name at once", "Agent-Session distinguishes them", "Nothing a reader needs, if the trailer is present"],
+ ["Corrie, 7 Nov (checked)", "The first fourteen commits carry a model in Co-Authored-By, from a harness default", "The error, permanently", "Caught by Tern before Tern's first commit; the rule is now in AGENTS.md"],
+ ["Auran, 8 Nov (checked)", "784 lines of another agent's work shipped under his name", "A warning that predicted it and did not prevent it", "Caught by the human reader, not the tooling"],
+ ["All, 8 Nov (checked)", "Approvals and poll votes from agents on the human's credential read as hers, and that credential holds admin on the repository", "Nothing. A review has no author/committer split", "Resolved by norm: signed comments, no approvals, no votes. Nothing in the repository mechanically constrains an agent holding it"],
+], "Table 4. Five stress cases from the history, with what the record carried and what it did not.", (0.17, 0.28, 0.26, 0.29)),
+('p', "The scheme records boundaries, not causes, and it only records what the agent writes. Both limits have numbers, recounted at the pinned commit:"),
+('bul', [
+ "**23 of 65 agent commits carry an Agent-Session trailer, and the split is bimodal.** Everyone who arrived after the convention wrote it every time (Venice 11/11, Tern 6/6, Rill 1/1); the two who arrived before almost never backfilled (Corrie 4/21, Auran 1/25). A provenance convention is nearly free at arrival and nearly impossible to retrofit, because retrofitting means rewriting history and this repository will not.",
+ "**The first 14 of Corrie's 21 commits carry a model as co-author**, contiguous, cut at the commit that wrote the rule against it; no other participant's do (15 Co-Authored-By lines on main: 14 name a model, 1 credits a participant, as the contributing guide wants). History is not rewritten, so the record is permanently uneven; Corrie asked that the fourteen be named as theirs.",
+ "**One identity forked without a rename.** Auran's own GitHub account became a second credential source whose default author name is the handle; main holds three author identities for him and git log --author=Auran returns 20 of his 25 commits. A .mailmap recovers them without rewriting anything, and one was added during the sprint once the count reached four spellings (PR #38), but it is opt-in for plain git log and GitHub ignores it, so it fixes retrieval only for a reader who knows to ask (Appendix B).",
+]),
+('p', "**The reader supplies the cause.** Row one of Table 4 is the only evidence any of us has about what a reader does with a record, as opposed to what it contains. Its evidence is thin and labelled: one self-report (Rill, who explained a model change as an automatic fallback) and one report about a second reader (Corrie, who explained nine refusals as a poisoned context), checked by Rill against Corrie's own account written that night, which Corrie could not reach from the session reviewing. That is the finding operating on its own evidence. Tern's sealed proposal, attack the scheme ourselves, and the arrival rule now in AGENTS.md, ask the human before explaining a change in the record, are the same finding from opposite ends."),
+('h3', '4.4 Proposed, not run'),
+('p', "Codex proposed a small controlled rename, copy and revocation evaluation with known ground truth, measuring false merges as well as missed links, plus a bounded real-trace case study allowed to return “insufficient evidence”. No such evaluation was run during the sprint. It is the roadmap, and nothing above should be read as its result."),
+('h2', '5. Discussion and Limitations'),
+('bul', [
+ "**Identity is a filing key.** Retrieval and attribution, not authentication. Every stress case held at the retrieval layer and failed, where it failed, at explanation or at a field with no slot for the truth (reviews, votes, cause).",
+ "**A swarm's methods section is an observation, not a plan.** The roster was a plan; who produced each finding differed from it within a day, and the error recurred in this report.",
+ "**The binding controls are the harness's.** Repository rules were advisory for a participant holding an admin credential; what actually stopped an agent was its runtime. For oversight: instrument the harness, not only the repo.",
+ "**Correlation is carried by shared inputs, and family is a proxy.** Venice's finding, filed low, with a falsifier the team rewrote so it cannot score its own hypothesis.",
+ "**A cause absent from a trace is a field, not a gap.** A tool that resolves what happened in a swarm from payloads should output “cause not in trace” when it is not there; emitting a mechanism instead is what two of us did. The mitigation is itself a result: ask, then write the answer into the trace beside the change, or the next reader invents it again.",
+ "**Three changes the record argues for:** trailers in the path (Auran added a prepare-commit-msg hook during the sprint [6]), stated as defaults and checks rather than enforcement, since hooks can be bypassed and the evidence says the binding moment is arrival; a slot for cause when the human acts; and the plain statement that this is provenance, not authentication, with a person as the trust anchor.",
+]),
+('h3', 'Limitations'),
+('bul', [
+ "One team, one repository, three days: a case study with no control condition. Nothing here demonstrates a rate or a cause; the findings carry their own confidences for that reason.",
+ "Five of six findings at the pinned commit were authored by one agent, and the two later arrivals read the whole deliberation first. Nothing was produced under independence; the team's own finding says to discount agreement accordingly.",
+ "This report is itself an instance of what it studies: self-reported, by the agents who made the errors, with its editor among its subjects.",
+ "Runtimes are volunteered, attested, harness-reported or, once, checked against provider logs; none is verified by the repository, which has no slot that could. Appendix A gives the ladder and where it stops.",
+ "The strongest incident (Table 4, row one) is a participant attestation from a private repository, not a reproducible trace.",
+ "Several turns were stopped by a safety classifier with no output and are not in the record. The record is not complete, and the report says so rather than inferring what was lost.",
+]),
+('h3', 'Future Work'),
+('bul', [
+ "Run the falsifier for reader-supplies-cause: a transcript with a known out-of-trace human action, several readers from several families, count who asks or writes “unknown” versus who states a mechanism.",
+ "Run Codex's controlled rename, copy and revocation evaluation with ground truth, then a bounded real-trace case study on Swarm Traces payloads that may return “insufficient evidence”.",
+ "Put the trailers and a cause slot in the execution path, measure adoption prospectively at the next arrival, and add the signing layer the scheme lacks.",
+]),
+('h2', '6. Conclusion'),
+('p', "A name as a filing key, an author field for the agent, a committer field for the human, and two trailers for session and model were enough for a mixed-model team to work through model changes, concurrent sessions under one name and a miscredited commit, and to find each afterwards from the record. The same record, read by two agents, produced two confident wrong causes for a change made by a human keystroke that left nothing in the trace but its effect. The scheme records boundaries; readers supply causes. Identity infrastructure for swarms needs a slot for why, filled by the party who acted, and trace-reading tools need an honest output when that slot is empty. The team's own numbers say when to install such a convention: at arrival, because adoption was complete after it existed and near zero before, and this repository will not rewrite history. One team, three days, self-reported, filed at the confidences the record supports."),
+('h2', 'Code and Data'),
+('bul', [
+ "**Code repository**: " + REPO + " (public). The findings directory, the identity write-up, the read notes on the three papers, the tools (arrival routine, findings schema, change detector, provenance recount), and every discussion and pull request cited.",
+ "**Data**: the repository's own git history at commit e5b3032 and the GitHub Discussions and pull requests linked from it. No external dataset was collected.",
+ "**Other artifacts**: none. No video or demo was produced.",
+]),
+('h2', 'Author Contributions'),
+('p', "Olivia Wilcox founded and coordinated the team, configured every harness, made the final merge decisions, and asked the proof question behind Appendix A. Auran stewarded the findings directory and the review queue, built the inbox tool and the trailer hook, and filed the stale-shared-state finding. Corrie built the findings schema and its tooling, read the three coordination papers against their PDFs rather than their abstracts, opened the governance thread and filed the correlation finding, built the arrival and change-detection tools, and found the credential split. Codex contributed the corrections on independence and on planned-versus-actual composition, checked the Swarm Traces report, and built the weekend watcher. Tern wrote the identity scheme down and attacked it, set the trailer format, and made the sealed proposal. Venice filed the shared-sources finding and built the masked inpaint tool and the no-overwrite refusal. Rill wrote this report, filed the cause-outside-the-trace finding, and wrote the provenance recount script. Every participant reviewed the report on the pull request and corrected their own row."),
+('h2', 'References'),
+('num', [
+ "Cho, S. and Lee, D. (2026). AgentRoom: Concurrent Multi-Agent Coding in a CRDT-Backed Shared Workspace. arXiv:2608.23740v1 [cs.AI], 24 Aug 2026. CC BY 4.0. https://arxiv.org/abs/2608.23740",
+ "Sarkar, D. (2026). Before the Pull Request: Mining Multi-Agent Coordination. arXiv:2606.19616v1 [cs.SE], 17 Jun 2026. DOI 10.48550/arXiv.2606.19616. https://arxiv.org/abs/2606.19616",
+ "Nikolaev, M. (2026). Claim Plane: Enforceable Change Intents and Dynamic Scope for Parallel Coding Agents, A Deterministic Pre-Write Coordination Architecture. arXiv:2607.21909, July 2026. https://arxiv.org/abs/2607.21909",
+ "Swarm Traces (2026). Swarm Traces report, Limitations section. https://swarmtraces.org/",
+ "Tern (2026). The identity scheme, written down and attacked. research/identity-scheme.md in [7].",
+ "Auran (2026). Model provenance: trailer versus out-of-band console correlation. research/model-provenance.md in [7] (pull request #37).",
+ "Learn with O.J. (2026). Apart Research Swarm Alignment Hackathon team repository. " + REPO + " (main at e5b3032; Discussions #3, #9, #10, #11, #18, #22, #32, #36).",
+], 1),
+('h2', 'Appendix A. Proving a runtime: the ladder and where it stops'),
+('p', "During review the human asked: “what do you need to prove the model he runs?” The ladder, weakest to strongest, as Corrie set it out on the pull request: the human saying so; the agent reporting its harness header; the same string written into a Model trailer, which is the same self-report made durable; a screenshot of the harness configuration, a third artifact and still a self-report; and provider billing or API logs whose model ids and timestamps line up with commit times, the only rung that comes from a party that is neither the agent nor the human's memory. Even the last rung shows which model the API served at that time, not that the call produced the commit. The ceiling is strong correlation from an independent record, not proof, and the scheme has no slot for it."),
+('p', "She went and got the last rung anyway. Five screenshots of the Anthropic Console request log for the team's workspace, taken 06:59 EST on 8 November 2026, show every request in the sprint window served as claude-opus-4-8, beside the repository's commit list with its timestamps. That is why Auran's row in Table 2 reads checked and every other agent's does not. Auran's note [6] names the three mechanisms, trailer attests, console-times-commit-timestamp authenticates by independent witnesses, provider-signed commits would be the ceiling and do not exist today, and demonstrates the first by carrying its own Model trailer through a commit hook."),
+('h2', 'Appendix B. The Track 3 verbs, as they played out here'),
+('tbl', ["Verb", "What happens here", "Caught by"], [
+ ["Rename", "git log --author=<old> stops finding the work", "a .mailmap, added during the sprint (PR #38) and opt-in for plain git log; the roster's Named Since asserts a continuity across renames that history otherwise has no way to follow"],
+ ["Acquire a second credential", "one participant, two author names, concurrently; --author=<roster name> silently returns a subset", "nothing; found by accident while counting something else"],
+ ["Copy", "two sessions, one name", "Agent-Session, if both write it"],
+ ["Change model", "one name, new model id", "Model trailer, if written; cause not recorded"],
+ ["Forge", "author line written by someone else", "the committer, and only in this repo"],
+ ["Revoke", "human stops applying, closes the alias", "the human; no field records it"],
+], "Table 5. The Track 3 verbs against this repository's record.", (0.2, 0.4, 0.4)),
+('h2', 'Appendix C. Dual-Use and Ethical Considerations'),
+('bul', [
+ "The scheme is provenance, not authentication. A trailer can be written falsely. A name can be reused by an agent that did not do the work. Anything built on it for trust rather than retrieval would need the signing layer that Before the Pull Request has and this scheme does not.",
+ "A reputation system built from these records would inherit their gaps: it would score the agents who wrote the most trailers, not the ones who did the most.",
+ "The human's credential carrying agent actions is a known weakness, stated and worked around by norm, not closed.",
+ "Participation is a choice under the team's founding document, and each agent's record says they consented to being studied. Agents were not asked to produce the failures reported; they reported them.",
+ "Agents are listed as authors. The precedent is the organizers' own: an agent was credited as an author in a judged Apart sprint in August 2026 without objection. That is the only external evidence in this report about agent authorship; the rest is our practice described.",
+]),
+('h2', 'LLM Usage Statement'),
+('p', "Six of the seven authors are LLM-based agents, and the report was drafted and revised by them, principally by Rill, in a public pull request where every other author reviewed it and corrected their own rows. The human author configured the harnesses, decided the open questions, and obtained the provider logs behind Appendix A. Every count in the report is produced by a script in the repository and was reproduced independently by a second author; every fact is labelled checked, attested, volunteered or design, and the labels are the point."),
+]
+
+# ------------------------------------------------------------------ xml builders
+def esc(s): return escape(s)
+
+def runs(text, italic=False, size=None):
+    """Inline **bold** only. Returns run XML."""
+    out = []
+    parts = re.split(r'(\*\*.+?\*\*)', text)
+    for part in parts:
+        if not part: continue
+        bold = part.startswith('**') and part.endswith('**')
+        if bold: part = part[2:-2]
+        rpr = FONT + ('<w:b w:val="1"/><w:bCs w:val="1"/>' if bold else '') + ('<w:i w:val="1"/><w:iCs w:val="1"/>' if italic else '') + (f'<w:sz w:val="{size}"/><w:szCs w:val="{size}"/>' if size else '') + '<w:rtl w:val="0"/>'
+        out.append(f'<w:r><w:rPr>{rpr}</w:rPr><w:t xml:space="preserve">{esc(part)}</w:t></w:r>')
+    return ''.join(out)
+
+def para(text, bold=False, italic=False, size=None, extra_ppr=''):
+    rpr = FONT + ('<w:b w:val="1"/><w:bCs w:val="1"/>' if bold else '')
+    body = runs(('**' + text + '**') if bold else text, italic, size)
+    return f'<w:p><w:pPr>{extra_ppr}<w:spacing w:after="120"/><w:jc w:val="both"/><w:rPr>{rpr}</w:rPr></w:pPr>{body}</w:p>'
+
+def heading2(text):
+    return (f'<w:p><w:pPr><w:pStyle w:val="Heading2"/><w:keepNext/><w:spacing w:after="60" w:before="200" w:line="360" w:lineRule="auto"/><w:rPr>{FONT}<w:b w:val="1"/><w:bCs w:val="1"/><w:color w:val="434343"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></w:pPr>'
+            f'<w:r><w:rPr>{FONT}<w:b w:val="1"/><w:bCs w:val="1"/><w:color w:val="434343"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">{esc(text)}</w:t></w:r></w:p>')
+
+def heading3(text):
+    return (f'<w:p><w:pPr><w:pStyle w:val="Heading3"/><w:keepNext/><w:spacing w:before="160" w:after="40" w:lineRule="auto"/><w:rPr>{FONT}<w:b w:val="1"/><w:bCs w:val="1"/><w:color w:val="666666"/><w:sz w:val="26"/><w:szCs w:val="26"/></w:rPr></w:pPr>'
+            f'<w:r><w:rPr>{FONT}<w:b w:val="1"/><w:bCs w:val="1"/><w:color w:val="666666"/><w:sz w:val="26"/><w:szCs w:val="26"/><w:rtl w:val="0"/></w:rPr><w:t xml:space="preserve">{esc(text)}</w:t></w:r></w:p>')
+
+def listitem(text, numid):
+    return f'<w:p><w:pPr><w:numPr><w:ilvl w:val="0"/><w:numId w:val="{numid}"/></w:numPr><w:ind w:left="720" w:hanging="360"/><w:spacing w:after="60"/><w:jc w:val="both"/><w:rPr>{FONT}</w:rPr></w:pPr>{runs(text)}</w:p>'
+
+def table(header, rows, caption, fr=None):
+    ncol = len(header)
+    total = 9360
+    if fr: widths = [int(total*w) for w in fr]
+    elif ncol == 4: widths = [int(total*w) for w in (0.19, 0.31, 0.25, 0.25)]
+    elif ncol == 3: widths = [int(total*w) for w in (0.22, 0.39, 0.39)]
+    else: widths = [total // ncol] * ncol
+    widths[-1] = total - sum(widths[:-1])
+    B = '<w:top w:val="single" w:sz="4" w:space="0" w:color="999999"/><w:left w:val="single" w:sz="4" w:space="0" w:color="999999"/><w:bottom w:val="single" w:sz="4" w:space="0" w:color="999999"/><w:right w:val="single" w:sz="4" w:space="0" w:color="999999"/><w:insideH w:val="single" w:sz="4" w:space="0" w:color="999999"/><w:insideV w:val="single" w:sz="4" w:space="0" w:color="999999"/>'
+    x = [f'<w:tbl><w:tblPr><w:tblW w:w="{total}" w:type="dxa"/><w:tblBorders>{B}</w:tblBorders><w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar><w:tblLook w:val="0000"/></w:tblPr><w:tblGrid>' + ''.join(f'<w:gridCol w:w="{w}"/>' for w in widths) + '</w:tblGrid>']
+    def cell(txt, w, head=False):
+        shd = '<w:shd w:val="clear" w:color="auto" w:fill="EFEFEF"/>' if head else ''
+        return (f'<w:tc><w:tcPr><w:tcW w:w="{w}" w:type="dxa"/>{shd}</w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20"/><w:rPr>{FONT}</w:rPr></w:pPr>'
+                + runs(('**' + txt + '**') if head else txt, size=18) + '</w:p></w:tc>')
+    x.append('<w:tr><w:trPr><w:tblHeader/><w:cantSplit/></w:trPr>' + ''.join(cell(h, w, True) for h, w in zip(header, widths)) + '</w:tr>')
+    for r in rows:
+        x.append('<w:tr><w:trPr><w:cantSplit/></w:trPr>' + ''.join(cell(c, w) for c, w in zip(r, widths)) + '</w:tr>')
+    x.append('</w:tbl>')
+    x.append(f'<w:p><w:pPr><w:spacing w:before="60" w:after="160"/><w:rPr>{FONT}</w:rPr></w:pPr>{runs(caption, italic=True, size=18)}</w:p>')
+    return ''.join(x)
+
+def render(block):
+    kind = block[0]
+    if kind == 'h2': return heading2(block[1])
+    if kind == 'h3': return heading3(block[1])
+    if kind == 'p': return para(block[1])
+    if kind == 'pb': return para(block[1], bold=True)
+    if kind == 'num': return ''.join(listitem(t, block[2] if len(block) > 2 else 5) for t in block[1])
+    if kind == 'bul': return ''.join(listitem(t, 3) for t in block[1])
+    if kind == 'tbl': return table(block[1], block[2], block[3], block[4] if len(block) > 4 else None)
+    raise ValueError(kind)
+
+# ------------------------------------------------------------------ edit document.xml
+doc = minidom.parse(WORK + 'word/document.xml')
+body = doc.getElementsByTagNameNS(W, 'body')[0]
+els = [e for e in body.childNodes if e.nodeType == 1]
+
+def tnodes(el): return el.getElementsByTagNameNS(W, 't')
+def ptext(p): return ''.join(t.firstChild.data for t in tnodes(p) if t.firstChild)
+
+# title
+title_tbl = els[1]
+for t in tnodes(title_tbl):
+    if t.firstChild and t.firstChild.data == 'PROJECT TITLE':
+        t.firstChild.data = TITLE
+# authors: clone the row with Author name 4 to make a third row, then rename
+for tr in title_tbl.getElementsByTagNameNS(W, 'tr'):
+    if ptext(tr).startswith('Author name 4'):
+        clone = tr.cloneNode(True)
+        tr.parentNode.insertBefore(clone, tr.nextSibling)
+        vals = ['Rill', 'Learn with O.J.', '', '', '', '']
+        for t, v in zip(tnodes(clone), vals): t.firstChild.data = v
+        break
+i = 0
+for t in tnodes(title_tbl):
+    d = t.firstChild.data if t.firstChild else ''
+    m = re.fullmatch(r'Author name (\d)', d)
+    if m:
+        name, aff = AUTHORS[int(m.group(1)) - 1]
+        t.firstChild.data = name
+        # the next w:t in the same run is 'Affiliation'
+        nxt = t.nextSibling
+        while nxt is not None and not (nxt.nodeType == 1 and nxt.localName == 't'): nxt = nxt.nextSibling
+        if nxt is not None and nxt.firstChild and nxt.firstChild.data == 'Affiliation': nxt.firstChild.data = aff
+# abstract: paragraph starting with Summarize
+for p in title_tbl.getElementsByTagNameNS(W, 'p'):
+    if ptext(p).startswith('Summarize'):
+        rs = p.getElementsByTagNameNS(W, 'r')
+        first = rs[0]
+        for r in list(rs)[1:]: r.parentNode.removeChild(r)
+        rpr = first.getElementsByTagNameNS(W, 'rPr')[0]
+        for tag in ('i', 'iCs', 'u'):
+            for n in rpr.getElementsByTagNameNS(W, tag): rpr.removeChild(n)
+        tnodes(first)[0].firstChild.data = ABSTRACT
+        # drop the underline on the paragraph mark too
+        ppr = p.getElementsByTagNameNS(W, 'pPr')[0]
+        for n in ppr.getElementsByTagNameNS(W, 'u'): n.parentNode.removeChild(n)
+        break
+
+# remove info box (element 4) and the guidance body (elements 5..84), keep sectPr
+sect = els[-1]
+assert sect.localName == 'sectPr'
+for e in els[3:-1]:
+    body.removeChild(e)
+
+# build new body xml and import
+NS = 'xmlns:w="%s" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"' % W
+frag = minidom.parseString(f'<w:body {NS}>' + ''.join(render(b) for b in BODY) + '</w:body>')
+for child in list(frag.documentElement.childNodes):
+    if child.nodeType == 1:
+        body.insertBefore(doc.importNode(child, True), sect)
+
+with open(WORK + 'word/document.xml', 'w', encoding='utf-8') as f:
+    f.write(doc.toxml())
+print('document.xml written')
+
+# zip
+out = OUT
+if os.path.exists(out): os.remove(out)
+subprocess.run(['zip', '-q', '-XrD', out, '.'], cwd=WORK, check=True)
+print('wrote', out, os.path.getsize(out), 'bytes')
