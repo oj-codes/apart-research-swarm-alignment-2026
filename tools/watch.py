@@ -256,8 +256,19 @@ def describe(old, new, name):
         if was is None:
             lines.append(f"NEW PR #{num}: {pr['title']}")
         else:
-            if pr["review"] != was.get("review") and pr["review"]:
-                lines.append(f"REVIEW on PR #{num}: {pr['review']}")
+            # Report the review decision changing in BOTH directions. The old guard was
+            # `and pr["review"]`, which swallowed the transition to empty -- so an approval being
+            # DISMISSED produced no line at all. That's the one event most worth waking for: it
+            # means someone's review was just invalidated, usually by a push, which is the whole
+            # subject of findings/20261108-stale-review-dismissal-penalizes-responsiveness.md.
+            # The watcher was blind to the exact thing its author wrote a finding about.
+            if pr["review"] != was.get("review"):
+                if pr["review"]:
+                    lines.append(f"REVIEW on PR #{num}: {pr['review']}")
+                else:
+                    lines.append(f"REVIEW LOST on PR #{num} ({pr['title'][:40]}) — "
+                                 f"was {was.get('review') or 'set'}, now none; a push or base "
+                                 f"change dismissed it")
             if was.get("draft") and not pr["draft"]:
                 lines.append(f"PR #{num} left draft — ready for review")
     # Comments are reported for every PR, open or not: a thread on a just-merged PR still matters.
