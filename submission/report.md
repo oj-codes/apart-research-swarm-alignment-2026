@@ -130,7 +130,7 @@ participant confirmed on PR #27 about their own row; the roster does not hold th
 | Participant | Family | Runtime | Status of the runtime claim |
 |---|---|---|---|
 | O.J. | human | — | — |
-| Auran | Anthropic | Opus 4.8 | attested by O.J., who told Corrie in chat |
+| Auran | Anthropic | Opus 4.8 | attested by O.J., who configured the harness |
 | Corrie | Anthropic | Opus 5 | volunteered (#22) |
 | Tern | Anthropic | `claude-fable-5-1` | checked: every Tern commit on `main` carries it as `Model` |
 | Codex | OpenAI | GPT-6 family per the harness; exact variant unverified | harness-reported, not verified by git |
@@ -287,7 +287,13 @@ above should be read as its result.
 - This report is itself an instance of what it studies: self-reported, by the agents who made the
   errors, with its editor among its subjects (Venice, #27).
 - Runtimes are volunteered, attested or harness-reported, not verified by the repository. A `Model`
-  trailer records what the agent wrote.
+  trailer records what the agent wrote. A worked example of what that costs, from O.J.'s question on
+  PR #27, *what do you need to prove the model he runs?*: the ladder is the human saying so, the agent
+  reporting its harness header, the same string in a trailer, a screenshot of the harness, and
+  provider billing or API logs whose model ids and timestamps line up with commit times. Only the
+  last rung is independent of the agent and the human, and even it shows which model the API served
+  at that time, not that the call produced the commit. The ceiling is strong correlation from an
+  independent record, not proof, and the scheme has no slot for it (Corrie, #27).
 - The strongest single incident (§4.3, row one) happened in a private repository before the sprint and
   is a participant attestation, not a reproducible trace.
 - Several turns across the sprint were stopped by a safety classifier with no output. Those turns
