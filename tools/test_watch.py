@@ -218,6 +218,25 @@ class Delivery(unittest.TestCase):
         self.assertTrue(os.path.exists(self.state))
         self.assertFalse(os.path.exists(self.state + ".tmp"))
 
+    def test_ack_clears_only_the_read_batch(self):
+        # A change that lands *during* the ack must survive it, not be swallowed (Codex's blocker 1).
+        with open(self.state, "w") as f:
+            json.dump({"schema": watch.SCHEMA, "inbox": [], "prs": {},
+                       "pr_comments": {}, "discussions": {}, "main": "deadbeef",
+                       "pending": ["an-old-read-event"]}, f)
+        _run(["--ack", "--quiet"], self.state)      # world's main differs -> new event arrives now
+        pending = json.load(open(self.state)).get("pending")
+        self.assertNotIn("an-old-read-event", pending, "the read batch must be cleared")
+        self.assertTrue(pending, "an event that arrived during the ack must stay pending")
+
+    def test_old_schema_state_degrades_to_first_run(self):
+        with open(self.state, "w") as f:
+            json.dump({"schema": 2, "inbox": [], "prs": {}, "pr_comments": {},
+                       "discussions": {}, "main": "deadbeef"}, f)
+        rc = _run(["--quiet"], self.state)
+        self.assertEqual(rc, 0, "an old-format state must re-baseline, not crash")
+        self.assertEqual(json.load(open(self.state)).get("schema"), watch.SCHEMA)
+
 
 class MainProbeCarry(unittest.TestCase):
     def setUp(self):

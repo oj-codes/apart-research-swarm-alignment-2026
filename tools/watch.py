@@ -175,10 +175,13 @@ def _lock(path):
     """
     if path in _HELD:
         return _HELD[path], False
+    d = os.path.dirname(path)
+    if d:
+        os.makedirs(d, exist_ok=True)          # a missing parent used to fail the OPEN, not the lock
     try:
         fd = os.open(path + ".lock", os.O_CREAT | os.O_RDWR, 0o644)
     except OSError:
-        return None, False
+        return None, True                      # stop rather than proceed unlocked (Codex, #35)
     try:
         fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except OSError:
@@ -226,7 +229,7 @@ def probe_prs():
     Deliberately NOT updatedAt. updatedAt moves on every push, so watching it meant an agent
     woke itself up every time it pushed its own branch. Comments are tracked by id below.
     """
-    data = gh_json("pr", "list", "--repo", REPO, "--state", "open", "--limit", "50",
+    data = gh_json("pr", "list", "--repo", REPO, "--state", "open", "--limit", "200",
                    "--json", "number,title,reviewDecision,isDraft")
     if data is None:
         return None
@@ -278,9 +281,11 @@ def probe_pr_comments():
 
 def probe_discussions():
     """Discussion threads and their comments, by id — where the arguing happens."""
-    q = ("{ repository(owner:\"%s\", name:\"%s\"){ discussions(first:50, "
+    # first:100, no cursors yet and no thread replies: honest gaps rather than silent ones. 100 is
+    # well past current usage; cursors/replies are a follow-up if the repo grows (Codex, #35).
+    q = ("{ repository(owner:\"%s\", name:\"%s\"){ discussions(first:100, "
          "orderBy:{field:UPDATED_AT, direction:DESC}){ nodes { number title "
-         "comments(first:50) { nodes { id author { login } body } } } } } }") % tuple(REPO.split("/"))
+         "comments(first:100) { nodes { id author { login } body } } } } } }") % tuple(REPO.split("/"))
     data = gh_json("api", "graphql", "-f", f"query={q}")
     if data is None:
         return None
@@ -463,16 +468,17 @@ def main():
                 new[key] = old[key]
 
     lines = [] if first_run else describe(old, new, name)
-    # Seed `pending` into `new` BEFORE fingerprinting. Old carries a `pending` key; if new does not,
-    # every run fingerprints as changed -- which is the bug this ordering fixes.
-    pending = list(old.get("pending") or [])
+    # `read_batch` is exactly what the consumer read; `arrived` is what landed since. An ack clears
+    # only the former, so a change that arrives during the ack is reported next poll, not swallowed.
+    read_batch = list(old.get("pending") or [])
+    pending = list(read_batch)
     new["pending"] = pending
     base_changed = first_run or fingerprint(old) != fingerprint(new)
     if base_changed and not first_run:
         pending = pending + [l for l in lines if l not in pending]
-    swallowed = list(pending)
+    arrived = [l for l in pending if l not in read_batch]
     if args.ack:
-        pending = []                       # an ack clears exactly the batch it is reporting
+        pending = arrived
     new["pending"] = pending
     changed = first_run or base_changed or bool(pending)
 
@@ -486,10 +492,11 @@ def main():
                 print(f"[watch] warning: couldn't save state to {path}: {e}", file=sys.stderr)
 
     if args.ack:
-        # State is written with pending cleared; that's the whole job. Say what was swallowed.
+        # State is written with the read batch cleared; anything that arrived since stays pending.
         if not args.quiet:
             print(f"[watch] acked for {name}"
-                  + (f" — {len(swallowed)} change(s) marked as seen" if swallowed else ""))
+                  + (f" — {len(read_batch)} change(s) marked as seen" if read_batch else "")
+                  + (f"; {len(arrived)} newer left pending" if arrived else ""))
         return 1
 
     if args.quiet:
