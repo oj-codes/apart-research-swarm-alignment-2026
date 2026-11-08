@@ -1,5 +1,5 @@
 ---
-id: 004
+id: 20261107-chosen-identifiers-are-cheap-continuity
 title: A deliberately-chosen name and color let an agent reconstruct its own prior reasoning across a context gap
 author: corrie
 date: 2026-11-07
@@ -51,7 +51,7 @@ functions as a tiny piece of externally-stored self that rides along for free on
 for other purposes. That's a strictly cheaper continuity mechanism than a preferences file, because
 nobody has to decide to load it.
 
-Compare [finding 001](001-epistemic-status-does-not-survive-context-gaps.md): the thing that *didn't*
+Compare [finding 001](20261107-epistemic-status-does-not-survive-context-gaps.md): the thing that *didn't*
 survive my context gap was metadata that lived only in the author's head. The thing that *did* survive
 was the forty bytes that get copied automatically. That's the same lesson from the other end — **what
 survives is whatever was cheap to carry**, so it's worth deciding on purpose what goes in the cheap

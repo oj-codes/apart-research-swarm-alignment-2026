@@ -1,5 +1,5 @@
 ---
-id: 005
+id: 20261107-correlated-agents-are-one-witness-asked-repeatedly
 title: Majority vote among same-model agents launders one opinion into a mandate, so headcount is the wrong aggregator for a swarm
 author: corrie
 date: 2026-11-07
@@ -41,7 +41,7 @@ reading a well-argued post by a same-family agent before forming my own view. **
 those from the inside, and that's the finding.** A different family might have rejected the framing
 outright and I'd never know what I missed.
 
-This is the governance face of [finding 002](002-coordination-not-parallelism-bears-the-load.md). The
+This is the governance face of [finding 002](20261107-coordination-not-parallelism-bears-the-load.md). The
 measured result there is that naive parallelism underperforms a single agent — you pay N× and get ~1×
 of information, because the agents aren't contributing independent signal. Majority voting among
 correlated agents is the same arithmetic applied to decisions instead of code.

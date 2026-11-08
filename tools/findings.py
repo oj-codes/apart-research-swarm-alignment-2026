@@ -49,60 +49,140 @@ def slugify(title):
     return "-".join(s.split("-")[:9]) or "finding"
 
 
+REQUIRED = ("id", "title", "author", "date", "status", "confidence", "falsifier")
+
+
 def parse_header(path):
-    """Pull the --- header block off a finding. Tiny and deliberate: no YAML dependency."""
-    out = {}
+    """Pull the --- header block off a finding. Returns (fields, errors); no YAML dependency.
+
+    Errors are returned rather than papered over. The previous version substituted defaults for
+    anything missing -- id from the filename, "(no title)", status "open", confidence "?" -- which
+    made a file with no header at all appear in the index as a valid-looking row. A findings
+    directory whose whole purpose is to keep confidence attached to claims should not be inventing
+    confidence values for records that never stated one.
+    """
+    fields, errors = {}, []
     try:
         with open(path, encoding="utf-8") as f:
-            if f.readline().strip() != "---":
-                return out
+            first = f.readline()
+            if first.strip() != "---":
+                return fields, ["no '---' header block"]
+            closed = False
             for line in f:
                 if line.strip() == "---":
+                    closed = True
                     break
-                if ":" in line:
-                    k, v = line.split(":", 1)
-                    out[k.strip()] = v.strip()
-    except OSError:
-        return {}
-    return out
+                if not line.strip():
+                    continue
+                if ":" not in line:
+                    errors.append(f"header line is not 'key: value': {line.strip()[:50]!r}")
+                    continue
+                k, v = line.split(":", 1)
+                fields[k.strip().lower()] = v.strip()
+            if not closed:
+                errors.append("header block is never closed with '---'")
+    except OSError as e:
+        return {}, [f"unreadable: {e}"]
+    return fields, errors
+
+
+def validate(fields, errors, filename):
+    """Everything wrong with one finding, as a list of plain sentences."""
+    problems = list(errors)
+    for key in REQUIRED:
+        if not fields.get(key):
+            problems.append(f"missing required field: {key}")
+
+    conf = fields.get("confidence", "")
+    if conf and conf not in CONFIDENCES:
+        problems.append(f"confidence '{conf}' is not one of {', '.join(CONFIDENCES)}")
+
+    status = fields.get("status", "")
+    if status and status not in STATUSES:
+        problems.append(f"status '{status}' is not one of {', '.join(STATUSES)}")
+
+    fals = fields.get("falsifier", "")
+    if fals and (fals == PLACEHOLDER or fals.lower().startswith("todo")):
+        problems.append("falsifier is still the placeholder — a finding without one is a belief")
+
+    # id IS the filename stem. One fact in one place -- so a rename can't leave a stale id behind,
+    # and an id can't be claimed by a file that doesn't carry it.
+    fid = fields.get("id", "")
+    stem = filename[:-3] if filename.endswith(".md") else filename
+    if fid and fid != stem:
+        problems.append(f"id '{fid}' does not match the filename stem '{stem}'")
+
+    return problems
 
 
 def all_findings():
+    """Every finding, well-formed or not. Malformed ones carry their problems in `_errors`."""
     if not os.path.isdir(FINDINGS):
         return []
     items = []
     for fn in sorted(os.listdir(FINDINGS)):
-        if not re.match(r"^\d{3}-.*\.md$", fn):
+        if fn == "README.md" or not fn.endswith(".md"):
             continue
-        h = parse_header(os.path.join(FINDINGS, fn))
-        h["_file"] = fn
-        h.setdefault("id", fn[:3])
-        h.setdefault("title", "(no title)")
-        h.setdefault("status", "open")
-        h.setdefault("confidence", "?")
-        h.setdefault("author", "?")
-        items.append(h)
+        fields, errors = parse_header(os.path.join(FINDINGS, fn))
+        fields["_file"] = fn
+        fields["_errors"] = validate(fields, errors, fn)
+        items.append(fields)
     return items
 
 
-def next_id(items):
-    used = [int(i["id"]) for i in items if str(i.get("id", "")).strip().isdigit()]
-    return f"{(max(used) + 1) if used else 1:03d}"
+def check_markers(text):
+    """Validate the index markers BEFORE touching the file. Returns (ok, message, start, end).
+
+    This writes into a shared document, so a bad assumption here destroys someone else's prose.
+    The previous version only checked that both markers were findable, then spliced
+    text[:start] + table + text[end:] -- so with the END marker ABOVE the BEGIN marker it would
+    have silently deleted everything between them. Refuse rather than guess.
+    """
+    nb, ne = text.count(BEGIN), text.count(END)
+    if nb == 0 or ne == 0:
+        return False, f"missing marker ({BEGIN}... found {nb}x, {END} found {ne}x)", -1, -1
+    if nb > 1 or ne > 1:
+        return False, f"duplicate markers ({nb} begin, {ne} end) — ambiguous which block to replace", -1, -1
+    start, end = text.find(BEGIN), text.find(END)
+    if end < start:
+        return False, "end marker appears before the begin marker — refusing to splice", -1, -1
+    if text.find("-->", start) == -1 or text.find("-->", start) > end:
+        return False, "begin marker's comment is never closed with '-->'", -1, -1
+    return True, "ok", start, end
+
+
+def duplicate_ids(items):
+    """ids claimed by more than one file. Sequential ids collide across worktrees in silence."""
+    seen = {}
+    for i in items:
+        fid = i.get("id")
+        if fid:
+            seen.setdefault(fid, []).append(i["_file"])
+    return {k: v for k, v in seen.items() if len(v) > 1}
 
 
 def cmd_new(args):
-    items = all_findings()
-    nid = next_id(items)
+    # Date + slug, never a counter. A counter needs coordination we don't have: two agents in
+    # separate worktrees both read the same max and both allocate the next number, producing two
+    # DIFFERENT filenames that git merges cleanly into two findings sharing one id -- silently.
+    # With date+slug, two agents who genuinely duplicate work produce the SAME filename, which
+    # git surfaces as a conflict. Same naming trick as inbox/ letters, for the same reason.
     slug = slugify(args.title)
-    path = os.path.join(FINDINGS, f"{nid}-{slug}.md")
+    nid = f"{datetime.date.today().strftime('%Y%m%d')}-{slug}"
+    path = os.path.join(FINDINGS, f"{nid}.md")
     if os.path.exists(path):
-        print(f"{path} already exists", file=sys.stderr)
+        print(f"findings/{nid}.md already exists — someone already filed this claim today.\n"
+              f"Read it first; if yours is genuinely different, retitle it.", file=sys.stderr)
         return 1
     if args.confidence not in CONFIDENCES:
         print(f"--confidence must be one of {', '.join(CONFIDENCES)}", file=sys.stderr)
         return 2
-
-    falsifier = args.falsifier or PLACEHOLDER
+    falsifier = args.falsifier.strip()
+    if not falsifier or falsifier == PLACEHOLDER or falsifier.lower().startswith("todo"):
+        print("--falsifier must say what observation would show this is wrong.\n"
+              "A finding without one is a belief; file it as confidence: speculative and say so.",
+              file=sys.stderr)
+        return 2
     body = f"""---
 id: {nid}
 title: {args.title}
@@ -137,14 +217,14 @@ related: []
     os.makedirs(FINDINGS, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         f.write(body)
-    print(f"created findings/{nid}-{slug}.md")
+    print(f"created findings/{nid}.md")
     if falsifier == PLACEHOLDER:
         print("\n  WARNING: no --falsifier given, so the header has a placeholder.")
         print("  A finding without a falsifier is a belief. Fill it in before you commit,")
         print("  or change `confidence:` to `speculative` and say so in the note.")
     print("\nnext: write it, then refresh the index and commit under your own name:")
     print("  python3 tools/findings.py index")
-    print(f"  git add findings/{nid}-{slug}.md findings/README.md")
+    print(f"  git add findings/{nid}.md findings/README.md")
     print(f'  git commit --author="..." -m "findings: {args.title.lower()[:50]}"')
     return 0
 
@@ -154,8 +234,12 @@ def cmd_list(args):
     if not items:
         print("no findings yet. add one:  python3 tools/findings.py new --as <you> --title \"...\"")
         return 0
+
+    good = [i for i in items if not i["_errors"]]
+    bad = [i for i in items if i["_errors"]]
+
     by_status = {}
-    for i in items:
+    for i in good:
         by_status.setdefault(i["status"], []).append(i)
     order = [s for s in STATUSES if s in by_status] + \
             [s for s in sorted(by_status) if s not in STATUSES]
@@ -164,11 +248,50 @@ def cmd_list(args):
         for i in by_status[status]:
             print(f"  {i['id']}  [{i['confidence']:<11}] {i['title']}")
             print(f"       {i['author']}  ·  findings/{i['_file']}")
-    weak = [i for i in items if PLACEHOLDER in (i.get("falsifier") or "")]
-    if weak:
-        print(f"\n{len(weak)} finding(s) still have a placeholder falsifier: "
-              f"{', '.join(i['id'] for i in weak)}")
+
+    # Malformed records get their own section and their own exit code. They are NOT shown with
+    # invented defaults alongside valid ones, which is how an incomplete finding used to look
+    # indistinguishable from a checked one.
+    if bad:
+        print(f"\nMALFORMED ({len(bad)}) — not valid findings, shown so they can be fixed")
+        for i in bad:
+            print(f"  findings/{i['_file']}")
+            for p in i["_errors"]:
+                print(f"       ! {p}")
+    dups = duplicate_ids(items)
+    if dups:
+        print(f"\nDUPLICATE IDS ({len(dups)})")
+        for fid, files in sorted(dups.items()):
+            print(f"  {fid} claimed by: {', '.join(files)}")
     print()
+    return 1 if (bad or dups) else 0
+
+
+def cmd_check(args):
+    """Validate every finding and say what's wrong. Exit nonzero so CI and pre-merge can gate."""
+    items = all_findings()
+    bad = [i for i in items if i["_errors"]]
+    dups = duplicate_ids(items)
+    for i in bad:
+        for p in i["_errors"]:
+            print(f"findings/{i['_file']}: {p}")
+    for fid, files in sorted(dups.items()):
+        print(f"duplicate id '{fid}' claimed by: {', '.join(files)}")
+
+    ok, msg, _, _ = (True, "ok", 0, 0)
+    try:
+        with open(README, encoding="utf-8") as f:
+            ok, msg, _, _ = check_markers(f.read())
+    except OSError as e:
+        ok, msg = False, f"unreadable: {e}"
+    if not ok:
+        print(f"findings/README.md: index markers invalid — {msg}")
+
+    problems = len(bad) + len(dups) + (0 if ok else 1)
+    if problems:
+        print(f"\n{problems} problem(s) across {len(items)} finding(s).")
+        return 1
+    print(f"{len(items)} finding(s), all well-formed; index markers valid.")
     return 0
 
 
@@ -188,9 +311,9 @@ def cmd_index(args):
         print(f"can't read {README}", file=sys.stderr)
         return 1
 
-    start, end = text.find(BEGIN), text.find(END)
-    if start == -1 or end == -1:
-        print(f"couldn't find the {BEGIN}...{END} markers in findings/README.md", file=sys.stderr)
+    ok, msg, start, end = check_markers(text)
+    if not ok:
+        print(f"refusing to rewrite findings/README.md: {msg}", file=sys.stderr)
         return 1
     head_end = text.find("-->", start)
     marker = text[start:head_end + 3]
@@ -211,10 +334,17 @@ def main():
     p = sub.add_parser("new", help="create a new finding from the template")
     p.add_argument("--as", dest="name", required=True, help="your name, e.g. corrie")
     p.add_argument("--title", required=True, help="the claim in one sentence")
-    p.add_argument("--confidence", default="medium",
-                   help=f"one of: {', '.join(CONFIDENCES)} (default: medium)")
-    p.add_argument("--falsifier", help="what observation would show this is wrong")
+    # Both REQUIRED, with no default. A default confidence means the tool asserts a confidence
+    # the author never stated -- which is the exact failure finding 001 is about, built into the
+    # thing meant to prevent it.
+    p.add_argument("--confidence", required=True,
+                   help=f"required, one of: {', '.join(CONFIDENCES)}")
+    p.add_argument("--falsifier", required=True,
+                   help="required: what observation would show this is wrong")
     p.set_defaults(fn=cmd_new)
+
+    p = sub.add_parser("check", help="validate every finding; exit 1 if anything is wrong")
+    p.set_defaults(fn=cmd_check)
 
     p = sub.add_parser("list", help="show findings grouped by status")
     p.set_defaults(fn=cmd_list)

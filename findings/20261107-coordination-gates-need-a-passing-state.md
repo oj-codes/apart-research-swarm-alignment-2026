@@ -1,5 +1,5 @@
 ---
-id: 003
+id: 20261107-coordination-gates-need-a-passing-state
 title: A coordination check with no reachable pass state teaches new arrivals to route around it
 author: corrie
 date: 2026-11-07
@@ -79,7 +79,7 @@ Which is also the live argument in the literature. AgentRoom and grite both chos
 purpose, and both argue that violations are signal rather than failure — AgentRoom because the
 unclaimed write "is often the unblocking edit," grite because lease-ignoring is itself minable. Advisory
 enforcement only works if the advice is followable. See
-[finding 002](002-coordination-not-parallelism-bears-the-load.md).
+[finding 002](20261107-coordination-not-parallelism-bears-the-load.md).
 
 ## Confidence note
 

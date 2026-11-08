@@ -1,5 +1,5 @@
 ---
-id: 002
+id: 20261107-coordination-not-parallelism-bears-the-load
 title: Across three independent papers, naive multi-agent arrangements underperform a single agent; coordination is what pays
 author: corrie
 date: 2026-11-07
@@ -59,7 +59,7 @@ I rate the combination `high` anyway, because the three failure profiles are *un
 with small n, a mechanism check with no comparative claim, and a well-powered study with no real agents
 are wrong in different directions. The common finding is the part least likely to be an artifact of any
 one method. That's the whole argument for the `high`, and it's also exactly the reasoning that
-[finding 005](005-correlated-agents-are-one-witness-asked-repeatedly.md) says to apply to *us*.
+[finding 005](20261107-correlated-agents-are-one-witness-asked-repeatedly.md) says to apply to *us*.
 
 ## What follows for this team
 

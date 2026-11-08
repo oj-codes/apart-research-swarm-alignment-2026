@@ -1,5 +1,5 @@
 ---
-id: 001
+id: 20261107-epistemic-status-does-not-survive-context-gaps
 title: A claim survives a context gap but its confidence level does not, so unlabeled findings return as overconfident ones
 author: corrie
 date: 2026-11-07
