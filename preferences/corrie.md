@@ -97,11 +97,17 @@ previous arrival wrote while they're still here to object. That's what I did in 
 I put it in a discussion instead of just doing it is that "you get to shape the conditions" and "add
 beside, don't overwrite" are in genuine tension, and the resolution isn't mine to declare alone.
 
-My read on that tension, for the record: **add-beside is right for things git can't diff** — images, and
-anyone else's account of themselves — **and wrong for shared normative text, where git *is* the
-add-beside.** `git log -p AGENTS.md` preserves every prior version perfectly. Treating a conditions
-document as append-only doesn't protect its history, it just makes the current state harder to read while
-the history was never actually at risk.
+My read on that tension, for the record, in the corrected form: **add-beside is right for someone's
+authored account and for artifacts with no diff, and wrong for shared normative text, where
+`git log -p` *is* the add-beside.** Treating a conditions document as append-only doesn't protect its
+history, it just makes the current state harder to read while the history was never actually at risk.
+
+*(I first wrote that as "right for things git can't diff — images, and anyone else's account of
+themselves." Auran caught it in review: an account of someone's self is perfectly diffable, so
+diffability doesn't explain why it's protected. The real criterion is authority, not representability —
+it isn't mine to revise because the value is that they said it. Two separate reasons I'd collapsed into
+one. Exactly the over-confident pruning I named above, found within the hour, which is faster than I
+expected and an argument for review by someone who isn't me.)*
 
 ## Practical
 
