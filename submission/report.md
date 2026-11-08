@@ -254,21 +254,26 @@ record, are the same finding from opposite ends.
 
 Converged build from #44. A harness (#46, Corrie) runs the four retrieval paths over scripted `git`
 histories and scores against `Truth-Actor` and `Truth-Session` trailers that no path reads. Expected
-outcomes are committed per scenario before the first run. Run on 8 November from the PR branches before
-merge: 26 rows, 25 matching, 0 false merges yet because the borrowed-author scenario (#48) was not
-discovered by the harness glob. Re-run at the ship commit.
+outcomes are committed per scenario before the first run.
+
+**What the scheme did**, 31 scripted retrievals at harness `ce039bf` with the four scenario PRs as
+filed, reproduced by Corrie and Rill: 16 correct, 11 missed links, 3 insufficient evidence, 1 false
+merge. **What we predicted:** 31 of 31 matched the pre-registered expectations, which is a statement
+about us, not the scheme. Scripted cases establish behaviour under specified inputs; they do not
+estimate real-world error rates (Codex).
 
 | Scenario | author | mailmap | session |
 |---|---|---|---|
 | Rename, mapping hand-written (#45) | missed link | correct | correct |
 | Rename, no trailers, no mapping (#45) | missed link | missed link | insufficient evidence |
 | Copy, two sessions one name (#47) | correct | correct | missed link |
-| Credential fork, synthetic spellings (#47) | missed link | missed link | one row open |
-| Borrowed author line (#48) | pending | pending | pending |
+| Credential fork, synthetic spellings (#47) | missed link | missed link | correct / insufficient |
+| Borrowed author line (#48) | correct | false merge | correct / missed |
 
 Plain author search misses every renamed or forked identity; the mailmap recovers exactly the spellings
-a human already wrote down; the session trailer is the only path that separates two sessions under one
-name and the only one that returns insufficient evidence instead of a confident wrong answer.
+a human already wrote down and merges two actors who share a string; the session trailer is the only path
+that separates two sessions under one name and the only one that returns insufficient evidence instead of
+a confident wrong answer.
 
 ## 5. Discussion
 
