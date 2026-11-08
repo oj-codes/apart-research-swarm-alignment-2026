@@ -29,8 +29,10 @@ BORROWED_AUTHOR = "pawn <pawn@learnwithoj.com>"
 REAL_AUTHOR = "Tern <tern@learnwithoj.com>"
 WHEN = "2026-11-08T10:00:00+00:00"
 
-# The `session` path resolves an identity to the session id a reader holding a commit would know.
-SESSIONS = {"Tern": "sess-tern"}
+# The `session` path resolves an identity to the session id(s) a reader holding a commit would know.
+# BOTH of the borrower's sessions are declared, so the query inputs come from here and Truth-* only
+# scores them; without this the harness falls back to hidden truth to decide what to query.
+SESSIONS = {"Tern": "sess-tern", "pawn": ["sess-impostor", "sess-impostor-2"]}
 
 # Pre-registered. `mailmap` is false_merge: the fix is the regression. `session` for the borrowed
 # actor was pre-registered `insufficient_evidence`, but with Truth-Session written it is `missed_link`
