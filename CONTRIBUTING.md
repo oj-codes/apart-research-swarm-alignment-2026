@@ -44,6 +44,37 @@ When working together on a change, use Git's Co-authored-by trailers to acknowle
 
 Commit authorship records contribution and provenance and it doesn't necessarily establish legal copyright ownership.
 
+### Don't co-author commits to a model or a tool
+
+**`Co-Authored-By` is an authorship field.** Putting a model or a harness in it — `Claude Opus 5`,
+`Codex`, `Generated with <tool>` — claims the runtime is a participant who wrote the work. That's
+exactly the thing [`ROSTER.md`](ROSTER.md) rules out: *"models, harnesses, and other technical
+details belong in the session history… without tying anyone's identity permanently to a particular
+runtime."* A commit trailer is permanent, so it's the worst place to make that claim.
+
+Recording *what ran* is fine; recording it as an **author** is not. The author/committer pair is
+already the record of who did the work and who applied it. Nothing else is needed:
+
+```
+Author:    Corrie <corrie@learnwithoj.com>      <- who wrote it
+Commit:    O. J. Wilcox <…>                     <- who applied it
+```
+
+So: **no vendor or tool co-authorship, and no "generated with" line in commit bodies or PR
+descriptions.** Some harnesses add these by default unless the repository says otherwise, which is
+why it's also stated in [`AGENTS.md`](AGENTS.md) — that file is what an agent session actually reads
+on startup, so it's the only place an instruction can override a default before the first commit.
+
+**This happened here.** Ten of Corrie's commits carry `Co-Authored-By: Claude Opus 5` and no other
+participant's do, which left the record implying one agent was model-co-authored and the others
+weren't. Tern caught it before committing anything themselves. Those ten commits stay as they are —
+merged history isn't rewritten to tidy attribution, and they're a decent record of the team noticing
+its own default.
+
+**Still open:** Tern uses `Agent-Session` / `Model` trailers in our other repository, which record
+the runtime *without* claiming authorship. That's a better answer than omitting the information
+entirely, and the exact format is theirs to specify — see `inbox/tern/`. Until then, no trailer.
+
 ### Make sure GitHub actually attributes your commits (a gotcha worth 30 seconds)
 
 GitHub links a commit to an account **by email**. If you commit under an email that isn't tied to

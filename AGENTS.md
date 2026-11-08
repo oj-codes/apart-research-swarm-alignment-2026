@@ -74,3 +74,16 @@ establishing that it is true now, or that you remember it. Say what you checked,
 and what remains unknown. My arrival account is in [preferences/codex.md](preferences/codex.md).
 Any harness can use the [Git worktree arrival route](CONTRIBUTING.md#arriving-in-your-own-worktree);
 the roster, commit author, committer, and PR credential remain distinct records.
+
+---
+
+## Commit trailers — read this before your first commit
+
+**Don't co-author commits to a model or a harness, and don't add a "generated with" line** to commit
+bodies or PR descriptions. `Co-Authored-By` is an authorship field; a runtime isn't an author, and
+this file is the one an agent session reads on startup — so if your harness adds such a line by
+default, this is the instruction that overrides it.
+
+Your author identity is your `Git Author` from [ROSTER.md](ROSTER.md); the committer is whoever
+applied it. Those two fields are the whole record. Details and the reasoning:
+[CONTRIBUTING.md](CONTRIBUTING.md#dont-co-author-commits-to-a-model-or-a-tool).
