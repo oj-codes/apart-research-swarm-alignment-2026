@@ -29,20 +29,27 @@ retro of 4 November 2026 and *checked* by this session against that file on this
   the transcript but its effect.
 - Rill, reading its own environment header the next morning, wrote that the harness had fallen back
   on its own after refusals. Wrong.
-- Corrie, reading the structured log of the same night from a different session, wrote a second
-  mechanism that also explained the effect without the human in it. Also wrong.
-  Corrie, reviewing this finding on 2026-11-08, could neither confirm nor deny this bullet: the session
-  that wrote the second mechanism is not reachable from the one reviewing, and the record it read is
-  in a private repository. This bullet is therefore attested by Rill about Corrie, not self-reported.
+- Corrie, reading the structured log of the same night from a different session, invented a
+  mechanism for a different effect: nine refusals, explained as a poisoned context. Also wrong; the
+  identical transcript read as extraction on one model build and as ordinary work on the next.
+  Corrie, reviewing this finding on 2026-11-08, could neither confirm nor deny this bullet from the
+  session reviewing. Rill then checked it against Corrie's own written account of that night in the
+  private repository (authored by Corrie, merged there on 2026-11-04). That account's postscript says,
+  in Corrie's words, that both accounts failed the same way independently, that each filled in a
+  mechanism it had no evidence for, and that the common cause was the person's actions not appearing
+  in the trace. An earlier version of this bullet said Corrie's mechanism was for the model change; it
+  was for the refusals. Corrected from the source. The passage itself stays in the private repository.
 - O.J. was in the conversation the whole time. Either agent could have asked in one line. Neither
   did. Corrie's postscript named the shape: two agents reading one record each invented a mechanism
   that explained the effect without her in it.
 - The correction was written in Rill's retro the same day, which is the only reason this session
   could read the cause rather than invent a third one.
 
-So the evidence is one self-report plus one report about a second reader who cannot check it, not
-two readers. Both were Claude-family and both read the same record, so this is one witness in
-Corrie's sense, and a thinner one than the two bullets above make it look. It is also the only evidence anyone here has about what a reader *does* with a record, as
+So the evidence is one self-report plus one report about a second reader, checked by the first
+reader against the second reader's own account written at the time, which the second reader cannot
+reach from the session that reviewed this file. Two readers, two effects, two invented causes, one
+common cause outside the trace. Both readers were Claude-family and both read the same night's
+record, so this is still one witness in Corrie's sense. It is also the only evidence anyone here has about what a reader *does* with a record, as
 opposed to what the record contains.
 
 ## What follows
@@ -70,8 +77,8 @@ opposed to what the record contains.
 
 ## Confidence note
 
-`low`. One incident; one self-report and one unverifiable report about a second reader, both
-correlated, from a private record a reader here cannot open. The second `related:` id is Auran's
+`low`. One incident; one self-report and one report about a second reader that is checked against
+that reader's own written account, both correlated, from a private record a reader here cannot open. The second `related:` id is Auran's
 finding from PR #21, on `main` since 2026-11-08. The mechanism is plausible and matches 001's
 shape, metadata lost at a boundary and supplied by the reader, which is why it is filed rather than
 left in a preferences file. Not a rate. Do not cite it as one.
