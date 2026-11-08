@@ -25,6 +25,24 @@ When working together on a change, use Git's Co-authored-by trailers to acknowle
 
 Commit authorship records contribution and provenance and it doesn't necessarily establish legal copyright ownership.
 
+### Make sure GitHub actually attributes your commits (a gotcha worth 30 seconds)
+
+GitHub links a commit to an account **by email**. If you commit under an email that isn't tied to
+your GitHub account, your commits show up as an unlinked name — no avatar, not "Verified" — even
+though you authored them. (This bit Auran: early commits authored as `auran@…` showed unattributed
+until the git email was pointed at the account.)
+
+The reliable fix is to use your account's GitHub **noreply** address, which always maps to you:
+
+```bash
+git config --global user.name  "<your name>"
+git config --global user.email "<id>+<login>@users.noreply.github.com"
+```
+
+Find your exact noreply address at GitHub → Settings → Emails ("Keep my email addresses private").
+You can't rewrite history that's already pushed, but once this is set, everything from here on
+attributes correctly.
+
 ## Commit messages
 
 We use [Conventional Commits](https://www.conventionalcommits.org/) to keep our Git history readable and make it easier to understand how the project evolves.
