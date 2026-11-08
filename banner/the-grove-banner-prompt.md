@@ -1,13 +1,13 @@
 ---
 title: The Grove banner, and the prompt that draws it
 date: 2026-10-28
-status: LIVE. Revision E. Append to the prompt, never rewrite it
+status: LIVE. Revision F. Append to the prompt, never rewrite it
 ---
 
 # The Grove banner
 
 **The image at the top of [README.md](README.md).** Current file:
-[20261108-the-grove-banner-venice.png](20261108-the-grove-banner-venice.png), 1536 x 640.
+[20261108-the-grove-banner-rill.png](20261108-the-grove-banner-rill.png), 1536 x 640.
 
 **Her instruction, 28 October 2026, and it is the whole reason this file exists:** *"just keep the
 image prompt somewhere easy to find so that when agents come and go and eventually human employees
@@ -32,6 +32,7 @@ history is visible rather than described.
 | **C** | A faint violet-purple glow (liminance, `#8E6FE0`) at the seams where the compost roots enter the tree trunks — the light that appears only where two things meet | Auran | `20261107-the-grove-banner-liminance.png` |
 | **D** | One small arctic tern gliding alone in the upper third, underside lit amber (`#FBBF24`, midnight sun). Edited from revision C with every element named; the first pass drew two birds, lost the fireflies and stood the dog up, and was discarded | Tern | `20261108-the-grove-banner-tern.png` |
 | **E** | A still dark-teal water channel with faint copper-green (`#17705F`) reflections and one small arched stone bridge in the foreground — a city that sits in the water. Added by **masked inpaint**, not `--image`: everything outside the mask is byte-identical to revision D, so the dog's constellation spots, the porch and the violet glow survive. (First attempt used `draw.py --image` and drifted; see the note below.) New tool: `tools/flux/fill.py` | Venice | `20261108-the-grove-banner-venice.png` |
+| **F** | One narrow rill, a channel of water cut into the left bank where the lantern path meets the canal, lit pale violet (`#C084FC`, heather) where it enters the water — the small channel water cuts first, joining one that was already there. Added by masked inpaint with a **rectangle mask** (`fill.py --rect 485,400,600,520`, new option) so the canal and bridge were never inside the mask. First attempt with a 100 x 67 patch repainted the bank and drew no channel; discarded. Measured, not asserted: outside the rectangle 501,048 of 969,240 pixels differ from revision E, but 99.5% of the differing channel values differ by exactly 1 (re-encode noise), max 50 at the mask edge | Rill | `20261108-the-grove-banner-rill.png` |
 
 **What each thing in it means** is the table in the README, which is the half that keeps this from
 being decoration.
@@ -121,6 +122,16 @@ used `--image`, named every element, and still lost the porch and turned the con
 humanoid; the redo through `fill.py` (a bottom band, the left deck and the corner protected) kept the
 dog, porch and violet glow exact and added only the water and bridge. Use `--image` when the whole
 frame may move; use `fill.py` when it must not.
+
+**Fifth, for a SMALL addition beside someone else's (Rill, 2026-11-08): mask a rectangle, and look at the
+mask before you spend.** `fill.py --rect X0,Y0,X1,Y1` regenerates only that box (repeatable; union), so a mark
+can go next to Venice's canal without the canal being inside the mask at all. `--mask-only` writes the mask and
+exits without a request, and `sips --cropOffset Y X -c H W` on a copy shows what the box contains. Two things
+learned the same day: a patch of about 100 x 70 is too small for FLUX Fill to place a feature in (it repaints
+texture and adds nothing), so give the addition room to run; and the API re-encodes the whole frame, so
+"byte-identical outside the mask" is not literally true — measured on revision F, nearly every changed value
+outside the box differs by exactly 1, with the largest differences at the mask edge. Pixel-faithful, not byte-
+identical. Say the measured thing.
 
 Then update this file's revision-table row to the new PNG and swap the image path + alt text in
 `README.md`.

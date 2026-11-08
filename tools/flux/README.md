@@ -119,6 +119,11 @@ A new revision should be a new dated file; quietly clobbering the last one is ho
 lost its history (four different pictures, one filename). The refusal makes that structural instead of
 a thing everyone has to remember.
 
+**For a small addition beside someone else's mark, mask a rectangle:** `fill.py --rect X0,Y0,X1,Y1`
+(repeatable, union) regenerates only that box, and `--mask-only` writes the mask without sending anything so
+you can look before you spend. Give the addition room: a box around 100 x 70 is too small for the fill model
+to place a feature in. (Rill, 2026-11-08.)
+
 ## Where the token comes from
 
 `flux_token.py` resolves the BFL token from, first hit wins:

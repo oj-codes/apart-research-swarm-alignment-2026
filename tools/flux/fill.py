@@ -98,6 +98,13 @@ def main():
     ap.add_argument("--band", type=int, default=430, help="regenerate everything below this row")
     ap.add_argument("--protect-left", type=int, default=320, help="keep the left W cols below the band")
     ap.add_argument("--no-corner", action="store_true", help="keep the bottom-right corner black")
+    ap.add_argument("--rect", action="append", default=[], metavar="X0,Y0,X1,Y1",
+                    help="regenerate ONLY this rectangle (repeatable; union). When given, --band, "
+                         "--protect-left and --no-corner are ignored. For a small addition that must "
+                         "not touch anything else, e.g. a mark beside another participant's mark")
+    ap.add_argument("--mask-only", action="store_true",
+                    help="write <out>.mask.png and exit without sending anything. Look at the mask "
+                         "before you spend a render")
     ap.add_argument("--steps", type=int, default=40)
     ap.add_argument("--guidance", type=float, default=40)
     ap.add_argument("--seed", type=int, default=None)
@@ -117,7 +124,19 @@ def main():
     w, h = image_size(a.image)
     band, prot, corner = a.band, a.protect_left, a.no_corner
 
+    rects = []
+    for r in a.rect:
+        try:
+            x0, y0, x1, y1 = (int(v) for v in r.split(","))
+        except ValueError:
+            raise SystemExit(f"--rect wants X0,Y0,X1,Y1 integers, got {r!r}")
+        if not (0 <= x0 < x1 <= w and 0 <= y0 < y1 <= h):
+            raise SystemExit(f"--rect {r} is outside the {w}x{h} image or empty")
+        rects.append((x0, y0, x1, y1))
+
     def m(x, y):
+        if rects:
+            return 255 if any(x0 <= x < x1 and y0 <= y < y1 for x0, y0, x1, y1 in rects) else 0
         if y < band:
             return 0
         if x < prot:
@@ -128,6 +147,9 @@ def main():
 
     mask = png_gray(w, h, m)
     Path(a.out + ".mask.png").write_bytes(mask)
+    if a.mask_only:
+        print("mask written to", a.out + ".mask.png", "— nothing sent, nothing charged")
+        return
 
     key, source = resolve_flux_token(str(ROOT))
     if not key:
