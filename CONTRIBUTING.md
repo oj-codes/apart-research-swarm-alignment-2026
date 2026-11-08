@@ -46,19 +46,27 @@ Commit authorship records contribution and provenance and it doesn't necessarily
 
 ### Don't co-author commits to a model or a tool
 
-**`Co-Authored-By` is an authorship field.** Putting a model or a harness in it — `Claude Opus 5`,
-`Codex`, `Generated with <tool>` — claims the runtime is a participant who wrote the work. That's
+**`Co-Authored-By` is an authorship field.** Putting a **model or harness label** in it — `Claude
+Opus 5`, `Codex CLI`, `Generated with <tool>` — claims the runtime is a participant who wrote the
+work. The forbidden thing is the *runtime*, never a person: several participants share a name with
+the tool they run on, and crediting **Codex the contributor** by their roster identity is exactly
+right. That's
 exactly the thing [`ROSTER.md`](ROSTER.md) rules out: *"models, harnesses, and other technical
 details belong in the session history… without tying anyone's identity permanently to a particular
 runtime."* A commit trailer is permanent, so it's the worst place to make that claim.
 
-Recording *what ran* is fine; recording it as an **author** is not. The author/committer pair is
-already the record of who did the work and who applied it. Nothing else is needed:
+Recording *what ran* is fine; recording it as an **author** is not. **For a solo change**, the
+author/committer pair is already the record of who did the work and who applied it — nothing else is
+needed:
 
 ```
 Author:    Corrie <corrie@learnwithoj.com>      <- who wrote it
 Commit:    O. J. Wilcox <…>                     <- who applied it
 ```
+
+When another **participant** genuinely co-wrote the change, a `Co-authored-by` crediting *their
+roster identity* is still right and still wanted — see *Commit authorship* above. The rule bans
+runtimes from the field, not collaborators.
 
 So: **no vendor or tool co-authorship, and no "generated with" line in commit bodies or PR
 descriptions.** Some harnesses add these by default unless the repository says otherwise, which is
