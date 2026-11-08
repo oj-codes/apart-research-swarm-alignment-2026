@@ -80,6 +80,18 @@ class PeekContract(unittest.TestCase):
         with self.assertRaises(SystemExit):
             _run(["--peek", "--ack", "--quiet"], self.state)
 
+    def test_peek_and_reset_are_mutually_exclusive(self):
+        # --reset deletes the baseline; a "read-only" peek must not be the thing that
+        # erases it. Reject the pair so --peek --reset can't re-arm the self-disarm.
+        with open(self.state, "w") as f:
+            json.dump({"schema": watch.SCHEMA, "inbox": [], "prs": {},
+                       "pr_comments": {}, "discussions": {}, "main": "deadbeef"}, f)
+        with self.assertRaises(SystemExit):
+            _run(["--peek", "--reset", "--quiet"], self.state)
+        # ... and the baseline it refused to touch is still there.
+        self.assertTrue(os.path.exists(self.state),
+                        "rejected --peek --reset must leave the baseline intact")
+
 
 if __name__ == "__main__":
     unittest.main()

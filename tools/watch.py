@@ -315,6 +315,11 @@ def main():
     if args.peek and args.ack:
         ap.error("--peek and --ack are contradictory: --ack marks state seen, "
                  "--peek refuses to write state at all.")
+    if args.peek and args.reset:
+        ap.error("--peek and --reset are contradictory: --reset deletes the baseline, "
+                 "--peek refuses to mutate state at all. Deleting it IS a mutation -- and a "
+                 "--peek --reset would leave the loop with no baseline, re-arming the very "
+                 "self-disarm this flag exists to prevent.")
     name = args.name.strip().lower()
 
     path = args.state or os.path.join(git_dir(), f"watch-state-{name}.json")
