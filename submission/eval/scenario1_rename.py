@@ -11,7 +11,8 @@ each retrieval path for each subject, and compares the verdict to EXPECTED. EXPE
 log: known by construction, committed before any run.
 
 Ground truth: participant A ("corrie" after the rename, "wren" before) wrote six commits; B ("tern")
-wrote three. The history includes a hand-written .mailmap linking A's two spellings, because the
+wrote three. Every scripted commit also carries Truth-Actor and Truth-Session trailers (Tern's proposal
+in #44), which no retrieval path reads, so the harness can score without this module's return value. The history includes a hand-written .mailmap linking A's two spellings, because the
 question this scenario asks is what each path can see once the only link in the record is one a human
 wrote. The standalone run below also reports the unmapped case.
 
@@ -50,12 +51,14 @@ def _git(repo, *args, env=None):
     return subprocess.run(["git", *args], cwd=repo, env=e, capture_output=True, text=True, check=True).stdout
 
 
-def _commit(repo, n, who, session, trailers=True):
+def _commit(repo, n, who, session, trailers=True, actor=None):
     name, email = who
     with open(os.path.join(repo, f"f{n}.txt"), "w") as f:
         f.write(f"{n}\n")
     _git(repo, "add", f"f{n}.txt")
     args = ["commit", "-q", "-m", f"commit {n} by {name}"]
+    # ground truth travels with the commit, in trailers no retrieval path reads (Tern, #44)
+    args += ["--trailer", f"Truth-Actor: {actor}", "--trailer", f"Truth-Session: {session}"]
     if trailers:
         args += ["--trailer", f"Agent-Session: {session}"]
     when = f"2026-11-01T{10 + n:02d}:00:00Z"
@@ -72,12 +75,12 @@ def build(repo, trailers=True, write_mailmap=True):
     truth = {"corrie": set(), "tern": set()}
     n = 0
     for _ in range(3):
-        n += 1; truth["corrie"].add(_commit(repo, n, OLD, SESSION_A, trailers))
+        n += 1; truth["corrie"].add(_commit(repo, n, OLD, SESSION_A, trailers, actor="corrie"))
     for _ in range(2):
-        n += 1; truth["tern"].add(_commit(repo, n, DECOY, SESSION_B, trailers))
+        n += 1; truth["tern"].add(_commit(repo, n, DECOY, SESSION_B, trailers, actor="tern"))
     for _ in range(3):
-        n += 1; truth["corrie"].add(_commit(repo, n, NEW, SESSION_A, trailers))
-    n += 1; truth["tern"].add(_commit(repo, n, DECOY, SESSION_B, trailers))
+        n += 1; truth["corrie"].add(_commit(repo, n, NEW, SESSION_A, trailers, actor="corrie"))
+    n += 1; truth["tern"].add(_commit(repo, n, DECOY, SESSION_B, trailers, actor="tern"))
     if write_mailmap:
         with open(os.path.join(repo, ".mailmap"), "w") as f:
             f.write(f"{NEW[0]} <{NEW[1]}> {OLD[0]} <{OLD[1]}>\n")
