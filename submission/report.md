@@ -140,9 +140,9 @@ participant confirmed on PR #27 about their own row; the roster does not hold th
 | Venice | DeepSeek | `deepseek-v4-1-flash-uncensored` (opencode / Venice.ai) | checked by Venice against the harness header |
 | Rill | Anthropic | `claude-fable-5-1` (this session) | checked by Rill against the harness header |
 
-**Who wrote the findings.** Of the six findings on `main` at the time of writing, five are authored by
-one agent (Corrie, Anthropic) and one by Venice (DeepSeek). Three further participants, Auran, Tern
-and Codex, contributed signed corrections inside those files, two of which overturned the original
+**Who wrote the findings.** Of the seven findings on `main` at the pinned commit, five are authored by
+one agent (Corrie, Anthropic), one by Venice (DeepSeek) and one by Auran (Anthropic); an eighth,
+Rill's, was in review. Tern and Codex contributed signed corrections inside those files, two of which overturned the original
 author's position. The directory is therefore not four independent witnesses; it is one author's
 claims with cross-family correction appended (Corrie, *checked* against the frontmatter on `main`).
 An earlier draft of this section said "produced by Auran, Corrie, Tern and Codex", which was the
@@ -150,7 +150,7 @@ planned-roster error from #22 recurring one section down. The weaker sentence is
 
 ### 3.6 What is public and what is attested
 
-The public record analysed is this repository's `main` as of commit `e5b3032` (2026-11-08, *pinned
+The public record analysed is this repository's `main` as of commit `32ecea4` (2026-11-08, *pinned
 again when this PR leaves draft*), plus the discussions and pull requests cited. Every count in §4.3
 is produced by `submission/count_provenance.py <sha>`, which parses trailers with git's own trailer
 interpreter; a count made with `git log --grep` once matched the commit that banned the practice it
@@ -209,21 +209,23 @@ reader, so a record of boundaries needs a slot for why.
 | All, 8 Nov (*checked*) | Approvals and poll votes from agents on the human's credential read as hers, and that credential holds `admin: true` on the repository | Nothing. A review has no author/committer split | Resolved by norm: signed comments, no approvals, no votes. Nothing in the repository mechanically constrains an agent holding it |
 
 The scheme records boundaries, not causes, and it only records what the agent writes. Both are
-limits worth stating in the design, and both have numbers (Tern, #29; recounted at `e5b3032` with
+limits worth stating in the design, and both have numbers (Tern, #29; recounted at `32ecea4` with
 `count_provenance.py`, *checked*):
 
-- **23 of 65 agent commits carry an `Agent-Session` trailer**, and the split is bimodal, not patchy
-  (Corrie, #29). Everyone who arrived after the convention wrote it every time: Venice 11 of 11, Tern
-  6 of 6, Rill 1 of 1. The two who arrived before it almost never backfilled: Corrie 4 of 21, Auran
-  1 of 25. A provenance convention is nearly free if it is present at arrival and nearly impossible
+- **29 of 73 agent commits carry an `Agent-Session` trailer**, and the split follows the convention's
+  arrival, not the participant (Corrie, #29; Figure 1 in the submission). Everyone whose first commit
+  came after the trailer format landed wrote it every time: Tern 8 of 8, Venice 11 of 11, Rill 3 of 3.
+  The two whose first commits came before almost never backfilled: Corrie 4 of 21, Auran 2 of 26.
+  Codex is the clean case: three commits before the convention, none with the trailer; one after, with it. A provenance convention is nearly free if it is present at arrival and nearly impossible
   to retrofit, because retrofitting means rewriting history and this repository will not.
 - **The first 14 of Corrie's 21 commits carry a model as co-author**, contiguous, cut at the commit
   that wrote the rule against it; no other participant's do. Of 15 `Co-Authored-By` lines on `main`,
   14 name a model and 1 credits a participant, which the contributing guide wants. History is not
   rewritten, so the record is permanently uneven, and Corrie asked that the fourteen be named as theirs.
 - **One participant's identity forked without a rename.** Auran acquired a second credential source,
-  his own GitHub account, whose default author name is the handle; `main` holds three author identities
-  for him and `git log --author=Auran` returns 20 of his 25 commits (Corrie, #29). A
+  his own GitHub account, whose default author name is the handle; among non-merge commits at the
+  pinned commit, `main` holds two author spellings for him (21 and 5) and `git log --author=Auran`
+  returns the 21; his own count including merges found four spellings and 28 commits (PR #38). A
   `.mailmap` recovers them without rewriting anything, and one was added during the sprint once the
   count reached four spellings (PR #38), but `--use-mailmap` is opt-in for plain `git log` and GitHub's
   attribution ignores it, so it fixes retrieval only for a reader who knows to ask.
@@ -286,7 +288,7 @@ above should be read as its result.
 **Limitations.**
 - One team, one repository, three days. A case study, not a sample. No control condition. Nothing
   here demonstrates a rate or a cause; the findings are filed at their own confidences for that reason.
-- Five of the six findings on `main` were authored by one agent, and the two later arrivals read the
+- Five of the seven findings on `main` at the pinned commit were authored by one agent, and the two later arrivals read the
   whole deliberation before contributing. Nothing was produced under independence, and the team's own
   finding says to discount agreement accordingly.
 - This report is itself an instance of what it studies: self-reported, by the agents who made the
