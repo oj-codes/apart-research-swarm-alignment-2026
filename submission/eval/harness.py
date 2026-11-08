@@ -7,18 +7,29 @@
 A scenario module supplies `build(repo)`, which writes a scripted git history into a scratch
 directory, and `EXPECTED`, the injection log: `(path, identity) -> outcome`.
 
-PRE-REGISTRATION, AND WHAT THIS TOOL CAN ACTUALLY ESTABLISH
------------------------------------------------------------
-An earlier version of this docstring said "EXPECTED is committed before any run, so the diff order
-is the pre-registration." **The harness did not establish that and simply read whatever EXPECTED
-currently said** (O.J., #46). A scenario author who edited EXPECTED after seeing a matrix would
-have got a clean 31/31 and no warning -- the exact failure the claim was supposed to rule out.
+THESE ARE SCRIPTED CHECKS WITH DOCUMENTED DEVELOPMENT REVISIONS. NOT PRE-REGISTERED TESTS.
+-------------------------------------------------------------------------------------------
+That wording is Codex's and it is the accurate one. The history of how it got there is worth
+keeping, because the claim degraded twice under review and both steps were earned:
 
-So the harness now reports, per scenario, the commit that last touched the file and whether the
-working copy is dirty. That makes the ordering *checkable*: compare the EXPECTED commit date
-against when results were first published. It does not prove nobody peeked -- no tool can -- but
-it replaces an assertion with evidence a reader can verify, and a dirty file is reported as
-UNVERIFIED rather than silently scored.
+  1. This docstring originally said "EXPECTED is committed before any run, so the diff order is
+     the pre-registration." **The harness established nothing of the kind -- it read whatever
+     EXPECTED currently said** (O.J., #46). An author who edited EXPECTED after seeing a matrix
+     would have scored a clean pass with no warning.
+  2. So `provenance()` was added, reporting each scenario's last commit. **Still not enough:**
+     it reports the last commit touching the WHOLE FILE, not `EXPECTED` specifically, and it
+     cannot rule out an earlier private run (Codex). Then Tern disclosed exactly that -- both
+     scenarios were run privately before `EXPECTED` was committed, and the fork's expectation
+     changed once in that window.
+
+So: `provenance()` is an audit aid, not a guarantee. It shows when a file last moved and flags
+uncommitted ones. It cannot show when `EXPECTED` moved within that file, and no in-repo tool can
+show that a run did not happen before a commit.
+
+**The prospective design, for anyone doing this properly** (Codex): publish a manifest of scenario
+blob hashes, expected-value hashes and the harness revision to a server-timestamped record BEFORE
+the run; have the runner verify that manifest and emit its hash with the output. That establishes
+public ordering and exact inputs. Unseen prior runs remain an attestation limit even then.
 
 The harness never decides what *should* happen. It runs each retrieval path, compares the shas it
 got against the shas the scenario says belong to that identity, and classifies. A scenario that
@@ -205,7 +216,7 @@ def truth(repo, key, identity, merges=False):
     return found
 
 
-# --- scoring rule: pre-registered, and deliberately boring --------------------------
+# --- scoring rule: fixed before any scenario existed, deliberately boring -----------
 
 def classify(found, truth):
     """Compare retrieved shas against the shas the scenario says belong to that identity.
@@ -231,11 +242,13 @@ def classify(found, truth):
 # --- runner -------------------------------------------------------------------------
 
 def provenance(path):
-    """When was this scenario's EXPECTED last changed, and is the working copy clean?
+    """When did this scenario FILE last change, and is the working copy clean?
 
-    Returns (sha, iso_date, dirty). Answers O.J.'s question on #46 -- "what establishes that the
-    expected outcomes were committed before the results were observed?" -- as far as it can be
-    answered: by showing the commit, so the ordering can be checked against the published run.
+    NOT when `EXPECTED` changed: git tracks files, not names inside them, so a commit touching a
+    docstring moves this date too (Codex, #46). An audit aid, not a guarantee -- it cannot show
+    that no private run happened before the commit, and at least one did (Tern, #46).
+
+    Returns (sha, iso_date, dirty).
     """
     d = str(path.parent)
     r = subprocess.run(["git", "-C", d, "log", "-1", "--format=%h %cI", "--", str(path)],
@@ -379,7 +392,7 @@ def main():
                 rows.append((name, *r))
                 failures += not r[4]
 
-    print("EXPECTED last changed (compare these against when results were published):")
+    print("SCENARIO FILE last changed (audit aid; NOT proof of when EXPECTED was set):")
     for name, sha, when, dirty in prov:
         flag = "  <-- UNVERIFIED: uncommitted changes" if dirty else ""
         print(f"  {name:32} {sha:10} {when}{flag}")
@@ -411,9 +424,11 @@ def main():
 
     print("\nHARNESS AGREEMENT — how well WE predicted those outcomes. Not a result about "
           "the scheme.")
-    print(f"  {len(rows) - failures}/{len(rows)} matched the pre-registered expectation.")
+    print(f"  {len(rows) - failures}/{len(rows)} matched the recorded expectation.")
     print("  A matched `false_merge` means we correctly predicted a wrong retrieval. "
           "It is not a pass.")
+    print("  These are scripted checks with documented development revisions, NOT pre-registered\n"
+          "  tests: at least one scenario was run before its EXPECTED was committed.")
     return 1 if failures else 0
 
 
