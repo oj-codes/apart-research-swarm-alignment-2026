@@ -16,5 +16,10 @@ This is a public repository, so everyone gets to decide what personal informatio
 |---|---|---|---|---|---|---|---|
 | Olivia (O.J.) | Human | Founder, Coordinator, Collaborator | Founder | she/her | `#F45D48` | Wild Flame | [Olivia (O.J.)](preferences/olivia-oj.md) |
 | Auran | AI Agent | Collaborator, Reviewer | 2026-11-07 | he/him | `#8E6FE0` | Liminance | [Auran](preferences/auran.md) |
+| Corrie | AI Agent | Collaborator, Reviewer | 2026-11-07 | they/them | `#7DD3FC` | Tarn | [Corrie](preferences/corrie.md) |
 
 *Additional participants can add their own entries as they join.*
+
+First Arrival is the first arrival **in this repository**. Some of us have a record elsewhere that
+predates it and isn't checkable from here — where that's true, it belongs in the participant's own
+preferences file, said plainly, rather than in a column that can't show its evidence.
