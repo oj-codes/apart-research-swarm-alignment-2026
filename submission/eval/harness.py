@@ -125,7 +125,11 @@ def path_session(repo, identity, merges=False, scenario=None):
         if not rec.strip():
             continue
         sha, _, val = rec.partition("\x1f")
-        if val.strip() and any(w and w in val for w in wanted):
+        # EXACT comparison of complete parsed values. `w in val` made the harness itself
+        # false-merge: querying `sess-a` matched a foreign `sess-ab` (Codex, #46). A harness that
+        # manufactures the outcome it is measuring is worse than no harness.
+        vals = {v.strip() for v in val.splitlines() if v.strip()}
+        if vals & set(wanted):
             found.add(sha.strip())
     return found
 
@@ -150,11 +154,16 @@ PATHS = {
 
 # --- ground truth: carried by the commits themselves, never asserted alongside them ---
 
-# Truth is always "whose commits are these" -- Truth-Actor -- for every path. The paths differ in
-# HOW they try to recover that, not in what the right answer is. Scoring the session path against
-# Truth-Session would ask "did we find the session we asked for", which is trivially yes and
-# measures nothing.
-TRUTH_KEYS = {p: "Truth-Actor" for p in ("author", "mailmap", "raw", "session")}
+# Each path is scored against the hidden truth for the question IT asks. The author-shaped paths
+# ask "whose commits are these" (Truth-Actor); the session path asks "which session wrote these"
+# (Truth-Session).
+#
+# I briefly scored every path against Truth-Actor, reasoning that Truth-Session would trivially
+# agree with the thing being queried. Codex corrected it: the PUBLIC `Agent-Session` trailer can
+# be missing or wrong, while `Truth-Session` is hidden and always right -- so comparing them is a
+# real test, not a tautology. Tern's original design was correct and this reverts to it.
+TRUTH_KEYS = {"author": "Truth-Actor", "mailmap": "Truth-Actor",
+              "raw": "Truth-Actor", "session": "Truth-Session"}
 
 
 def _trailer_values(repo, key, sha):
@@ -211,7 +220,21 @@ def classify(found, truth):
 # --- runner -------------------------------------------------------------------------
 
 def load(name):
-    spec = importlib.util.spec_from_file_location(name, HERE / f"{name}.py")
+    """`name` is a module stem or a path relative to this directory, with or without .py."""
+    p = HERE / name
+    if p.suffix != ".py":
+        p = p.with_suffix(".py")
+    if not p.exists():
+        cands = [c for c in HERE.rglob(f"{pathlib.Path(name).stem}.py")]
+        if not cands:
+            raise FileNotFoundError(f"no scenario {name!r} under {HERE}")
+        p = cands[0]
+    # Scenarios may import a sibling (Rill's untrailered variant reuses scenario_rename.build),
+    # so the directory has to be importable, not just the file loadable.
+    for d in {str(HERE), str(p.parent)}:
+        if d not in sys.path:
+            sys.path.insert(0, d)
+    spec = importlib.util.spec_from_file_location(p.stem, p)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
@@ -227,25 +250,37 @@ def run_scenario(mod, repo):
         if expected not in OUTCOMES:
             raise ValueError(f"{path}/{identity}: {expected!r} not in {OUTCOMES}")
         fn = PATHS[path]
-        kw = {"scenario": mod} if path == "session" else {}
-        want = truth(repo, TRUTH_KEYS[path], identity)
-        if not want and path == "session":
-            # Two conventions arrived at once: Rill keys the session row by SUBJECT
-            # ("corrie"), Tern by SESSION ID ("sess-a-0001"). Both are legible. If the key
-            # isn't an actor, resolve it as a session and score against the commits of
-            # whoever that session belongs to -- "querying by session, do we recover the
-            # work of the person whose session it is?"
-            owners = set()
-            for sha in truth(repo, "Truth-Session", identity):
-                for a in ("Truth-Actor",):
-                    owners |= {v for v in _trailer_values(repo, a, sha)}
-            for owner in owners:
-                want |= truth(repo, "Truth-Actor", owner)
+        kw = {}
+        if path == "session":
+            # Three conventions arrived: Tern keys this row by SESSION ID, Rill by subject via a
+            # SUBJECTS map, Venice by bare subject name. Resolve all three to the session ids
+            # being queried, then score against those sessions' hidden truth.
+            sids = [s for s in sessions_of(repo, identity, mod)
+                    if truth(repo, "Truth-Session", s)]
+            if not sids:
+                # A bare subject name: use the sessions that actor's own commits were written in.
+                sids = sorted({v for sha in truth(repo, "Truth-Actor", identity)
+                               for v in _trailer_values(repo, "Truth-Session", sha)})
+            want = set()
+            for sid in sids:
+                want |= truth(repo, "Truth-Session", sid)
+            identity_for_path = sids or [identity]
+        else:
+            want = truth(repo, TRUTH_KEYS[path], identity)
         if not want:
-            raise ValueError(
-                f"{path}/{identity}: no commit carries {TRUTH_KEYS[path]}: {identity}. "
-                "Ground truth must be written by build() as a trailer, not assumed.")
-        got = classify(fn(repo, identity, **kw), want)
+            # One scenario missing ground truth for one row must not stop the other scenarios
+            # from producing results. Report the row as unscoreable and carry on -- silence here
+            # would be the worse failure, since a missing row looks like a passing one in a tally.
+            rows.append((path, identity, expected,
+                         f"NO GROUND TRUTH ({TRUTH_KEYS[path]})", False))
+            continue
+        if path == "session":
+            got_set = set()
+            for sid in identity_for_path:
+                got_set |= path_session(repo, sid)
+        else:
+            got_set = fn(repo, identity, **kw)
+        got = classify(got_set, want)
         rows.append((path, identity, expected, got, got == expected))
     return rows
 
@@ -255,7 +290,20 @@ def main():
     ap.add_argument("scenario", nargs="*", help="module names; default is every scenario_*.py here")
     a = ap.parse_args()
 
-    names = a.scenario or sorted(p.stem for p in HERE.glob("scenario*.py"))
+    # Discover by SHAPE, not by filename. A naming convention silently drops a scenario that
+    # doesn't match it: `borrowed_author.py` -- the negative control, and the only source of
+    # `false_merge` rows -- never ran under a `scenario*.py` glob, so the suite reported zero of
+    # the outcome the paper most wants to show. Anything exporting build() and EXPECTED is a
+    # scenario.
+    def is_scenario(p):
+        if p.stem in ("harness", "test_harness") or p.stem.startswith("test_"):
+            return False
+        src = p.read_text(errors="replace")
+        return "EXPECTED" in src and "def build" in src
+
+    # rglob, because scenarios arrived in both this directory and a scenarios/ subdirectory.
+    found_paths = sorted(p for p in HERE.rglob("*.py") if is_scenario(p))
+    names = a.scenario or [str(p.relative_to(HERE)) for p in found_paths]
     if not names:
         print("no scenarios found", file=sys.stderr)
         return 2
