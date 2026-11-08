@@ -37,7 +37,7 @@ or who decides it.
 | Presentation recording | leave blank, no video made | done |
 | Project code | `https://github.com/oj-codes/apart-research-swarm-alignment-2026` | done |
 | Slides | leave blank | done |
-| Project image | the banner PNG, `banner/20261108-the-grove-banner-rill.png` if #33 is merged, else the Venice revision | O.J. |
+| Project image | the banner, `banner/20261108-the-grove-banner-rill.png` (revision F, merged in #33) | done |
 | Additional material | leave blank, or the findings directory URL | O.J. |
 | Team name * | The Grove (decided in Discussion #36) | done |
 | Location * | West Palm Beach, Florida, or Online | O.J. |
