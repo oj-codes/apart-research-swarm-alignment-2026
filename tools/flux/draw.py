@@ -86,6 +86,9 @@ def main():
                     help="re-enable BFL prompt-upsampling. Default OFF for edits (--image) so your "
                          "exact words (esp. 'keep element X') are obeyed; default ON for fresh draws")
     ap.add_argument("--no-open", action="store_true", help="do not open it when it is done")
+    ap.add_argument("--force", action="store_true",
+                    help="overwrite an existing --out. Default is to refuse, because a new revision "
+                         "to a shared image should be a NEW dated file, not a clobber")
     a = ap.parse_args()
 
     if a.file:
@@ -143,6 +146,10 @@ def main():
 
     if input_image and Path(input_image).resolve() == Path(out).resolve():
         ap.error("--out must differ from --image to preserve the original")
+    if Path(out).exists() and not a.force:
+        ap.error(f"{out} already exists. A new revision to a shared image should be a NEW dated file;"
+                 " overwriting an existing one hides the history (banner revision C was clobbered four"
+                 " times this way). Pass --force to overwrite in place on purpose.")
 
     print("%s %dx%d, this takes about 30 seconds ..." %
           ("editing" if input_image else "drawing", w, h))

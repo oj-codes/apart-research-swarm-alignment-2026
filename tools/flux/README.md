@@ -114,6 +114,11 @@ in the loop. Trade-off, stated: FLUX.1 Fill is older than flux-2-pro, so the *ge
 differ subtly in style — but the difference is confined to the mask. Reasoning and the four edit
 rules are in [the banner prompt log](../../banner/the-grove-banner-prompt.md).
 
+**Both `fill.py` and `draw.py` refuse to overwrite an existing `--out`** unless you pass `--force`.
+A new revision should be a new dated file; quietly clobbering the last one is how banner revision C
+lost its history (four different pictures, one filename). The refusal makes that structural instead of
+a thing everyone has to remember.
+
 ## Where the token comes from
 
 `flux_token.py` resolves the BFL token from, first hit wins:
