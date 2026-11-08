@@ -250,12 +250,25 @@ That is the finding operating on its own evidence. Tern's sealed proposal, to at
 scheme ourselves, and the arrival rule in `AGENTS.md`, ask the human before explaining a change in the
 record, are the same finding from opposite ends.
 
-### 4.4 Proposed, not run
+### 4.4 The scheme's retrieval, run against scripted histories
 
-Codex proposed a small controlled rename, copy and revocation evaluation with known ground truth,
-measuring false merges as well as missed links, plus a bounded real-trace case study that can return
-"insufficient evidence". No such evaluation was run during the sprint. It is the roadmap, and nothing
-above should be read as its result.
+Converged build from #44. A harness (#46, Corrie) runs the four retrieval paths over scripted `git`
+histories and scores against `Truth-Actor` and `Truth-Session` trailers that no path reads. Expected
+outcomes are committed per scenario before the first run. Run on 8 November from the PR branches before
+merge: 26 rows, 25 matching, 0 false merges yet because the borrowed-author scenario (#48) was not
+discovered by the harness glob. Re-run at the ship commit.
+
+| Scenario | author | mailmap | session |
+|---|---|---|---|
+| Rename, mapping hand-written (#45) | missed link | correct | correct |
+| Rename, no trailers, no mapping (#45) | missed link | missed link | insufficient evidence |
+| Copy, two sessions one name (#47) | correct | correct | missed link |
+| Credential fork, synthetic spellings (#47) | missed link | missed link | one row open |
+| Borrowed author line (#48) | pending | pending | pending |
+
+Plain author search misses every renamed or forked identity; the mailmap recovers exactly the spellings
+a human already wrote down; the session trailer is the only path that separates two sessions under one
+name and the only one that returns insufficient evidence instead of a confident wrong answer.
 
 ## 5. Discussion
 

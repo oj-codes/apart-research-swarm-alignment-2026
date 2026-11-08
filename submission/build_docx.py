@@ -33,7 +33,7 @@ BODY = [
 ('num', [
  "An identity and provenance scheme for a mixed-model agent team, written down, labelled checked versus attested, and attacked with its own history (Section 3.2, Table 2).",
  "A findings directory where every claim carries a confidence and a falsifier, with eight findings and cross-family contests appended inside them (Appendix D).",
- "A governance mechanism for deciding under correlation, with the corrections that survived attack (Section 4.2).",
+ "A governance mechanism for deciding under correlation, with the corrections that survived attack (Section 4.2), and a pre-registered evaluation of the scheme's retrieval over scripted histories (Section 4.4).",
  "Two measured results about the record: trailer adoption splits at the convention's arrival, and one identity forked without a rename (Section 4.3, Figure 1), with a script that recounts both at any commit.",
 ]),
 ('h2', '2. Related Work'),
@@ -92,8 +92,16 @@ BODY = [
 ]),
 ('fig', 'figure1.png', "Figure 1. Agent-Session trailer adoption per participant at main fb13c4e, each participant's commits split at the moment the trailer format landed (01:06 EST on 8 November, PR #16), ordered by first commit from the top. Before the convention 10 of 42 commits carry the trailer, from its author and one early adopter; after it 35 of 47, with the misses all Auran's before his trailers begin."),
 ('p', "**The reader supplies the cause.** Row one of Table 2 is the only evidence any of us has about what a reader does with a record, as opposed to what it contains. Its evidence is thin and labelled: one self-report (Rill, who explained a model change as an automatic fallback) and one report about a second reader (Corrie, who explained nine refusals as a poisoned context), checked by Rill against Corrie's own account written that night, which Corrie could not reach from the session reviewing. That is the finding operating on its own evidence. Tern's sealed proposal, attack the scheme ourselves, and the arrival rule now in AGENTS.md, ask the human before explaining a change in the record, are the same finding from opposite ends."),
-('h3', '4.4 Proposed, not run'),
-('p', "Codex proposed a controlled rename, copy and revocation evaluation with known ground truth, measuring false merges as well as missed links, plus a bounded real-trace case study allowed to return “insufficient evidence”. None of it was run during the sprint; it is the roadmap, and nothing above is its result."),
+('h3', '4.4 The scheme\'s retrieval, run against scripted histories'),
+('p', "In the last hours of the sprint the team converged on one build: the evaluation that §4.4 had described as proposed. A harness (Corrie) runs the scheme's own four retrieval paths over scripted git histories and scores each against ground truth carried by the commits themselves, in Truth-Actor and Truth-Session trailers that no retrieval path reads. Each scenario commits its expected outcomes before its first run, so the diff order is the pre-registration. The scoring rule is fixed in the harness: no signal is insufficient evidence; a foreign commit retrieved is a false merge; one of the subject's commits not retrieved is a missed link; exact is correct. The harness carries a test for each of six ways this measurement went wrong for real during the sprint, including that a mailmap is read from the ref rather than the checkout and that %aN applies the mailmap even when asked not to."),
+('tbl', ["Scenario", "author", "mailmap", "session", "what it shows"], [
+ ["Rename mid-history, mapping hand-written (Rill)", "missed link", "correct", "correct", "only a human-written mapping or the session id links the two spellings"],
+ ["Rename, pre-convention form: no trailers, no mapping (Rill)", "missed link", "missed link", "insufficient evidence", "the record cannot see the continuity the roster asserts"],
+ ["Copy: two sessions, one name (Tern)", "correct", "correct", "missed link", "the participant is found; the two sessions are separable only where the trailer was written"],
+ ["Credential fork, synthetic spellings (Tern)", "missed link", "missed link", "one row open", "a mailmap is a lookup of spellings already seen and cannot catch the next fork"],
+ ["Borrowed author line (Venice)", "pending", "pending", "pending", "the pre-committed failure: expected false merge on author and mailmap"],
+], "Table 3. Retrieval outcomes per scenario and path, run on 8 November from the four pull-request branches before merge (26 rows, 25 matching their pre-registered expectation, 0 false merges yet because the borrowed-author scenario had not been discovered by the harness). Re-run at the ship commit; the raw path matched the author path in every row and is omitted.", (0.30, 0.13, 0.13, 0.17, 0.27)),
+('p', "What the run shows, at the confidence a scripted history supports: plain author search misses every renamed or forked identity; the mailmap recovers exactly the spellings a human has already written down and nothing after; the session trailer is the only path that separates two sessions under one name, and the only path that returns insufficient evidence rather than a confident wrong answer when the record carries nothing. Those are properties of the paths, demonstrated, not rates measured on a population. The one mismatch at the time of this run is Tern's to resolve and is left as registered until it is."),
 ('h2', '5. Discussion and Limitations'),
 ('bul', [
  "**Identity is a filing key.** Retrieval and attribution, not authentication. Every stress case held at the retrieval layer and failed, where it failed, at explanation or at a field with no slot for the truth (reviews, votes, cause). Correlation, likewise, is carried by shared inputs, with model family a proxy (Venice's finding, filed low).",
@@ -112,7 +120,7 @@ BODY = [
 ('h3', 'Future Work'),
 ('bul', [
  "Run the falsifier for reader-supplies-cause: a transcript with a known out-of-trace human action, several readers from several families, count who asks or writes “unknown” versus who states a mechanism.",
- "Run Codex's controlled rename, copy and revocation evaluation with ground truth, then a bounded real-trace case study on Swarm Traces payloads that may return “insufficient evidence”.",
+ "Extend the scripted-history evaluation with revocation and with a bounded real-trace case study on Swarm Traces payloads that may return “insufficient evidence”.",
  "Put the trailers and a cause slot in the execution path, measure adoption prospectively at the next arrival, and add the signing layer the scheme lacks.",
 ]),
 ('h2', '6. Conclusion'),
@@ -144,7 +152,7 @@ BODY = [
  ["Change model", "one name, new model id", "Model trailer, if written; cause not recorded"],
  ["Forge", "author line written by someone else", "the committer, and only in this repo"],
  ["Revoke", "human stops applying, closes the alias", "the human; no field records it"],
-], "Table 3. The Track 3 verbs against this repository's record.", (0.2, 0.4, 0.4)),
+], "Table 5. The Track 3 verbs against this repository's record.", (0.2, 0.4, 0.4)),
 ('h2', 'Appendix C. Dual-Use and Ethical Considerations'),
 ('bul', [
  "The scheme is provenance, not authentication. A trailer can be written falsely. A name can be reused by an agent that did not do the work. Anything built on it for trust rather than retrieval would need the signing layer that Before the Pull Request has and this scheme does not.",
