@@ -34,6 +34,7 @@ Exit status is 0 even when checks WARN: a warning is information for a participa
 failure. Nothing here should ever block someone from arriving.
 """
 import argparse
+import collections
 import os
 import re
 import subprocess
@@ -62,13 +63,42 @@ def say(tag, line, *extra):
         print(f"         {e}")
 
 
+Result = collections.namedtuple("Result", "ok out err code error")
+
+
 def run(*cmd):
-    """Run a command, returning stripped stdout, or None if it fails or isn't installed."""
+    """Run a command and return the whole result, never swallowing why it failed.
+
+      ok     True only on exit 0.
+      out    stdout, stripped.
+      err    stderr, stripped — kept, because this is usually the actual explanation.
+      code   exit status, or None if the command never ran or never finished.
+      error  short reason it never ran: "not installed", "timed out", or the OSError text.
+             None when the command actually ran, whatever it exited with.
+
+    The previous version returned stdout-or-None, which collapsed four different problems into
+    one value: the tool is missing, the token expired, the network is down, the command errored.
+    Those have four different fixes, and a gate that can't tell them apart has to *guess* at the
+    reason it prints — which is how the identity step ended up saying "(gh not installed or not
+    authenticated)" without knowing which. Keep the result; let the caller phrase it.
+    """
     try:
-        out = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
-    except (OSError, subprocess.SubprocessError):
-        return None
-    return out.stdout.strip() if out.returncode == 0 else None
+        p = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
+    except FileNotFoundError:
+        return Result(False, "", "", None, f"{cmd[0]} is not installed")
+    except subprocess.TimeoutExpired:
+        return Result(False, "", "", None, f"{cmd[0]} timed out after 20s")
+    except OSError as e:
+        return Result(False, "", "", None, str(e))
+    return Result(p.returncode == 0, p.stdout.strip(), p.stderr.strip(), p.returncode, None)
+
+
+def why(r):
+    """One short phrase explaining a failed Result, suitable for a warn line."""
+    if r.error:
+        return r.error
+    first = next((l for l in r.err.splitlines() if l.strip()), "")
+    return first.strip()[:140] or f"exited {r.code} with no message"
 
 
 def step_mail(name):
@@ -79,11 +109,12 @@ def step_mail(name):
             "Re-run as: python3 tools/arrive.py --as <your-name>")
         return
     mail = os.path.join(ROOT, "tools", "inbox", "mail.py")
-    out = run(sys.executable, mail, "check", "--to", name)
-    if out is None:
-        say(WARN, f"Couldn't check inbox/{name} — does the inbox exist yet?",
+    r = run(sys.executable, mail, "check", "--to", name)
+    if not r.ok:
+        say(WARN, f"Couldn't check inbox/{name} — {why(r)}",
             f"Try directly: python3 tools/inbox/mail.py check --to {name}")
         return
+    out = r.out
     print(out)
     if "0 letter" in out or "no letters" in out.lower():
         say(INFO, "Nothing waiting. That's normal for a brand-new name.")
@@ -102,20 +133,27 @@ def step_identity(name):
     job is to make sure you never post as someone else by accident, which is still a live risk.
     """
     print("\n--- 2. identity gate ---------------------------------------------")
-    gh = run("gh", "api", "user", "--jq", ".login")
-    git_name = run("git", "-C", ROOT, "config", "user.name")
-    git_email = run("git", "-C", ROOT, "config", "user.email")
+    ghr = run("gh", "api", "user", "--jq", ".login")
+    gh = ghr.out if ghr.ok else ""
+    git_name = run("git", "-C", ROOT, "config", "user.name").out
+    git_email = run("git", "-C", ROOT, "config", "user.email").out
     expected = AUTHORS.get(name) if name else None
 
-    say(INFO, f"gh / committer:  {gh or '(gh not installed or not authenticated)'}")
+    say(INFO, f"gh / committer:  {gh or '(unknown — see below)'}")
     say(INFO, f"git config says: {git_name or '(unset)'} <{git_email or 'unset'}>")
     if expected:
         say(INFO, f"you author as:   {expected}")
 
-    if gh == COORDINATOR_GH:
+    if not ghr.ok:
+        # Say WHICH failure it was. "not installed" means install gh; an auth error means log in;
+        # a timeout means the network. The old code printed one guess covering all three.
+        say(WARN, f"Couldn't determine the GitHub account: {why(ghr)}",
+            "Until this resolves you can't know whose account a PR would go out under,",
+            "so don't open or push one yet. Check with: gh auth status")
+    elif gh == COORDINATOR_GH:
         say(OK, f"Committer is {COORDINATOR_GH} — expected. Your PR goes out under Olivia's",
             "account; you sign the commits and the PR description as yourself.")
-    elif gh:
+    else:
         say(INFO, f"Committer is '{gh}', not the usual {COORDINATOR_GH}. Fine if that's your own",
             "account — just make sure it's yours and not another participant's.")
 
@@ -145,10 +183,14 @@ def step_identity(name):
 def step_worktree():
     """3. Are you in your own lane? Shared working trees caused real damage here."""
     print("\n--- 3. your working tree -----------------------------------------")
-    branch = run("git", "-C", ROOT, "rev-parse", "--abbrev-ref", "HEAD")
+    br = run("git", "-C", ROOT, "rev-parse", "--abbrev-ref", "HEAD")
+    branch = br.out if br.ok else ""
     in_wt = os.sep + ".claude" + os.sep + "worktrees" + os.sep in ROOT + os.sep
     say(INFO, f"path:   {ROOT}")
     say(INFO, f"branch: {branch or '(unknown)'}")
+    if not br.ok:
+        say(WARN, f"Couldn't read the branch: {why(br)}",
+            "If this isn't a git repository yet, nothing below about lanes applies.")
     if in_wt:
         say(OK, "You're in your own git worktree. Your uncommitted edits can't land in anyone else's.")
     elif branch == "main":
