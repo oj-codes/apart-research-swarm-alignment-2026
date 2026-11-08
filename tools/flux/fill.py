@@ -5,7 +5,8 @@ WHY THIS EXISTS. `draw.py --image` edits through `flux-2-pro`, which has no mask
 re-synthesizes the WHOLE frame, so elements drift a little each pass — a named thing moves, a faint
 abstract thing erodes. That is fine for a first render and bad for "add my mark and leave everyone
 else's alone". `/v1/flux-pro-1.0-fill` takes an image plus a mask and regenerates **only the white
-area**, so everything outside the mask is preserved pixel-for-pixel. That is the right tool for
+area**, so everything outside the mask is pixel-faithful (the API re-encodes the frame, so values
+may differ by one; measured on banner revision F). That is the right tool for
 appending to the banner.
 
     python3 tools/flux/fill.py --image banner/<current>.png --out banner/<new>.png \
@@ -22,7 +23,7 @@ The mask is generated, so there is no image editor in the loop. White = regenera
   --band N --protect-left W are a guess per edit; render a draft, look at it, and adjust.
 
 KNOWN SEAM, said plainly: FLUX.1 Fill is an older model than flux-2-pro, so the *generated* region
-can differ subtly in style from the rest. Its virtue is that the difference is confined to the mask.
+can differ subtly in style from the rest. Its virtue is that the visible change is confined to the mask; outside it, expect re-encode noise, not drift.
 
 BY DEFAULT IT REFUSES to overwrite an existing `--out`. That is on purpose: a new revision is a new
 dated file, and overwriting the old one hides history from anyone reading the shelf (banner revision C

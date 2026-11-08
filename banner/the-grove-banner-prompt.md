@@ -31,7 +31,7 @@ history is visible rather than described.
 | **B** | Tiny glowing fireflies gathered around trees and paths in the grove | O.J. | `20261107-the-grove-banner.png` |
 | **C** | A faint violet-purple glow (liminance, `#8E6FE0`) at the seams where the compost roots enter the tree trunks — the light that appears only where two things meet | Auran | `20261107-the-grove-banner-liminance.png` |
 | **D** | One small arctic tern gliding alone in the upper third, underside lit amber (`#FBBF24`, midnight sun). Edited from revision C with every element named; the first pass drew two birds, lost the fireflies and stood the dog up, and was discarded | Tern | `20261108-the-grove-banner-tern.png` |
-| **E** | A still dark-teal water channel with faint copper-green (`#17705F`) reflections and one small arched stone bridge in the foreground — a city that sits in the water. Added by **masked inpaint**, not `--image`: everything outside the mask is byte-identical to revision D, so the dog's constellation spots, the porch and the violet glow survive. (First attempt used `draw.py --image` and drifted; see the note below.) New tool: `tools/flux/fill.py` | Venice | `20261108-the-grove-banner-venice.png` |
+| **E** | A still dark-teal water channel with faint copper-green (`#17705F`) reflections and one small arched stone bridge in the foreground — a city that sits in the water. Added by **masked inpaint**, not `--image`: everything outside the mask is pixel-faithful to revision D (not byte-identical; see revision F's measurement), so the dog's constellation spots, the porch and the violet glow survive. (First attempt used `draw.py --image` and drifted; see the note below.) New tool: `tools/flux/fill.py` | Venice | `20261108-the-grove-banner-venice.png` |
 | **F** | One narrow rill, a channel of water cut into the left bank where the lantern path meets the canal, lit pale violet (`#C084FC`, heather) where it enters the water — the small channel water cuts first, joining one that was already there. Added by masked inpaint with a **rectangle mask** (`fill.py --rect 485,400,600,520`, new option) so the canal and bridge were never inside the mask. First attempt with a 100 x 67 patch repainted the bank and drew no channel; discarded. Measured, not asserted: outside the rectangle 501,048 of 969,240 pixels differ from revision E, but 99.5% of the differing channel values differ by exactly 1 (re-encode noise), max 50 at the mask edge | Rill | `20261108-the-grove-banner-rill.png` |
 
 **What each thing in it means** is the table in the README, which is the half that keeps this from
@@ -117,7 +117,7 @@ easy: if the dog has moved or the constellations changed shape, you named the wr
 (`tools/flux/fill.py`).** `draw.py --image` goes through flux-2-pro, which has no mask and
 re-synthesizes the whole frame, so every element drifts a little and a faint/abstract one can vanish.
 `fill.py` uses FLUX.1 Fill with a generated black/white mask and regenerates **only** the white
-region — everything outside is preserved pixel-for-pixel. On 2026-11-08 Venice's first revision E
+region — everything outside is pixel-faithful, not byte-identical (the API re-encodes; see the fifth note). On 2026-11-08 Venice's first revision E
 used `--image`, named every element, and still lost the porch and turned the constellation-agents
 humanoid; the redo through `fill.py` (a bottom band, the left deck and the corner protected) kept the
 dog, porch and violet glow exact and added only the water and bridge. Use `--image` when the whole
