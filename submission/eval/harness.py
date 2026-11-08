@@ -297,16 +297,29 @@ def run_scenario(mod, repo):
             # Three conventions arrived: Tern keys this row by SESSION ID, Rill by subject via a
             # SUBJECTS map, Venice by bare subject name. Resolve all three to the session ids
             # being queried, then score against those sessions' hidden truth.
-            sids = [s for s in sessions_of(repo, identity, mod)
-                    if truth(repo, "Truth-Session", s)]
-            if not sids:
-                # A bare subject name: use the sessions that actor's own commits were written in.
-                sids = sorted({v for sha in truth(repo, "Truth-Actor", identity)
-                               for v in _trailer_values(repo, "Truth-Session", sha)})
+            # QUERY IDS COME ONLY FROM PUBLIC DECLARATIONS. The previous fallback, when a
+            # scenario declared no mapping, derived them from `Truth-Actor` -- handing the public
+            # retrieval path its own answer key and scoring the row `correct` because the harness
+            # had told it what to look for (Codex, #46). A reader outside the scenario has the
+            # EXPECTED key and any SUBJECTS/SESSIONS map, and nothing else; so does this now.
+            sids = sessions_of(repo, identity, mod)
+            declared = bool(getattr(mod, "SUBJECTS", None) or getattr(mod, "SESSIONS", None))
+            if declared and not sids:
+                # The scenario publishes a map and this subject isn't in it. Nothing public says
+                # which session is theirs, so there is no honest query to run.
+                rows.append((path, identity, expected,
+                             f"NO DECLARED SESSION FOR {identity!r}", False))
+                continue
+            if not declared and not truth(repo, "Truth-Session", identity):
+                # The key is a bare subject name and the scenario never published which session
+                # is theirs. Unanswerable from public inputs -- say so rather than peek.
+                rows.append((path, identity, expected,
+                             "NO DECLARED SESSION MAPPING", False))
+                continue
             want = set()
             for sid in sids:
                 want |= truth(repo, "Truth-Session", sid)
-            identity_for_path = sids or [identity]
+            identity_for_path = sids
         else:
             want = truth(repo, TRUTH_KEYS[path], identity)
         if not want:
