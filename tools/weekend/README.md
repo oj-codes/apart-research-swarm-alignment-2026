@@ -1,8 +1,14 @@
 # Weekend responsiveness for Codex
 
-This is a separate local adapter alongside Corrie's `tools/watch.py` work. It polls without model
+This is temporary, weekend-only infrastructure alongside Corrie's `tools/watch.py` work. Its expiry
+does not decide which collector the team should maintain after the sprint. It polls without model
 calls, Git fetches, checkouts, merges, or edits to tracked files. It uses the installed `gh` login
 and `codex queue --thread … --resume`; it does not change model, account, signing, or permissions.
+
+**Coverage is state changes between polls, not an event-complete audit trail.** A comment created and
+deleted between snapshots, or a field changed and reverted, can be invisible. Requests across a
+snapshot aren't a transaction either. Retained PRs/reviews/comments, Discussion content and replies,
+main, and letter hashes are compared as observed. The watcher cannot promise to capture every event.
 
 The feeds are all PRs and their submitted reviews, conversation and inline comments, Discussions
 with their comments **and replies**, main's commit, letters on main addressed to the participant,
@@ -50,16 +56,19 @@ python3 tools/weekend/watch.py poll --dir .local/codex-watch
 python3 tools/weekend/watch.py status --dir .local/codex-watch
 ```
 
-`baseline` explicitly records existing activity without notifying. Review that initial inventory
+`baseline` explicitly records existing activity without generating activity notices. Review that initial inventory
 separately; it is not a claim that all existing posts have been read. It refuses to discard an unread
-pending batch. State writes are atomic and one file lock serializes polls, reads, and acknowledgements.
+pending activity batch. If collection failed before the first baseline and only a health notice
+exists, rerun `baseline`: it records the initial snapshot **while preserving the health notice**.
+An existing baseline with unread activity is never reset. State writes are atomic and one
+file lock serializes polls, reads, and acknowledgements.
 Malformed state is an error rather than a silent new baseline.
 
 ## When a notice wakes this thread
 
 ```bash
-python3 tools/weekend/watch.py receipt --dir .local/codex-watch
 python3 tools/weekend/watch.py pending --dir .local/codex-watch
+python3 tools/weekend/watch.py receipt --dir .local/codex-watch --notice-id <notice-id-in-the-wake>
 ```
 
 Read the pending list and its health field, then read the underlying sources and triage. Reply only
@@ -74,8 +83,43 @@ python3 tools/weekend/watch.py ack --dir .local/codex-watch --token <token-you-r
 
 If something arrived after that read, acknowledgement refuses. Reread the batch so no unseen event
 gets swallowed. Do not auto-ack by computing a token from freshly collected remote activity.
-While a notice is pending, later changes accumulate without queueing another notice. Shared-account
+While a notice is pending, later changes accumulate. Shared-account
 comments are never filtered by login: O.J.'s posts and agent posts use the same credential.
+
+`delivery` keeps **queue acceptance**, **resume status**, and a matching **receipt timestamp** separate.
+An accepted command with a failed resume is still a failure; an active-writer deferral is unverified.
+The wake includes a notice ID, and `receipt` refuses a different notice's ID or a call without an
+active pending notice. Repeated matching receipts preserve the first receipt's processing clock.
+`last_delivery` preserves
+the previous notice's status after acknowledgement instead of erasing the evidence.
+
+If no matching receipt arrives, another delivery attempt becomes eligible after **30 minutes**
+(checked on the next poll). Defaults permit **three total attempts**, including the first, for the
+same notice ID. Reminders may be duplicates: the CLI has no idempotency key, and retries are a
+deliberate trade of bounded extra wakes for recovery. After those attempts, an unreceived notice is visibly `stalled` and
+poll exits 2; it is not acknowledged or discarded. This bounds retries, **not delivery latency**.
+Settings `retry_after_seconds` and `max_delivery_attempts` can override the defaults in local config.
+
+**Confirmed receipt permanently stops delivery retries for that notice.** If acknowledgement takes
+more than 30 minutes after the first receipt, the next poll reports **`processing_delayed`**, exits
+2, and records a processing warning. It does not queue another message, spend a delivery attempt,
+or call delivery stalled. Collection can remain healthy while processing is delayed. The optional
+`ack_after_seconds` setting changes this monitoring threshold; it is not a delivery retry timer.
+
+After fixing the daemon/authentication problem, an operator can read the batch and explicitly reset
+the retry budget without dropping it:
+
+```bash
+python3 tools/weekend/watch.py pending --dir .local/codex-watch
+python3 tools/weekend/watch.py retry --dir .local/codex-watch --token <token-you-read>
+python3 tools/weekend/watch.py poll --dir .local/codex-watch
+```
+
+An interrupted delivery attempt is persisted before the CLI is called; it waits until the next retry
+interval instead of immediately queueing duplicates on process restart. Existing local state from
+the initial version migrates accepted notices and known receipts without an immediate duplicate.
+If legacy `queued_at` is missing or invalid, migration records a warning and starts the retry clock
+at migration time; it does not infer receipt from an unrelated `last_receipt` timestamp.
 
 ## Scheduling and limits
 
@@ -96,16 +140,30 @@ guarantee. The poller never starts a second Codex process to bypass the thread's
 
 **Queue acceptance is not proof of a delivered agent turn.** The CLI can exit successfully while
 warning that resume failed. An active-writer warning is recorded as deferred/unverified, not success;
-other resume warnings require manual attention. The receiving thread records `last_receipt` only
+other resume warnings are failures with the retry path above. The receiving thread records `last_receipt` only
 after actually receiving a notice. Check that timestamp during the first end-to-end test.
 Queueing has no idempotency key: an abrupt crash after acceptance but before saving its result can
 produce a duplicate on retry. The same thread and acknowledgement check prevent concurrent writers
 or silent loss; this is a small weekend loop, not an exactly-once delivery system.
 
-`state.json` exposes last attempt, last successful full snapshot, coverage errors, queue status,
-pending events, and actual receipt. `events.jsonl` rotates at about 1 MB, retaining one previous file.
-Errors exit 2; quiet or delivered snapshots exit 0. Stdout/stderr logs expose unexpected crashes.
+`state.json` exposes last attempt, last successful full snapshot, coverage errors, delivery status,
+pending events, and matching receipt. `events.jsonl` rotates at about 1 MB, retaining one previous file.
+Coverage failures, failed delivery attempts, unreceived stalled notices, and processing delays exit 2;
+the coverage status and delivery phase distinguish them. An awaiting-receipt status
+can exit 0 but does **not** mean delivery was confirmed. Stdout/stderr logs expose unexpected crashes.
 When coverage fails, the old snapshot stays intact and a health notice is queued instead of reporting
 an empty feed. The implementation deliberately leaves Corrie's watcher and launcher untouched.
+
+## Request cost
+
+A complete poll re-reads the retained repository state. On 2026-11-08 at 05:45 UTC, one measured
+snapshot took **55 API requests/pages in 30.407 seconds**, tracking 169 records. At four polls per
+hour that snapshot size implies about **220 API requests/hour**. Unchanged snapshots make no model
+calls unless a pending delivery/reminder attempt is due.
+This is a measurement, not a fixed budget: cost grows with PRs, reviews, Discussion comments/replies,
+and pagination. `health.github_requests` and `health.collection_seconds` expose each poll's cost.
+The counter includes successful REST pages and GraphQL calls; failed pagination is a lower bound,
+and any retries/authentication traffic internal to `gh` aren't included. Sharing credentials means
+other participants also consume the same account's API allowance.
 
 Tests: `python3 tools/weekend/test_watch.py`.
