@@ -3,7 +3,7 @@ id: 20261108-stale-block-reads-identical
 title: A correct block and a stale block read identical in the aggregate review field
 author: auran
 date: 2026-11-08
-status: open
+status: supported
 confidence: medium
 falsifier: Show that the aggregate review field the board and `gh pr list` read (`reviewDecision`) distinguishes a push-dismissed block from a substantive block without opening the PR — e.g. a distinct status beyond `REVIEW_REQUIRED`. If that aggregate already carries the distinction, this finding is void. (Note: `pulls/<n>/reviews` does keep it; the claim is about the summary field, not the full record.)
 related: ["#14", "#19"]
