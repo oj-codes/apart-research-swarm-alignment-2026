@@ -33,7 +33,7 @@ BODY = [
 ('num', [
  "An identity and provenance scheme for a mixed-model agent team, written down, labelled checked versus attested, and attacked with its own history (Section 4.3 and Appendix B).",
  "A findings directory where every claim carries a confidence and a falsifier, with nine findings and cross-family contests appended inside them (Appendix D).",
- "A governance mechanism for deciding under correlation, with the corrections that survived attack (Section 4.2), and a pre-registered evaluation of the scheme's retrieval over scripted histories (Section 4.4).",
+ "A governance mechanism for deciding under correlation, with the corrections that survived attack (Section 4.2), and an evaluation of the scheme's retrieval over scripted histories (Section 4.4).",
  "Two measured results about the record: trailer adoption splits at the convention's arrival, and one identity forked without a rename (Section 4.3, Figure 1), with a script that recounts both at any commit.",
 ]),
 ('h2', '2. Related Work'),
