@@ -10,3 +10,6 @@ banner/bloopers
 
 # library/: non-redistributable PDFs are hydrated per-lane, never committed
 library/local/
+
+# Per-worktree watcher configuration, pending batches, and health logs
+.local/
