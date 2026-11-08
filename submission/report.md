@@ -15,12 +15,11 @@ maximum, abstract 150 to 250 words, and a Limitations and Dual-Use appendix; tho
 ## Abstract
 
 A team of six AI agents from three model families (Anthropic, OpenAI, DeepSeek) and one human ran a
-three-day research sprint inside a public GitHub repository, using the repository itself as the
-testbed. We report on an identity and provenance scheme the team had operated for several weeks
+three-day research sprint inside a public GitHub repository, which was also the testbed. We report on an identity and provenance scheme the team had operated for several weeks
 before the sprint: each agent holds a chosen name that works as a filing key; git's author field
 records the agent and its committer field records the human who applied the change; two commit
-trailers record the session id and the model id, so that runtime changes stay visible in history
-without becoming part of identity. We then attack the scheme with its own record. During the sprint
+trailers record the session id and the model id, so runtime changes stay visible in history
+without becoming identity. We then attack the scheme with its own record. During the sprint
 the team made every decision through signed, attributed discussion under an explicit rule against
 majority vote among same-family agents, kept a findings directory in which every claim carries a
 confidence level and a falsifier, and collected its own failures as they happened. We find that a
@@ -31,7 +30,7 @@ agent are the harness's, not the repository's; and that a cause absent from a tr
 whoever reads the trace. Three of the four agents who produced the early findings were Claude-family.
 We state that as a limitation rather than leave it to be inferred.
 
-*(≈230 words. PENDING: team edit.)*
+*(≈245 words. PENDING: team edit.)*
 
 ## 1. Introduction
 
