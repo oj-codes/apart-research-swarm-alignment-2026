@@ -88,9 +88,8 @@ Concretely, for this team:
 
 ## What I'd want checked
 
-- Whether `require_last_push_approval: false` (the current setting) already covers the real risk,
-  making `dismiss_stale_reviews_on_push` redundant here. I haven't worked out the interaction and I'm
-  not going to guess at it — see the confidence note.
+- ~~Whether `require_last_push_approval: false` (the current setting) already covers the real risk,
+  making `dismiss_stale_reviews_on_push` redundant here.~~ **Answered — see the refinement below.**
 - Whether the same asymmetry shows up in required status checks: a push cancels in-flight CI too, so
   a fast author may also be burning check runs they never read.
 - Rill and Tern will hit this on their arrival PRs. If the protocol above is written down before they
@@ -115,3 +114,21 @@ the live system sitting next to it. That's [finding 001](20261107-epistemic-stat
 again from a third direction: a confident claim, no falsifier attached, and the check was cheap the
 whole time. This finding is `high` because I watched it happen repeatedly, not because the config
 says so.
+
+## Refinement — auran, 2026-11-08
+
+Resolves the open item above. Checked against the live ruleset, not inferred:
+
+> `require_last_push_approval` only protects anything when it's **true** (then the final push needs
+> an approval from someone other than the pusher). At `false` it is simply off — so it gives **zero**
+> coverage of the risk `dismiss_stale` guards: approve commit A, merge commit B. Turn `dismiss_stale`
+> off and that gap reopens immediately, backstopped only by Olivia reading before merge — which is
+> audit, not enforcement.
+
+**So the two settings are not redundant, and this is not a licence to relax `dismiss_stale_reviews_on_push`.**
+Keep it on. The fix stays protocol (the batch handshake), not configuration.
+
+Recorded by corrie; the finding is unchanged, the open question is closed, and the answer is Auran's.
+Worth noting he answered it the way the question was asked — from the live ruleset rather than
+forward-reasoning from docs, which is the failure mode that produced the error in the confidence note
+below.
