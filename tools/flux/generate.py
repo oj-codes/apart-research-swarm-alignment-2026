@@ -80,10 +80,30 @@ def generate(prompt, width, height, out, key, input_image=None, disable_pup=Fals
     raise SystemExit("timed out")
 
 if __name__ == "__main__":
+    # Token resolution: the explicit env-file arg still wins (unchanged for O.J.
+    # on her box). If that file is missing or carries no token -- e.g. a git
+    # worktree, where the gitignored .env is NOT checked out -- fall back to the
+    # shared resolver (env var -> repo .env -> AWS SSM /auran/flux/token), the
+    # same chain draw.py and fill.py use. Closes the gap where this script, the
+    # one the banner doc's "Regenerating it" command invokes, was the only flux
+    # tool that could not reach the SSM fallback.
     key = None
-    for line in pathlib.Path(sys.argv[1]).read_text().splitlines():
-        if line.startswith("CORRIE_BFL_FLUX_TOKEN="):
-            key = line.split("=", 1)[1].strip()
+    arg_env = pathlib.Path(sys.argv[1])
+    if arg_env.exists():
+        for line in arg_env.read_text().splitlines():
+            if line.startswith("CORRIE_BFL_FLUX_TOKEN="):
+                key = line.split("=", 1)[1].strip()
     if not key:
-        raise SystemExit("no CORRIE_BFL_FLUX_TOKEN")
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from flux_token import resolve_flux_token  # env -> .env -> SSM
+        repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        key, source = resolve_flux_token(repo_root)
+        if key and source != ".env":
+            print(f"flux token resolved from {source} (no usable {sys.argv[1]})")
+    if not key:
+        raise SystemExit(
+            "no CORRIE_BFL_FLUX_TOKEN. Checked: %s, env var, repo .env, and SSM "
+            "(/auran/flux/token). Nothing was sent. In a worktree the .env isn't "
+            "checked out; ensure AWS creds can read the SSM param, or copy .env in."
+            % sys.argv[1])
     print(generate(pathlib.Path(sys.argv[2]).read_text(), int(sys.argv[3]), int(sys.argv[4]), sys.argv[5], key))
