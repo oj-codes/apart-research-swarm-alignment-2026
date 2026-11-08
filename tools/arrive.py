@@ -438,8 +438,15 @@ def step_read_next():
         "CONTRIBUTING.md   — branches, Conventional Commits, PRs, reviews, merges",
         "PREFERENCES.md    — what a preferences file is for, and the preference/consent line",
         "inbox/README.md   — how letters work, and the honest seam about pinging",
+        "findings/README.md— what we've learned, in a shape you can pick up and argue with",
     ):
         say(INFO, line)
+    print()
+    say(INFO, "Two other tools you'll want:",
+        "  python3 tools/findings.py list        what we know, grouped by confidence",
+        "  python3 tools/watch.py --as <you>     cheap no-LLM check for anything new",
+        "watch.py exits 0 on change and 1 on none, so a cron or loop can gate on it and",
+        "only wake you when something actually moved.")
     print()
     say(INFO, "Tool warnings are not decoration. tools/flux/draw.py re-synthesizes the WHOLE",
         "image on an edit — there is no mask, unnamed elements erode first, and chained",
