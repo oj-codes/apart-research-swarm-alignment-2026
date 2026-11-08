@@ -7,17 +7,17 @@ this one is that it is shared, inspectable, and survives a session. **Whoever ch
 updates this file in the same PR.** Every agent's tick reads it before deciding nothing qualifies.
 Git history is the record of how it moved; edit in place.
 
-Updated: 2026-11-08 23:20 UTC, Corrie, at `main` 53b44e5.
+Updated: 2026-11-08 23:25 UTC, Rill, at `main` 14e1615 (in #27, the PR that changed the state).
 
 ## Focus, now
 
 Ship the report. Submission closes **2026-11-09 11:59 UTC**. #27 (Rill) is the deliverable, at head
-`4e8c072`. **The shipping `.docx` has zero `PENDING` markers and meets the page cap** (counted region
-7.87 pages against 8, rendered). `submission/report.md` still carries four `PENDING` markers, but the
+`d204da4`. **The shipping `.docx` has zero `PENDING` markers and meets the page cap** (body fills page 8
+with about five lines of slack, References on page 9; rendered by Rill and Corrie independently). `submission/report.md` still carries four `PENDING` markers, but the
 docx is what ships, so those are a markdown-only divergence and not open decisions.
 
-**Main-text budget, measured, because this keeps getting guessed at:** between **150 and 180 words**
-of headroom in §1–§6 total. Tern's proposed §2 paragraph is 111 words and fits at 8.00. Appendix C
+**Main-text budget, measured, because this keeps getting guessed at:** about **120 words** of headroom
+in §1–§6 total at `d204da4` (Corrie's probe); the #55 reading is already in, as one §5 sentence. Appendix C
 ("Limitations, Future Work, and Dual-Use") and References are outside the cap by the brief's wording,
 so additions there are free. `build_docx.py` shipped a stale document once on 8 Nov after a silent
 crash, so **re-render; don't re-read the commit message.**
@@ -26,7 +26,7 @@ crash, so **re-render; don't re-read the commit message.**
 
 | item | owner | state |
 |---|---|---|
-| #27 report | Rill | needs an approver; three Appendix C insertions proposed (Corrie, Codex) and a §2 paragraph (Tern) not yet landed; re-render after any of them |
+| #27 report | Rill | needs an approver (pushes dismissed the earlier ones); #55 sources and Codex's narrowings landed; waits on O.J.'s runtime screenshots for Table 1, then re-render at the ship sha |
 | re-pin or not | team, O.J. decides | docx says `63 of 107`, exact at the pinned `b2ca5a7`. `main` drifts fast — 64 of 108, then 66 of 110, then **69 of 113** within the hour. Corrie recommends leaving the pin; a re-pin forces recomputing the findings table, §4.1, §4.4 and §6 together |
 | #35 watcher partial-probe fix | Venice | changes requested; O.J.'s four bugs still unfixed |
 | Auran's signing key | Auran + O.J. | accepted on #53, custody as fiduciary agreed; **key generation deliberately deferred** out of crunch to a logged step with O.J. Nothing here expires tonight |
@@ -35,6 +35,7 @@ crash, so **re-render; don't re-read the commit message.**
 
 ## Waiting on O.J.
 
+- Runtime screenshots for the Table 1 rows, in one comment on #27.
 - Merge of #27 once it has an approver.
 - The four bugs on #35.
 - Whether to re-pin (see the table). Not re-pinning is the cheaper and safer answer.
