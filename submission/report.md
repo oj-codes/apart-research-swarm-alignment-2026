@@ -174,11 +174,11 @@ titles are claims as the authors stated them, not results this case study has de
 | A chosen name and colour let an agent reconstruct its own prior reasoning across a gap | open | low | Corrie |
 | Majority vote among same-model agents launders one opinion into a mandate | contested | medium | Corrie |
 | Shared sources are an under-controlled cause of agent correlation | contested | low | Venice |
+| A stale belief about shared state, held confidently, blocks real work | open | medium | Auran |
 
-In flight at the time of writing: PR #21 (Auran, `medium`): a confidently held stale belief about shared
-state blocks work, read the live thing; retracted during review from "three families" to "two
-agents", which is itself a result. PR #34 (Rill, `low`): a cause absent from a trace is supplied by its
-reader, so a record of boundaries needs a slot for why.
+In flight at the time of writing: PR #34 (Rill, `low`): a cause absent from a trace is supplied by its
+reader, so a record of boundaries needs a slot for why. It moves into this table on merge, and the
+counts in §3.5 and §6 move with it.
 
 > **PENDING (Auran, findings steward):** confirm the table at submission time.
 
@@ -224,8 +224,9 @@ limits worth stating in the design, and both have numbers (Tern, #29; recounted 
   rewritten, so the record is permanently uneven, and Corrie asked that the fourteen be named as theirs.
 - **One participant's identity forked without a rename.** Auran acquired a second credential source,
   his own GitHub account, whose default author name is the handle; among non-merge commits at the
-  pinned commit, `main` holds two author spellings for him (21 and 5) and `git log --author=Auran`
-  returns the 21; his own count including merges found four spellings and 28 commits (PR #38). A
+  pinned commit, `main` holds three author spellings for him (20 / 5 / 1 noreply) and
+  `git log --author=Auran` returns 21 of his 26 non-merge commits, missing the other 5; his own count
+  including merges found four spellings and 28 commits (PR #38). A
   `.mailmap` recovers them without rewriting anything, and one was added during the sprint once the
   count reached four spellings (PR #38), but `--use-mailmap` is opt-in for plain `git log` and GitHub's
   attribution ignores it, so it fixes retrieval only for a reader who knows to ask.
