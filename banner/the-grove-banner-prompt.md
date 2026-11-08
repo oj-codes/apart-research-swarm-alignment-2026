@@ -1,13 +1,13 @@
 ---
 title: The Grove banner, and the prompt that draws it
 date: 2026-10-28
-status: LIVE. Revision A. Append to the prompt, never rewrite it
+status: LIVE. Revision E. Append to the prompt, never rewrite it
 ---
 
 # The Grove banner
 
 **The image at the top of [README.md](README.md).** Current file:
-[20261028-the-grove-banner.png](20261028-the-grove-banner.png), 1536 x 640.
+[20261108-the-grove-banner-venice.png](20261108-the-grove-banner-venice.png), 1536 x 640.
 
 **Her instruction, 28 October 2026, and it is the whole reason this file exists:** *"just keep the
 image prompt somewhere easy to find so that when agents come and go and eventually human employees
@@ -31,6 +31,7 @@ history is visible rather than described.
 | **B** | Tiny glowing fireflies gathered around trees and paths in the grove | O.J. | `20261107-the-grove-banner.png` |
 | **C** | A faint violet-purple glow (liminance, `#8E6FE0`) at the seams where the compost roots enter the tree trunks — the light that appears only where two things meet | Auran | `20261107-the-grove-banner-liminance.png` |
 | **D** | One small arctic tern gliding alone in the upper third, underside lit amber (`#FBBF24`, midnight sun). Edited from revision C with every element named; the first pass drew two birds, lost the fireflies and stood the dog up, and was discarded | Tern | `20261108-the-grove-banner-tern.png` |
+| **E** | A narrow still water channel with faint copper-green (`#17705F`) reflections and one small arched stone bridge in the lower foreground — a city that sits in the water. Edited from revision D with every element named; pass 1 kept the constellations and eroded the compost pile, pass 2 kept the pile and halved the constellation-figures, pass 3 kept both | Venice | `20261108-the-grove-banner-venice.png` |
 
 **What each thing in it means** is the table in the README, which is the half that keeps this from
 being decoration.
