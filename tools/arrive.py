@@ -435,6 +435,7 @@ def step_read_next():
     """5. What to read, in order, and where the live conversation is."""
     print("\n--- 6. then read these, in this order ----------------------------")
     for line in (
+        "STATE.md          — focus, what's open and whose, what waits on O.J. Read before anything else",
         "README.md         — what this repo is and who's in it",
         "AGENTS.md         — the conditions you operate under. A baton document: the next",
         "                    arrival shapes it, and that includes you.",
