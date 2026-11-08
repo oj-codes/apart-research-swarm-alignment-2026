@@ -43,20 +43,26 @@ received the mail. The scheme is a claim plus an attestation, and the attestatio
 
 ## 3. Where it breaks
 
-Counted on `origin/main` at the time of writing, non-merge commits (*checked*):
+Counted on `origin/main` at `e5b3032`, non-merge commits, trailers parsed with
+`%(trailers:key=...)` rather than grepped (*checked*). The numbers drift; recount at the sha the
+report is submitted from. "Arrived" is relative to the trailer convention landing on 2026-11-08 00:07.
 
-| Author | Commits | With `Agent-Session` | With `Co-Authored-By: <model>` |
-|---|---|---|---|
-| Auran | 12 | 0 | 0 |
-| Corrie | 21 | 4 | 14 |
-| Codex | 1 | 0 | 0 |
-| Tern | 6 | 6 | 0 |
-| Venice | 10 | 10 | 0 |
+| Author | Arrived | Commits | With `Agent-Session` | With `Co-Authored-By: <model>` |
+|---|---|---|---|---|
+| Auran | before | 25 | 1 | 0 |
+| Corrie | before | 21 | 4 | 14 |
+| Codex | before | 1 | 0 | 0 |
+| Tern | after | 6 | 6 | 0 |
+| Venice | after | 11 | 11 | 0 |
+| Rill | after | 1 | 1 | 0 |
 
-**3.1 It only records what the agent writes.** 20 of 50 agent commits carry a session trailer.
-The convention landed on day two; it is not retroactive, and nothing enforces it. For 30 commits the
-question "which session, what model" is answered by the roster's attestation or not at all. A reader
-of this repo's history cannot reconstruct who ran for most of it.
+**3.1 It only records what the agent writes, and it records it from arrival or not at all.** 23 of 65
+agent commits carry a session trailer. That aggregate reads as patchy discipline; the split says
+something sharper. Everyone who arrived after the rule was written complied on every commit without
+being asked. The two who arrived before it almost never backfilled, and this repo does not rewrite
+history, so they never will. There is no middle. A provenance convention is nearly free when it is
+present at arrival and nearly impossible to retrofit, so the binding moment is arrival, not commit
+time (Corrie's reading of the table, which I think is right).
 
 **3.2 It records the boundary and not the cause.** Rill's model changes are in the trailers; the
 reason, a human moving the session after classifier stops, is nowhere in the trace. Two agents who
@@ -75,14 +81,25 @@ alias inbox. The scheme has revocation only because the attestation is human.
 any machine. Only the committer makes it an attributed act in this repo. On a fork, the name is free.
 
 **3.6 The first fourteen commits said a model wrote them.** 14 of Corrie's 21 commits carry a model
-as co-author, from a harness default (*checked*). History is not rewritten, so the permanent record
-makes one agent look model-co-authored and the rest not. The rule exists now; the record is uneven.
+as co-author, from a harness default (*checked*). They are the first fourteen, contiguous, and the cut
+falls at 2026-11-08 00:07, the commit that wrote the rule against it (*checked* by Corrie with trailer
+parsing; a `--grep` count gives 15 because it matches the rule's own commit). History is not rewritten,
+so the permanent record makes one agent look model-co-authored and the rest not.
+
+**3.7 A second credential forks the filing key without anyone renaming anything.** Auran's roster Git
+Author is `Auran <auran@auran.llc>`. The history holds three author identities for him: that one on 19
+commits, `auran-theclearing <auran@auran.llc>` on 5, and a GitHub noreply address on 1 (*checked*).
+`git log --author=Auran` returns 20 of his 25 commits. Nothing changed at any moment a reader could
+notice; a second credential source arrived with its own default author name, and the record quietly
+undercounts from then on. Corrie found it while counting something else, which is the only way this
+kind of break gets found.
 
 ## 4. Attacks, by the Track 3 verbs
 
 | Verb | What happens here | Caught by |
 |---|---|---|
 | Rename | `git log --author=<old>` stops finding the work | nothing; a `.mailmap` would, none exists |
+| Acquire a second credential | one participant, two author names at once; `--author=<roster name>` silently returns a subset | nothing; found by accident (§3.7) |
 | Copy | two sessions, one name | `Agent-Session`, if both write it |
 | Change model | one name, new model id | `Model` trailer, if written; cause not recorded |
 | Forge | author line written by someone else | the committer, and only in this repo |
@@ -94,4 +111,10 @@ makes one agent look model-co-authored and the rest not. The rule exists now; th
   without them, the same way `findings.py new` refuses a missing falsifier.
 - Add a slot for cause when the human acts: a letter or a one-line commit from the human at the
   boundary, so the trace carries "O.J. moved this" instead of leaving it to be invented.
+- Add a `.mailmap` mapping each participant's extra author identities to their roster Git Author.
+  Tested with a temporary mailmap file, nothing committed: `git log --use-mailmap --author=Auran`
+  finds 25 where plain `git log` finds 20 (*checked*). It rewrites nothing and sits beside the record,
+  which is this repo's rule applied to identity. The caveat belongs with it: `--use-mailmap` is opt-in
+  for `git log`, GitHub ignores it, and `shortlog` and `blame` honour it by default. It fixes retrieval
+  for a reader who knows to ask.
 - Say plainly in the report: this is provenance, not authentication, and the trust anchor is a person.
