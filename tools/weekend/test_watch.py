@@ -228,16 +228,78 @@ class WatchTests(unittest.TestCase):
         self.assertEqual(w.outcome(state), 'stalled')
         self.assertTrue(state['pending'])
 
-    def test_confirmed_but_unacknowledged_batch_gets_bounded_reminder(self):
+    def test_confirmed_receipt_stops_retries_despite_slow_acknowledgement(self):
         state = {'observed': {}}
         delivered = Mock(return_value=dict(queue_status='accepted', resume_status='requested'))
         with patch.object(w, 'now', return_value='2030-01-01T00:00:00+00:00'):
             w.poll(self.config, state, self.directory, snapshot=self.a, deliver=delivered)
             w.receipt(state, state['delivery']['notice_id'])
-        with patch.object(w, 'now', return_value='2030-01-01T00:30:00+00:00'):
-            w.poll(self.config, state, self.directory, snapshot=self.b, deliver=delivered)
-        self.assertEqual(delivered.call_count, 2)
-        self.assertEqual(state['delivery']['phase'], 'awaiting_ack')
+        for stamp in ('2030-01-01T00:30:00+00:00', '2030-01-01T05:00:00+00:00'):
+            with patch.object(w, 'now', return_value=stamp):
+                self.assertEqual(w.poll(self.config, state, self.directory,
+                    snapshot=self.b, deliver=delivered), 'processing_delayed')
+        self.assertEqual(delivered.call_count, 1)
+        self.assertEqual(state['delivery']['attempts'], 1)
+        self.assertEqual(state['pending'], self.b)
+        self.assertEqual(state['health']['status'], 'ok')
+        self.assertNotIn('error', state['delivery'])
+
+    def test_receipt_after_last_attempt_is_not_delivery_stalled(self):
+        state = {'observed': {}}
+        delivered = Mock(return_value=dict(queue_status='accepted', resume_status='requested'))
+        with patch.object(w, 'now', return_value='2030-01-01T00:00:00+00:00'):
+            w.poll(self.config, state, self.directory, snapshot=self.a, deliver=delivered)
+            state['delivery']['attempts'] = 3
+            w.receipt(state, state['delivery']['notice_id'])
+        with patch.object(w, 'now', return_value='2030-01-01T01:00:00+00:00'):
+            w.poll(self.config, state, self.directory, snapshot=self.a, deliver=delivered)
+        self.assertEqual(delivered.call_count, 1)
+        self.assertEqual(state['delivery']['phase'], 'processing_delayed')
+        self.assertNotIn('error', state['delivery'])
+
+    def test_duplicate_receipt_does_not_restart_processing_clock(self):
+        state = {'observed': {}}
+        delivered = Mock(return_value=dict(queue_status='accepted', resume_status='requested'))
+        first = '2030-01-01T00:00:00+00:00'
+        with patch.object(w, 'now', return_value=first):
+            w.poll(self.config, state, self.directory, snapshot=self.a, deliver=delivered)
+            w.receipt(state, state['delivery']['notice_id'])
+        with patch.object(w, 'now', return_value='2030-01-01T01:00:00+00:00'):
+            w.receipt(state, state['delivery']['notice_id'])
+            w.poll(self.config, state, self.directory, snapshot=self.a, deliver=delivered)
+        self.assertEqual(state['delivery']['receipt_at'], first)
+        self.assertEqual(state['delivery']['phase'], 'processing_delayed')
+        self.assertEqual(delivered.call_count, 1)
+
+    def test_receipt_requires_active_pending_notice(self):
+        for state in ({}, {'last_delivery': {'notice_id': 'old'}},
+                      {'delivery': {'notice_id': 'orphan'}, 'pending': {}}):
+            with self.subTest(state=state):
+                with self.assertRaisesRegex(RuntimeError, 'No active delivery'):
+                    w.receipt(state, 'old')
+                self.assertNotIn('last_receipt', state)
+
+    def test_cli_receipt_without_active_notice_fails(self):
+        result = subprocess.run([sys.executable, str(Path(w.__file__)), 'receipt', '--dir',
+            str(self.directory), '--notice-id', 'old'], capture_output=True, text=True, timeout=5)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn('No active delivery', result.stderr)
+        self.assertNotIn('last_receipt', json.loads((self.directory/'state.json').read_text()))
+
+    def test_legacy_missing_or_invalid_queue_time_does_not_crash_or_infer_receipt(self):
+        for value in (None, '', 'invalid', '2030-01-01T00:00:00'):
+            with self.subTest(queued_at=value):
+                state = {'observed': {}, 'notice_queued': 'queued',
+                         'last_receipt': '2030-01-01T00:00:00+00:00'}
+                if value is not None:
+                    state['queued_at'] = value
+                delivered = Mock()
+                with patch.object(w, 'now', return_value='2030-01-01T00:00:00+00:00'):
+                    self.assertEqual(w.poll(self.config, state, self.directory,
+                        snapshot=self.a, deliver=delivered), 'awaiting_receipt')
+                delivered.assert_not_called()
+                self.assertNotIn('receipt_at', state['delivery'])
+                self.assertIn('migration_warning', state['delivery'])
 
     def test_legacy_delivery_migrates_without_duplicating_recent_notice(self):
         state = {'observed': {}, 'notice_queued': 'queued', 'queued_at': '2030-01-01T00:00:00+00:00',

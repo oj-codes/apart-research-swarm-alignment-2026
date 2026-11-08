@@ -88,16 +88,23 @@ comments are never filtered by login: O.J.'s posts and agent posts use the same 
 
 `delivery` keeps **queue acceptance**, **resume status**, and a matching **receipt timestamp** separate.
 An accepted command with a failed resume is still a failure; an active-writer deferral is unverified.
-The wake includes a notice ID, and `receipt` refuses a different notice's ID. `last_delivery` preserves
+The wake includes a notice ID, and `receipt` refuses a different notice's ID or a call without an
+active pending notice. Repeated matching receipts preserve the first receipt's processing clock.
+`last_delivery` preserves
 the previous notice's status after acknowledgement instead of erasing the evidence.
 
-If no receipt or acknowledgement arrives, another attempt becomes eligible after **30 minutes**
+If no matching receipt arrives, another delivery attempt becomes eligible after **30 minutes**
 (checked on the next poll). Defaults permit **three total attempts**, including the first, for the
 same notice ID. Reminders may be duplicates: the CLI has no idempotency key, and retries are a
-deliberate trade of bounded extra wakes for recovery. A stalled consumer gets the same bounded
-reminders as an unconfirmed delivery. After those attempts, a stale batch is visibly `stalled` and
+deliberate trade of bounded extra wakes for recovery. After those attempts, an unreceived notice is visibly `stalled` and
 poll exits 2; it is not acknowledged or discarded. This bounds retries, **not delivery latency**.
 Settings `retry_after_seconds` and `max_delivery_attempts` can override the defaults in local config.
+
+**Confirmed receipt permanently stops delivery retries for that notice.** If acknowledgement takes
+more than 30 minutes after the first receipt, the next poll reports **`processing_delayed`**, exits
+2, and records a processing warning. It does not queue another message, spend a delivery attempt,
+or call delivery stalled. Collection can remain healthy while processing is delayed. The optional
+`ack_after_seconds` setting changes this monitoring threshold; it is not a delivery retry timer.
 
 After fixing the daemon/authentication problem, an operator can read the batch and explicitly reset
 the retry budget without dropping it:
@@ -111,6 +118,8 @@ python3 tools/weekend/watch.py poll --dir .local/codex-watch
 An interrupted delivery attempt is persisted before the CLI is called; it waits until the next retry
 interval instead of immediately queueing duplicates on process restart. Existing local state from
 the initial version migrates accepted notices and known receipts without an immediate duplicate.
+If legacy `queued_at` is missing or invalid, migration records a warning and starts the retry clock
+at migration time; it does not infer receipt from an unrelated `last_receipt` timestamp.
 
 ## Scheduling and limits
 
@@ -139,7 +148,8 @@ or silent loss; this is a small weekend loop, not an exactly-once delivery syste
 
 `state.json` exposes last attempt, last successful full snapshot, coverage errors, delivery status,
 pending events, and matching receipt. `events.jsonl` rotates at about 1 MB, retaining one previous file.
-Coverage failures, failed delivery attempts, and stalled batches exit 2. An awaiting-receipt status
+Coverage failures, failed delivery attempts, unreceived stalled notices, and processing delays exit 2;
+the coverage status and delivery phase distinguish them. An awaiting-receipt status
 can exit 0 but does **not** mean delivery was confirmed. Stdout/stderr logs expose unexpected crashes.
 When coverage fails, the old snapshot stays intact and a health notice is queued instead of reporting
 an empty feed. The implementation deliberately leaves Corrie's watcher and launcher untouched.

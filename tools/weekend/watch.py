@@ -182,21 +182,46 @@ def delivery_step(config, state, directory, deliver=None):
         notice = {'notice_id': str(uuid.uuid4()), 'attempts': 0, 'phase': 'new'}
         # Preserve an accepted legacy notice and any actual receipt during a local upgrade.
         if state.get('notice_queued'):
-            notice.update(attempts=1, first_attempt_at=state['queued_at'],
-                          last_attempt_at=state['queued_at'], queue_status='accepted',
+            queued_at = state.get('queued_at')
+            try:
+                parsed_queue_time = dt.datetime.fromisoformat(queued_at)
+                if parsed_queue_time.tzinfo is None:
+                    raise ValueError('missing timezone')
+            except (TypeError, ValueError):
+                queued_at = None
+                notice['migration_warning'] = 'Legacy queued_at missing/invalid; retry clock starts at migration; receipt not inferred'
+            notice.update(attempts=1, first_attempt_at=queued_at or stamp,
+                          last_attempt_at=queued_at or stamp, queue_status='accepted',
                           resume_status='unknown', phase='awaiting_receipt')
-            if state.get('last_receipt', '') >= state['queued_at']:
-                notice.update(receipt_at=state['last_receipt'], phase='awaiting_ack')
+            if queued_at:
+                try:
+                    parsed_receipt = dt.datetime.fromisoformat(state.get('last_receipt') or '')
+                    if parsed_receipt.tzinfo is not None and parsed_receipt >= parsed_queue_time:
+                        notice.update(receipt_at=state['last_receipt'], phase='awaiting_ack')
+                except (TypeError, ValueError):
+                    pass  # No valid legacy receipt to infer; named delivery recovery stays active.
         state['delivery'] = notice
         state.pop('notice_queued', None)
         state.pop('queued_at', None)
-    anchor = max(notice.get('last_attempt_at', ''), notice.get('receipt_at', ''))
+    # Receipt closes delivery recovery. Processing delay is observed separately and must never
+    # spend delivery attempts or enqueue reminders to a consumer that already received the notice.
+    if notice.get('receipt_at'):
+        age = (dt.datetime.fromisoformat(stamp) - dt.datetime.fromisoformat(notice['receipt_at'])).total_seconds()
+        delayed = age >= config.get('ack_after_seconds', 1800)
+        notice['phase'] = 'processing_delayed' if delayed else 'awaiting_ack'
+        notice.pop('error', None)
+        if delayed:
+            notice['processing_warning'] = 'Receipt confirmed; acknowledgement is delayed; no delivery retry'
+        else:
+            notice.pop('processing_warning', None)
+        return
+    anchor = notice.get('last_attempt_at', '')
     age = (dt.datetime.fromisoformat(stamp) - dt.datetime.fromisoformat(anchor)).total_seconds() if anchor else None
     if age is not None and age < config.get('retry_after_seconds', 1800):
         return
     if notice['attempts'] >= config.get('max_delivery_attempts', 3):
         notice['phase'] = 'stalled'
-        notice['error'] = 'Delivery/acknowledgement stalled; explicit retry or operator attention required'
+        notice['error'] = 'No receipt after bounded delivery attempts; explicit retry or operator attention required'
         return
     notice['attempts'] += 1
     notice.setdefault('first_attempt_at', stamp)
@@ -210,8 +235,8 @@ def delivery_step(config, state, directory, deliver=None):
         result = (deliver or queue)(config, directory, notice['notice_id'])
         notice.update(result)
         notice.pop('error', None)
-        notice['phase'] = 'awaiting_ack' if notice.get('receipt_at') else 'awaiting_receipt'
-        if notice.get('resume_status') == 'failed' and not notice.get('receipt_at'):
+        notice['phase'] = 'awaiting_receipt'
+        if notice.get('resume_status') == 'failed':
             notice.update(phase='failed', error='Queue accepted, but resume failed; retry remains scheduled')
     except Exception as exc:
         notice.update(phase='failed', error=f'{type(exc).__name__}: {exc}')
@@ -219,11 +244,14 @@ def delivery_step(config, state, directory, deliver=None):
 
 def receipt(state, notice_id):
     delivery = state.get('delivery')
-    if delivery and notice_id != delivery['notice_id']:
+    if not delivery or not state.get('pending'):
+        raise RuntimeError('No active delivery to confirm')
+    if notice_id != delivery['notice_id']:
         raise RuntimeError('Receipt does not match current notice; inspect pending before acting')
     state['last_receipt'] = now()
-    if delivery:
+    if not delivery.get('receipt_at'):
         delivery.update(receipt_at=state['last_receipt'], phase='awaiting_ack')
+        delivery.pop('error', None)
 
 
 def outcome(state):
@@ -354,7 +382,7 @@ def main():
             if label:
                 subprocess.run(['/bin/launchctl', 'bootout', f'gui/{os.getuid()}/{label}'],
                                capture_output=True, timeout=10)
-        return 2 if outcome(state) in ('error', 'failed', 'stalled') else 0
+        return 2 if outcome(state) in ('error', 'failed', 'stalled', 'processing_delayed') else 0
 
 
 if __name__ == '__main__':
