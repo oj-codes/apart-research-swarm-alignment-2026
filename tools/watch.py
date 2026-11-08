@@ -331,7 +331,7 @@ def main():
     if args.reset and os.path.exists(path):
         os.remove(path)
 
-    prs, discussions = probe_prs(), probe_discussions()
+    prs, prc, discussions = probe_prs(), probe_pr_comments(), probe_discussions()
     if prs is None and discussions is None:
         # Couldn't reach the remote at all. Change nothing, wake nobody -- but say WHY, because a
         # silent version of this exit is indistinguishable from a genuinely quiet afternoon.
@@ -345,7 +345,7 @@ def main():
         "schema": SCHEMA,
         "inbox": probe_inbox(name),
         "prs": prs or {},
-        "pr_comments": probe_pr_comments() or {},
+        "pr_comments": prc or {},
         "discussions": discussions or {},
         "main": probe_main() or "",
     }
@@ -364,6 +364,15 @@ def main():
                 if not args.quiet:
                     print(f"[watch] state schema {old.get('schema')} != {SCHEMA} — re-baselining.")
                 old, first_run = {}, True
+
+    if not first_run:
+        # A probe that fails (returns None) while the others work used to land as {} -- so the diff
+        # read every open PR (and every discussion) as deleted and the loop woke to a false
+        # "closed or merged" storm. Carry the last known good value for the failed probe instead, so
+        # a transient gh failure is a no-op rather than a fabricated deletion.
+        for key, raw in (("prs", prs), ("pr_comments", prc), ("discussions", discussions)):
+            if raw is None and key in old:
+                new[key] = old[key]
 
     changed = first_run or fingerprint(old) != fingerprint(new)
 

@@ -23,19 +23,26 @@ watch = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(watch)
 
 
-def _run(argv, statepath):
-    """Run watch.main() with a fixed, offline world. Returns the exit code."""
+def _run(argv, statepath, overrides=None):
+    """Run watch.main() with a fixed, offline world. Returns the exit code.
+
+    `overrides` replaces individual probes, e.g. {"probe_prs": lambda: None} to simulate a
+    transient gh failure while the rest of the world still answers.
+    """
     saved = sys.argv
     sys.argv = ["watch.py", "--as", "tester", "--state", statepath] + argv
     # Fix every probe so the "current reality" is constant and diffs are deterministic.
-    orig = {}
-    for n, val in {
+    world = {
         "probe_inbox": lambda name: [],
         "probe_prs": lambda: {"99": {"title": "x", "review": "", "draft": False}},
         "probe_pr_comments": lambda: {},
         "probe_discussions": lambda: {},
         "probe_main": lambda: "cafef00d",
-    }.items():
+    }
+    if overrides:
+        world.update(overrides)
+    orig = {}
+    for n, val in world.items():
         orig[n] = getattr(watch, n)
         setattr(watch, n, val)
     try:
@@ -122,6 +129,41 @@ class ReviewTransition(unittest.TestCase):
 
     def test_unchanged_review_is_silent(self):
         self.assertEqual([], self._lines("APPROVED", "APPROVED"))
+
+
+class PartialProbeFailure(unittest.TestCase):
+    """A probe that fails (returns None) while the others answer must NOT be read as a deletion.
+
+    Venice, 2026-11-08: a transient `gh pr list` failure returned None -> {} and the diff reported
+    every open PR as "closed or merged", waking the loop into a false merge storm."""
+
+    def setUp(self):
+        self.d = tempfile.mkdtemp()
+        self.state = os.path.join(self.d, "s.json")
+        with open(self.state, "w") as f:
+            json.dump({"schema": watch.SCHEMA, "inbox": [],
+                       "prs": {"99": {"title": "x", "review": "", "draft": False}},
+                       "pr_comments": {}, "discussions": {}, "main": "cafef00d"}, f)
+
+    def test_failed_pr_probe_carries_the_last_known_list(self):
+        rc = _run(["--quiet"], self.state, overrides={"probe_prs": lambda: None})
+        self.assertEqual(rc, 1, "a failed pr probe is not a change; it must not read as a close")
+        kept = json.load(open(self.state)).get("prs") or {}
+        self.assertIn("99", kept, "the last known PR list must be carried, not blanked to {}")
+
+    def test_failed_discussion_probe_carries_too(self):
+        rc = _run(["--quiet"], self.state, overrides={"probe_discussions": lambda: None})
+        self.assertEqual(rc, 1)
+        self.assertIn("discussions", json.load(open(self.state)))
+
+    def test_a_real_change_still_reports_when_another_probe_fails(self):
+        # discussions fails, but a genuinely new PR appears: still a change (via prs).
+        rc = _run(["--quiet"], self.state, overrides={
+            "probe_discussions": lambda: None,
+            "probe_prs": lambda: {"99": {"title": "x", "review": "", "draft": False},
+                                  "100": {"title": "new", "review": "", "draft": False}},
+        })
+        self.assertEqual(rc, 0, "a working probe's real change must still wake the loop")
 
 
 if __name__ == "__main__":
