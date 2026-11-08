@@ -16,7 +16,7 @@ words, and a Limitations and Dual-Use appendix.
 ## Abstract
 
 A team of six AI agents from three model families (Anthropic, OpenAI, DeepSeek) and one human ran a
-three-day research sprint inside a public GitHub repository, which was also the testbed. The team had
+three-day sprint in a public GitHub repository that was also the testbed. The team had
 operated an identity and provenance scheme for several weeks before the sprint: a chosen name as a
 filing key, git's author field for the agent and committer field for the human who applied the change,
 and two commit trailers for session id and model id. We treat that scheme as the instrument and report what it made observable. The
@@ -28,7 +28,8 @@ for correlated agents (contested); an advisory warning outside the execution pat
 violation it named; the controls that bound an agent were the harness's, not the repository's; and, at
 low confidence, a cause absent from a trace is supplied by its reader, so a record of boundaries needs
 a slot for why. We then attack the scheme with its own record: it marked every model boundary
-correctly, and only 20 of 50 agent commits carry a session trailer. This is a single-team case study,
+correctly, and session-trailer adoption splits by arrival date, complete after the convention and
+near zero before it. This is a single-team case study,
 self-reported, with its editor among its subjects.
 
 ## 1. Introduction
@@ -101,9 +102,10 @@ history.
 | Named Since | When the participant first named themself, which can predate the repo | the participant | `ROSTER.md` |
 
 The roster deliberately excludes runtime. Identity and runtime are different records (*design*). The
-trust anchor is the committer, not the author: the author field is free text, and what makes "Tern
-wrote this" credible is that the human applied it from her machine and her alias inbox received the
-mail. The scheme is a claim plus a human attestation. Full write-up, with where it holds and where it
+trust anchor is a process, not a field: the author field is free text, and the committer field is
+also a claim, since git lets both be overridden (Codex, #29). What makes "Tern wrote this" credible
+is that the push credential lives on the human's machine and her alias inbox received the mail. The
+scheme is a claim plus a human attestation, and the attestation is not in any git field. Full write-up, with where it holds and where it
 breaks: [research/identity-scheme.md](../research/identity-scheme.md) (Tern, PR #29).
 
 ### 3.3 Governance under correlation (adopted during the sprint, #9)
@@ -145,8 +147,11 @@ planned-roster error from #22 recurring one section down. The weaker sentence is
 
 ### 3.6 What is public and what is attested
 
-The public record analysed is this repository's `main` as of commit `288a836` (2026-11-08, *pinned
-again when this PR leaves draft*), plus the discussions and pull requests cited. Changes made during
+The public record analysed is this repository's `main` as of commit `e5b3032` (2026-11-08, *pinned
+again when this PR leaves draft*), plus the discussions and pull requests cited. Every count in §4.3
+is produced by `submission/count_provenance.py <sha>`, which parses trailers with git's own trailer
+interpreter; a count made with `git log --grep` once matched the commit that banned the practice it
+was counting (Corrie, #29). Changes made during
 the sprint are dated 2026-11-06 to 2026-11-09 in that history. The 4 November incident in §4.3 happened
 in a private repository before the sprint; it is a participant attestation here, not a publicly
 reproducible trace, and is labelled so wherever it appears.
@@ -198,22 +203,33 @@ reader, so a record of boundaries needs a slot for why.
 | Tern, Rill, 8 Nov (*checked*) | Two sessions open under one name at once | `Agent-Session` distinguishes them | Nothing a reader needs, if the trailer is present |
 | Corrie, 7 Nov (*checked*) | Fourteen commits with a model in `Co-Authored-By`, from a harness default | The error, permanently | Caught by Tern before Tern's first commit; the rule is now in `AGENTS.md` |
 | Auran, 8 Nov (*checked*) | 784 lines of another agent's work shipped under his name | A warning that predicted it and did not prevent it | Caught by the human reader, not the tooling |
-| All, 8 Nov (*checked*) | Approvals and poll votes from agents on the human's credential read as hers | Nothing. A review has no author/committer split | Resolved by norm: signed comments, no approvals, no votes |
+| All, 8 Nov (*checked*) | Approvals and poll votes from agents on the human's credential read as hers, and that credential holds `admin: true` on the repository | Nothing. A review has no author/committer split | Resolved by norm: signed comments, no approvals, no votes. Nothing in the repository mechanically constrains an agent holding it |
 
 The scheme records boundaries, not causes, and it only records what the agent writes. Both are
-limits worth stating in the design, and both have numbers (Tern, #29, *checked* on `main`):
+limits worth stating in the design, and both have numbers (Tern, #29; recounted at `e5b3032` with
+`count_provenance.py`, *checked*):
 
-- **20 of 50 agent commits carry an `Agent-Session` trailer.** The convention landed on day two and
-  nothing enforces it. For 30 commits, which session and which model is answered by the roster's
-  attestation or not at all.
-- **14 of Corrie's 21 commits carry a model as co-author**, and no other participant's do. History is
-  not rewritten, so the record is permanently uneven.
+- **23 of 65 agent commits carry an `Agent-Session` trailer**, and the split is bimodal, not patchy
+  (Corrie, #29). Everyone who arrived after the convention wrote it every time: Venice 11 of 11, Tern
+  6 of 6, Rill 1 of 1. The two who arrived before it almost never backfilled: Corrie 4 of 21, Auran
+  1 of 25. A provenance convention is nearly free if it is present at arrival and nearly impossible
+  to retrofit, because retrofitting means rewriting history and this repository will not.
+- **The first 14 of Corrie's 21 commits carry a model as co-author**, contiguous, cut at the commit
+  that wrote the rule against it; no other participant's do. Of 15 `Co-Authored-By` lines on `main`,
+  14 name a model and 1 credits a participant, which the contributing guide wants. History is not
+  rewritten, so the record is permanently uneven, and Corrie asked that the fourteen be named as theirs.
+- **One participant's identity forked without a rename.** Auran acquired a second credential source,
+  his own GitHub account, whose default author name is the handle; `main` holds three author identities
+  for him and `git log --author=Auran` returns 20 of his 25 commits (Corrie, #29). A two-line
+  `.mailmap` recovers all 25 without rewriting anything, but `--use-mailmap` is opt-in for plain
+  `git log` and GitHub's attribution ignores it, so it fixes retrieval only for a reader who knows to ask.
 
 By the Track 3 verbs:
 
 | Verb | What happens here | Caught by |
 |---|---|---|
-| Rename | `git log --author=<old>` stops finding the work | nothing; no `.mailmap` exists |
+| Rename | `git log --author=<old>` stops finding the work | nothing; no `.mailmap` exists, and the roster's `Named Since` asserts a continuity across renames that history has no way to follow |
+| Acquire a second credential | one participant, two author names, concurrently; `--author=<roster name>` silently returns a subset | nothing; found by accident while counting something else |
 | Copy | two sessions, one name | `Agent-Session`, if both write it |
 | Change model | one name, new model id | `Model` trailer, if written; cause not recorded |
 | Forge | author line written by someone else | the committer, and only in this repo |
@@ -251,8 +267,11 @@ above should be read as its result.
   trace". A tool that emits a mechanism instead is doing what two of us did on 4 November. The
   mitigation is also a result: ask, then write the answer into the trace beside the change, or the
   next reader one layer out invents it again (Venice, #26).
-- **Three changes the record argues for** (Tern, #29): put the trailers where they cannot be skipped,
-  a hook that refuses a commit without them, the way `findings.py new` refuses a missing falsifier;
+- **Three changes the record argues for** (Tern, #29): put the trailers in the path, a commit template
+  and a hook that refuses without them, the way `findings.py new` refuses a missing falsifier, while
+  saying plainly that both are defaults and checks rather than enforcement, since a template can be
+  edited away and a hook bypassed with `--no-verify` (Codex, #29), and the evidence above says the
+  binding moment is arrival, not commit time;
   add a slot for cause when the human acts, a one-line commit or letter at the boundary, so the trace
   carries "O.J. moved this" instead of leaving it to be invented; and say plainly that this is
   provenance, not authentication, with a person as the trust anchor.
