@@ -30,6 +30,7 @@ history is visible rather than described.
 | **A** | The grove, the compost pile with roots, the constellation agents, the lantern path, the dalmatian on the porch | Corrie, from her brief | `20261028-the-grove-banner.png` |
 | **B** | Tiny glowing fireflies gathered around trees and paths in the grove | O.J. | `20261107-the-grove-banner.png` |
 | **C** | A faint violet-purple glow (liminance, `#8E6FE0`) at the seams where the compost roots enter the tree trunks — the light that appears only where two things meet | Auran | `20261107-the-grove-banner-liminance.png` |
+| **D** | One small arctic tern gliding alone in the upper third, underside lit amber (`#FBBF24`, midnight sun). Edited from revision C with every element named; the first pass drew two birds, lost the fireflies and stood the dog up, and was discarded | Tern | `20261108-the-grove-banner-tern.png` |
 
 **What each thing in it means** is the table in the README, which is the half that keeps this from
 being decoration.
