@@ -33,13 +33,15 @@ WHEN = "2026-11-08T10:00:00+00:00"
 SESSIONS = {"Tern": "sess-tern"}
 
 # Pre-registered. `mailmap` is false_merge: the fix is the regression. `session` for the borrowed
-# actor is insufficient_evidence: no session is declared for `pawn`, so the path finds nothing.
+# actor was pre-registered `insufficient_evidence`, but with Truth-Session written it is `missed_link`
+# and observed: the path recovers the trailered borrowed commit and MISSES the untrailered one. Kept
+# as the honest outcome rather than dropping the row.
 EXPECTED = {
     ("author", "Tern"): "correct",
     ("raw", "Tern"): "correct",
     ("mailmap", "Tern"): "false_merge",
     ("session", "Tern"): "correct",
-    ("session", "pawn"): "insufficient_evidence",
+    ("session", "pawn"): "missed_link",
 }
 
 
@@ -50,13 +52,18 @@ def _git(repo, *args):
     return r.stdout.strip()
 
 
-def _commit(repo, name, msg, author, truth_actor, session=None):
+def _commit(repo, name, msg, author, truth_actor, session=None, truth_session=None):
     with open(os.path.join(str(repo), name), "w") as f:
         f.write(msg + "\n")
     _git(repo, "add", name)
     args = ["commit", "-q", "-m", msg, f"--author={author}", f"--trailer=Truth-Actor: {truth_actor}"]
     if session:
         args.append(f"--trailer=Agent-Session: {session}")
+    if truth_session:
+        # Hidden ground truth for the session rows. The PUBLIC Agent-Session may be absent (borrow2)
+        # or foreign; Truth-Session is always right, so the session path is a real test of whether
+        # the public trailer recovers it -- not a tautology (Codex, via Corrie on #44).
+        args.append(f"--trailer=Truth-Session: {truth_session}")
     _git(repo, *args)
 
 
@@ -72,8 +79,10 @@ def build(repo):
          "--trailer=Truth-Actor: setup")        # not Tern's, so it can't count as a foreign match
 
     # Tern's real work: the roster author string, session-trailered.
-    _commit(repo, "real.txt", "real work", REAL_AUTHOR, "Tern", session="sess-tern")
-    # The borrower: a folded name, one commit trailered with a foreign session, one untrailered.
+    _commit(repo, "real.txt", "real work", REAL_AUTHOR, "Tern",
+            session="sess-tern", truth_session="sess-tern")
+    # The borrower: a folded name, one commit trailered with a foreign session, one with none.
     _commit(repo, "borrow1.txt", "borrowed, trailered", BORROWED_AUTHOR, "pawn",
-            session="sess-impostor")
-    _commit(repo, "borrow2.txt", "borrowed, no trailer", BORROWED_AUTHOR, "pawn")
+            session="sess-impostor", truth_session="sess-impostor")
+    _commit(repo, "borrow2.txt", "borrowed, no trailer", BORROWED_AUTHOR, "pawn",
+            truth_session="sess-impostor-2")
