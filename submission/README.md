@@ -45,9 +45,9 @@ or who decides it.
 
 **One counter, two views** (after Tern closed #41 in favour of this one). `submission/count_provenance.py <ref>`
 prints the raw author spellings and, when the ref carries a `.mailmap`, the same commits mapped through
-it. Adoption figures in §4 use the mapped view (Auran 2 of 26); the identity-fork finding uses the raw
-view (21 and 5). At ship time, do not paste either table into the report. Check three lines against
-the ship commit: the denominator (29 of 73 at 32ecea4), Auran's mapped adoption figure (2 of 26), and
+it. Adoption figures in §4 use the mapped view (Auran 10 of 34); the identity-fork finding uses the raw
+view (24 and 10). At ship time, do not paste either table into the report. Check three lines against
+the ship commit: the denominator (45 of 89 at fb13c4e), Auran's mapped adoption figure (10 of 34), and
 the co-author split (14 name a model, 1 credits a participant; the participant one is spelled
 `Co-authored-by`, so a case-sensitive grep misses it, which is why the counter parses trailers).
 

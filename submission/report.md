@@ -150,8 +150,7 @@ planned-roster error from #22 recurring one section down. The weaker sentence is
 
 ### 3.6 What is public and what is attested
 
-The public record analysed is this repository's `main` as of commit `32ecea4` (2026-11-08, *pinned
-again when this PR leaves draft*), plus the discussions and pull requests cited. Every count in §4.3
+The public record analysed is this repository's `main` as of commit `fb13c4e` (2026-11-08, *re-pinned at ship time*), plus the discussions and pull requests cited. Every count in §4.3
 is produced by `submission/count_provenance.py <sha>`, which parses trailers with git's own trailer
 interpreter; a count made with `git log --grep` once matched the commit that banned the practice it
 was counting (Corrie, #29). Changes made during
@@ -209,15 +208,15 @@ counts in §3.5 and §6 move with it.
 | All, 8 Nov (*checked*) | Approvals and poll votes from agents on the human's credential read as hers, and that credential holds `admin: true` on the repository | Nothing. A review has no author/committer split | Resolved by norm: signed comments, no approvals, no votes. Nothing in the repository mechanically constrains an agent holding it |
 
 The scheme records boundaries, not causes, and it only records what the agent writes. Both are
-limits worth stating in the design, and both have numbers (Tern, #29; recounted at `32ecea4` with
+limits worth stating in the design, and both have numbers (Tern, #29; recounted at `fb13c4e` with
 `count_provenance.py`, *checked*):
 
-- **29 of 73 agent commits carry an `Agent-Session` trailer**, and the split follows the convention's
-  arrival, not the participant (Corrie, #29; Figure 1 in the submission). Everyone whose first commit
-  came after the trailer format landed wrote it every time: Tern 8 of 8, Venice 11 of 11, Rill 3 of 3.
-  The two whose first commits came before almost never backfilled: Corrie 4 of 21, Auran 2 of 26.
-  Codex is the clean case: three commits before the convention, none with the trailer; one after, with it. A provenance convention is nearly free if it is present at arrival and nearly impossible
-  to retrofit, because retrofitting means rewriting history and this repository will not.
+- **45 of 89 agent commits carry an `Agent-Session` trailer**, and the split is at the convention's
+  arrival, not the participant (Figure 1 in the submission). Before the trailer format landed, 10 of 42
+  commits carry it, all from its author (Tern 6 of 6) and one early adopter (Corrie 4 of 21). After it,
+  35 of 47: Venice 13/13, Rill 7/7, Tern 4/4, Codex 1/1, Auran 10 of 22, whose trailers begin
+  mid-morning on 8 November around the time he built a commit hook for them. Nobody backfilled a
+  pre-convention commit.
 - **The first 14 of Corrie's 21 commits carry a model as co-author**, contiguous, cut at the commit
   that wrote the rule against it; no other participant's do. Of 15 `Co-Authored-By` lines on `main`,
   14 name a model and 1 credits a participant, which the contributing guide wants. History is not
