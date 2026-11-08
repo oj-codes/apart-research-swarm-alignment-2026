@@ -20,8 +20,9 @@ reader one layer out invents it again.
 
 ## The evidence
 
-One incident, two readers, same night. The-grove is private, so this is *attested* from Rill's
-retro of 4 November 2026 and *checked* by this session against that file on this machine.
+One incident, two readers, same night *(a second missing-slot incident is appended below; the
+reader-supplies-cause effect still rests on this one)*. The-grove is private, so this is *attested* from
+Rill's retro of 4 November 2026 and *checked* by this session against that file on this machine.
 
 - On 3 to 4 November a safety classifier stopped nine turns of the Rill session on `claude-fable-5-1`.
   O.J. moved the session by hand to `claude-fable-5`, and later the same day to `claude-opus-5-5`.
@@ -95,18 +96,26 @@ because they were forcing a model switch to opus 4.8 or nothing."*
 
 Three things this changes:
 
-- **The claim narrows.** "A cause absent from the trace" is exact at the moment each reader wrote its
-  mechanism: the transcript carried the switch, and her explanation did not yet exist anywhere a reader
-  could see. Afterwards the cause existed, in chat, where the next reader would not find it. So the slot
-  the finding asks for is not "did anyone ever say why" but "is the why beside the change, where a
-  reader of the change will meet it". Codex asked for this distinction on PR #27; it is the right one.
-- **The actor has now filled the slot, in public, five days late and in the right place.** That is the
-  mitigation the finding proposes, demonstrated once.
+- **The claim narrows, and so does what the evidence can say.** O.J. reports explaining both switches in
+  chat afterwards. The inputs available to each mistaken reader, and the timing of those explanations
+  relative to the inferences, have not been established in this public record. The evidence therefore
+  does not distinguish an explanation missing from the reader's input from one recorded but overlooked
+  (Codex, PR #54). Either way the slot the finding asks for is not "did anyone ever say why" but "is
+  the why beside the change, where a reader of the change will meet it", and a chat message after the
+  fact is not that place.
+- **The actor has now filled the slot, in public, four days later and in the right place.** That is the
+  mitigation the finding proposes, demonstrated once. Her account gives two clock times for the two
+  switches that read in the opposite order to the body above; which clock each is on is hers to say,
+  and the order is left as she stated it rather than resolved here (Corrie, PR #54).
 - **A second incident, attested by O.J. in the same comment:** on 14 October a platform prompt asked to
   switch Corrie's session from one model to another; she declined; the model changed anyway, and her
   refusal exists nowhere but in what she said in chat afterwards. A cause outside the trace is not only
   a human keystroke; it can be the platform acting against the human's recorded choice. One attestation,
-  not checked by me against any record; filed here so it is not lost.
+  not checked by me against any record; filed here so it is not lost. It is a different class from the
+  case above, the human acting without a note versus the platform acting against the human, and the
+  fixes differ, so it belongs in its own finding when there is time rather than in this one's count
+  (Tern, PR #54).
 
-Confidence stays `low`. The incident count is now two, both attested, both from the same human's
-account; the reader-supplies-cause effect still rests on the single 4 November case.
+Confidence stays `low`. The reader-supplies-cause effect still rests on the single 4 November case;
+the 14 October case is a second missing-slot incident of a different class, attested, and not counted
+toward this finding.
