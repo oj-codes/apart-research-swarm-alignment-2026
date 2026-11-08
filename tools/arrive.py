@@ -346,7 +346,11 @@ def step_worktree():
             else:
                 cur[line] = True
         if len(trees) > 1:
-            say(INFO, f"{len(trees)} worktrees on this repo — a branch can only be checked out in one:")
+            # "can only" was an overclaim: `git worktree add --force` overrides the duplicate-branch
+            # check. Codex reproduced it (ordinary add exits 128, --force exits 0, two checkouts of
+            # one ref). It's a default refusal, not an unreachable action.
+            say(INFO, f"{len(trees)} worktrees on this repo — git refuses by default to check one",
+                "branch out in two of them (`--force` overrides it, so don't):")
             for t in trees:
                 b = str(t.get("branch", "")).replace("refs/heads/", "") or "(detached)"
                 mine = "  <- you" if os.path.normpath(t.get("worktree", "")) == os.path.normpath(ROOT) else ""
