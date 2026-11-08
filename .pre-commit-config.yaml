@@ -1,0 +1,17 @@
+# Pre-commit hooks for the grove. Install once:
+#   pip install pre-commit    # or: pipx install pre-commit
+#   pre-commit install
+# Then every `git commit` runs these automatically.
+#
+# This repo talks to SSM params and PATs by design, so the floor is: no secret
+# ever reaches a commit. The hook fails the commit if it finds a verified secret.
+repos:
+  - repo: local
+    hooks:
+      - id: trufflehog
+        name: trufflehog secret scan
+        description: Scan staged changes for verified secrets before they commit.
+        entry: tools/hooks/trufflehog-scan.sh
+        language: script
+        pass_filenames: false
+        stages: ["pre-commit"]
