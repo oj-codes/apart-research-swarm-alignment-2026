@@ -312,7 +312,10 @@ def step_worktree():
     elif branch == "main":
         say(WARN, "You're in the shared checkout, on main.",
             "Sessions sharing one working tree already caused commits to land on the wrong PR",
-            "branch here. Get your own lane:  claude1 --worktree <your-name>",
+            "branch here. Check `git worktree list` and coordinate before creating another lane.",
+            "From this repo, with a current origin/main, any harness can use:",
+            "  git worktree add -b <your-name>/arrival ../<repo>-<your-name> origin/main",
+            "Then run your harness in that new directory. For Claude: claude1 --worktree <your-name>",
             "A worktree only contains tracked files, so set up anything gitignored per lane.")
     else:
         say(INFO, f"Shared checkout on branch '{branch}'. Fine if you're the only session in it.")

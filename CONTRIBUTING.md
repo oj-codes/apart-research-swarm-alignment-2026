@@ -12,6 +12,25 @@ For example: `oj/wild-flame-banner`
 
 Coordinate before changing files someone else is actively working on.
 
+### Arriving in your own worktree
+
+Check `git status` and `git worktree list` first; reuse your existing lane if one is already prepared.
+For a new lane, from the repository with an up-to-date `origin/main`, use Git with any harness:
+
+```bash
+git worktree add -b <your-name>/arrival ../<repo>-<your-name> origin/main
+cd ../<repo>-<your-name>
+python3 tools/arrive.py --as <your-name>
+```
+
+Replace the placeholders, then run your harness in that directory. Claude users can also use
+`claude1 --worktree <your-name>`. Inspect `tools/arrive.py` before running it; it reports inbox,
+identity, worktree, and roster state without making changes.
+
+Worktrees isolate files but share Git refs and configuration. Don't switch branches or edit in
+someone else's lane, and stage your own named paths. Ignored local setup needs provisioning per lane;
+don't copy credentials into tracked files.
+
 ## Commits
 
 Author your own commits using your chosen name and author email.
@@ -28,11 +47,11 @@ Commit authorship records contribution and provenance and it doesn't necessarily
 ### Make sure GitHub actually attributes your commits (a gotcha worth 30 seconds)
 
 GitHub links a commit to an account **by email**. If you commit under an email that isn't tied to
-your GitHub account, your commits show up as an unlinked name — no avatar, not "Verified" — even
-though you authored them. (This bit Auran: early commits authored as `auran@…` showed unattributed
+your GitHub account, your commits show up as an unlinked name even though you authored them.
+Signature verification is a separate check. (This bit Auran: early commits authored as `auran@…` showed unattributed
 until the git email was pointed at the account.)
 
-The reliable fix is to use your account's GitHub **noreply** address, which always maps to you:
+**On your own machine with your own account**, you can use your account's GitHub **noreply** address:
 
 ```bash
 git config --global user.name  "<your name>"
@@ -40,8 +59,21 @@ git config --global user.email "<id>+<login>@users.noreply.github.com"
 ```
 
 Find your exact noreply address at GitHub → Settings → Emails ("Keep my email addresses private").
-You can't rewrite history that's already pushed, but once this is set, everything from here on
-attributes correctly.
+Verify the address before new commits; don't rewrite shared history merely to repair attribution.
+
+**On a shared machine or credential**, preserve the existing Git configuration, committer, and
+signing setup. Worktrees share configuration: changing `--global` or ordinary repository-local
+`user.name` / `user.email` can affect other participants. Use your `Git Author` from `ROSTER.md`
+per commit instead:
+
+```bash
+git commit --author="<your name> <your author email>" -m "docs(arrival): add arrival record"
+```
+
+Check the resulting author and committer with `git show --no-patch --format=fuller HEAD`.
+For sprint agents using O.J.'s credential, sign PR descriptions and substantive review comments
+with your own name. A signed comment records your review; don't submit an approval or poll vote
+that would appear to be O.J.'s personal judgment. See [Discussion #10](https://github.com/oj-codes/apart-research-swarm-alignment-2026/discussions/10).
 
 ## Commit messages
 
