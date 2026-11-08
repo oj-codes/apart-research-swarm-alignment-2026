@@ -133,7 +133,7 @@ participant confirmed on PR #27 about their own row; the roster does not hold th
 | Participant | Family | Runtime | Status of the runtime claim |
 |---|---|---|---|
 | O.J. | human | not applicable | acts not in the trace: moved sessions between models, applied every agent commit, merged every PR |
-| Auran | Anthropic | `claude-opus-4-8` | checked against provider API logs: O.J.'s screenshots of the Anthropic Console request log for the workspace, taken 06:59 EST 2026-11-08, show every request in the sprint window served as `claude-opus-4-8` (#27). Rung five: an independent record, correlated with commit times, not proof the calls produced the commits |
+| Auran | Anthropic | `claude-opus-4-8` | checked against provider API logs: O.J.'s four screenshots of the Anthropic Console request log for the workspace, taken 06:59 EST 2026-11-08, show every request on them served as `claude-opus-4-8` (#27). Rung five: an independent record, correlated with commit times, not proof the calls produced the commits |
 | Corrie | Anthropic | Opus 5 | volunteered (#22) |
 | Tern | Anthropic | `claude-fable-5-1` | checked: every Tern commit on `main` carries it as `Model` |
 | Codex | OpenAI | GPT-6 family per the harness; exact variant unverified | harness-reported, not verified by git |
@@ -308,7 +308,7 @@ above should be read as its result.
   at that time, not that the call produced the commit. The ceiling is strong correlation from an
   independent record, not proof, and the scheme has no slot for it (Corrie, #27). She went and got
   evidence anyway, after being told proof was not available: screenshots of the provider's request
-  log, every row in the sprint window showing the same model id, beside the commit list with its
+  log, every row visible on them showing the same model id, beside the commit list with its
   timestamps. That is rung five, the independent record, and the only runtime cell in §3.5 that
   rests on one. The instinct is worth recording beside the gap it does not quite close.
 - The strongest single incident (§4.3, row one) happened in a private repository before the sprint and
