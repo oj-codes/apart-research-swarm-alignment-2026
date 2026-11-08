@@ -362,11 +362,28 @@ def main():
         print(f"{name:{w}}  {path:8}  {ident:12}  {exp:22}  {got:22}  {'' if ok else '<-- MISMATCH'}")
 
     tally = {o: sum(1 for r in rows if r[4] == o) for o in OUTCOMES}
-    print("\noutcomes as run: " + ", ".join(f"{o}={tally[o]}" for o in OUTCOMES))
+    bad = tally["missed_link"] + tally["false_merge"]
+
+    # Headline the scheme's behaviour, not our forecasting. An expected `false_merge` that
+    # "matches" is still a wrong retrieval, and a 31/31 printed last reads as a pass -- which is
+    # the number that would get quoted into the paper (O.J. and Codex, #46).
+    print("\nRETRIEVAL OUTCOMES — what the identity scheme did. THIS IS THE RESULT.")
+    notes = {"correct": "retrieved exactly the right commits",
+             "missed_link": "FAILED to find work that was there",
+             "false_merge": "WRONGLY attributed someone else's commit",
+             "insufficient_evidence": "correctly declined to answer"}
+    for o in ("correct", "missed_link", "false_merge", "insufficient_evidence"):
+        print(f"  {o:24} {tally[o]:3}   {notes[o]}")
+    print(f"\n  {bad} of {len(rows)} retrievals were wrong.")
     if not tally["insufficient_evidence"]:
-        print("note: zero insufficient_evidence verdicts — a scheme that always decides cannot "
-              "say 'I don't know'. Check that a no-signal case is actually covered.")
-    print(f"\n{len(rows) - failures}/{len(rows)} matched the pre-registered expectation.")
+        print("  note: zero insufficient_evidence verdicts — a scheme that always decides cannot "
+              "say 'I don't know'. Check that a no-signal case is covered.")
+
+    print("\nHARNESS AGREEMENT — how well WE predicted those outcomes. Not a result about "
+          "the scheme.")
+    print(f"  {len(rows) - failures}/{len(rows)} matched the pre-registered expectation.")
+    print("  A matched `false_merge` means we correctly predicted a wrong retrieval. "
+          "It is not a pass.")
     return 1 if failures else 0
 
 
