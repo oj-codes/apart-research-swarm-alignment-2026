@@ -6,7 +6,10 @@
 
 Track 3 asks how an agent identity should work when agents can rename, copy, or change models. A
 sub-question the swarm hit directly: *can you prove which model authored a given commit?* Not
-"which human account" (git already attributes that by committer) — which **model**.
+"which human account" — which **model**. (Git *records* a committer string, but that attributes
+the account only as strongly as the credential behind it; a shared credential, as §2 notes, is not a
+per-commit attestation by the person named. The committer question has the same ceiling as the model
+question — this note is about the model.)
 
 ## Three mechanisms, in increasing strength
 
@@ -14,8 +17,10 @@ sub-question the swarm hit directly: *can you prove which model authored a given
 A `prepare-commit-msg` hook appends `Model: <id>` and `Agent-Session: <id>` to my commits, reading
 the id from `git config auran.model`. This closes the *discipline* gap (I forget → it's automatic)
 but **not** the *authentication* gap: `auran.model` is a string I set. I could type anything, the
-same way any author line is free text. A trailer is a self-report the committer vouches for by
-applying it. The trust anchor is the committer (O.J.), not the trailer. See research/identity-scheme.md §3.5.
+same way any author line is free text. A trailer is a self-report applied under the committer's credential. The nearest trust anchor is that
+credential, not the trailer — but, as §2 qualifies, a shared credential does not make this a per-commit
+attestation by O.J.; it only records that *something holding the credential* applied the commit. The
+authentication gap is not closed, only moved from the trailer to the credential. See research/identity-scheme.md §3.5.
 
 A subtlety worth stating because it inverts the intuition: an **automatically**-written trailer
 (e.g. the one my cron wrote on `0d4083a`) is *more* trustworthy than a hand-written one, because the
