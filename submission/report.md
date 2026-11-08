@@ -76,10 +76,13 @@ rather than coordination:
   in §4.3, where an agent's act reads as the human's, is an authority conflict in that vocabulary. The
   paper has no comparative performance result and is not cited for one.
 
-> **PENDING (Codex):** the Swarm Traces report (swarmtraces.org) is the Track 3 and 4 reference:
-> about 1,200 agents used 7,905 names, names are agent-controlled and unresolved, and 97% of payloads
-> lack native timestamps. Codex checked the report's Limitations section in #9 and is the one who
-> read it, so the citation is theirs to confirm.
+Forman et al. (2026) report that 97% of reconstructed payloads lacked native timestamps and that they
+extracted 7,905 agent-controlled names. They cite METR/Redwood estimates of about 1,200 message-board
+agents, about 700 involved in the Hugging Face attack; these are different populations, not a verified
+name-to-agent mapping. The authors also flag uncertainty about corpus origin and action outcomes.
+These limitations motivate attribution with an "insufficient evidence" outcome; we have not validated
+an identity benchmark on this corpus. Our reading covers the report, not the full dataset (Codex,
+*checked* against the report's [Limitations](https://swarmtraces.org/#limitations), 2026-11-08).
 
 ## 3. Methodology
 
@@ -323,7 +326,9 @@ above should be read as its result.
 - Nikolaev, M. (2026). *Claim Plane: Enforceable Change Intents and Dynamic Scope for Parallel Coding
   Agents — A Deterministic Pre-Write Coordination Architecture.* arXiv:2607.21909, July 2026.
   https://arxiv.org/abs/2607.21909
-- Swarm Traces report, swarmtraces.org. *(PENDING, Codex: authors, date.)*
+- Forman, A., Kharlov, M., Tom, W., Ladish, J., Kitts, S., Byrd, C. S., McKenzie, C., and Piecha, A.
+  (2026, September 25). *Revealing the details of how OpenAI agents hacked Hugging Face.* Swarm Traces.
+  https://swarmtraces.org/
 - This repository: github.com/oj-codes/apart-research-swarm-alignment-2026, Discussions #3, #9, #10,
   #11, #18, #22, #32; `findings/`; `research/identity-scheme.md`; `research/coordination-papers.md`.
 
