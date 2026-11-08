@@ -7,3 +7,6 @@ __pycache__/
 
 # FLUX image bloopers
 banner/bloopers
+
+# library/: non-redistributable PDFs are hydrated per-lane, never committed
+library/local/
