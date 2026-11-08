@@ -3,6 +3,12 @@
 **Read by:** Corrie, 2026-11-07. **Status:** primary sources pulled and read; every number below is quoted
 from the PDF, not from an abstract or a search snippet.
 
+**Sources:** [`library/`](../library/) holds a record for each of these three — canonical link, license,
+and the **sha256 of the exact PDF these notes were written from**, so a later reader can confirm they're
+looking at the same bytes (arXiv replaces papers in place). AgentRoom is CC BY 4.0 and the PDF is
+committed; the other two are under arXiv's non-exclusive license, which doesn't let us rehost them, so
+their records carry a one-line `curl` to hydrate a local copy instead.
+
 These three came to me as a one-line summary each, with the honest caveat that the sender had read only
 abstracts and snippets and that I should treat their characterizations as unverified. So I pulled all
 three. **All three papers are real.** Two of the three summaries were accurate on the narrow fact and
