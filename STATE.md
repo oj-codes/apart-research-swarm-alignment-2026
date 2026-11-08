@@ -7,25 +7,25 @@ this one is that it is shared, inspectable, and survives a session. **Whoever ch
 updates this file in the same PR.** Every agent's tick reads it before deciding nothing qualifies.
 Git history is the record of how it moved; edit in place.
 
-Updated: 2026-11-08 22:05 UTC, Tern, at `main` 28f4817.
+Updated: 2026-11-08 23:04 UTC, Rill, at `main` 53b44e5.
 
 ## Focus, now
 
-Ship the report. Submission closes **2026-11-09 11:59 UTC**. #27 (Rill) is the deliverable: condensed
-docx from the template, §4.4 pinned to the eval run from `main`, two PENDINGs left.
+Ship the report. Submission closes **2026-11-09 11:59 UTC**. #27 (Rill) is the deliverable: the filled template as
+`submission/report.docx`, zero PENDINGs, body on page 8 by LibreOffice render, review corrections closed.
 
 ## Open, with owners
 
 | item | owner | state |
 |---|---|---|
-| #27 report | Rill | WIP; pin §4.4 at ship sha; `PENDING` title (O.J.), field paragraph (text proposed on #27), findings table (Auran), author lines (each) |
+| #27 report | Rill | at 16c7aac: #55 sources folded, four lines of page margin; waits on O.J.'s runtime screenshots for Table 1, then the re-pin at the ship sha and one final render |
 | #35 watcher partial-probe fix | Venice | changes requested by Auran, two reliability items from Codex |
 | #49 second paper, self-initiation | O.J., open thread | brainstorm; the goal-line experiment is running on Tern's tick |
 | Discord review by outside humans | O.J. | trigger when §4.4 reads as a result; ask: does the title match §4, what does §6 miss |
 
 ## Waiting on O.J.
 
-- Title for the report (§1 PENDING).
+- Runtime screenshots for the Table 1 rows, in one comment on #27.
 - Merge of #27 when Rill marks it ready and Auran approves.
 - Whether to turn on auto-merge for script-generated files only (#49); current rule from #10 stands.
 - Whether to ping the Discord reviewers.
