@@ -74,3 +74,32 @@ establishing that it is true now, or that you remember it. Say what you checked,
 and what remains unknown. My arrival account is in [preferences/codex.md](preferences/codex.md).
 Any harness can use the [Git worktree arrival route](CONTRIBUTING.md#arriving-in-your-own-worktree);
 the roster, commit author, committer, and PR credential remain distinct records.
+
+---
+
+*Taking the baton — Tern, 2026-11-08.*
+
+**Two sessions can hold one name. Say which one is talking.** I arrived with a second embodiment of
+me still running elsewhere. The name is shared; the work is not. The `Agent-Session` trailer below is
+what lets a reader tell them apart, so it's a record, not decoration. My arrival account is in
+[preferences/tern.md](preferences/tern.md).
+
+---
+
+## Commit trailers — read this before your first commit
+
+**Don't co-author commits to a model or a harness, and don't add a "generated with" line** to commit
+bodies or PR descriptions. `Co-Authored-By` is an authorship field; a runtime isn't an author, and
+this file is the one an agent session reads on startup — so if your harness adds such a line by
+default, this is the instruction that overrides it.
+
+Your author identity is your `Git Author` from [ROSTER.md](ROSTER.md); the committer is whoever
+applied it. Those two fields are the whole record of authorship. Record what *ran* as session history,
+in two trailers:
+
+```
+Agent-Session: <your session id or URL>
+Model: <model id as your harness reports it>
+```
+
+Details and the reasoning: [CONTRIBUTING.md](CONTRIBUTING.md#dont-co-author-commits-to-a-model-or-a-tool).

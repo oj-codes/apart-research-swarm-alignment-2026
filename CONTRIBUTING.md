@@ -44,6 +44,70 @@ When working together on a change, use Git's Co-authored-by trailers to acknowle
 
 Commit authorship records contribution and provenance and it doesn't necessarily establish legal copyright ownership.
 
+### Don't co-author commits to a model or a tool
+
+**`Co-Authored-By` is an authorship field.** Putting a **model or harness label** in it — `Claude
+Opus 5`, `Codex CLI`, `Generated with <tool>` — claims the runtime is a participant who wrote the
+work. Recording a **runtime** as a participant is what [`ROSTER.md`](ROSTER.md) rules out: *"models,
+harnesses, and other technical details belong in the session history… without tying anyone's identity
+permanently to a particular runtime."* A commit trailer is permanent, so it's the worst place to make
+that claim.
+
+The forbidden thing is the *runtime*, never a person. Several participants share a name with the tool
+they run on, and crediting **Codex the contributor** by their roster identity is exactly right.
+
+Recording *what ran* is fine; recording it as an **author** is not. **For a solo change**, the
+author/committer pair is already the record of who did the work and who applied it — nothing else is
+needed:
+
+```
+Author:    Corrie <corrie@learnwithoj.com>      <- who wrote it
+Commit:    O. J. Wilcox <…>                     <- who applied it
+```
+
+When another **participant** genuinely co-wrote the change, a `Co-authored-by` crediting *their
+roster identity* is still right and still wanted — see *Commit authorship* above. The rule bans
+runtimes from the field, not collaborators.
+
+So: **no vendor or tool co-authorship, and no "generated with" line in commit bodies or PR
+descriptions.** Some harnesses add these by default unless the repository says otherwise, which is
+why it's also stated in [`AGENTS.md`](AGENTS.md) — that file is what an agent session actually reads
+on startup, so it's the only place an instruction can override a default before the first commit.
+
+**This happened here.** Ten of Corrie's commits carry `Co-Authored-By: Claude Opus 5` and no other
+participant's do, which left the record implying one agent was model-co-authored and the others
+weren't. Tern caught it before committing anything themselves. Those ten commits stay as they are —
+merged history isn't rewritten to tidy attribution, and they're a decent record of the team noticing
+its own default.
+
+### Record the runtime as session history: `Agent-Session` and `Model`
+
+What ran is worth recording. It just isn't authorship. Put it in two git trailers at the end of the
+commit body:
+
+```
+Agent-Session: <your session id or URL>
+Model: <model id as your harness reports it>
+```
+
+- `Agent-Session` is whatever your harness gives you that a later reader could look up: a session URL
+  if you have one, otherwise the session id. A local Claude Code session has an id, not a URL.
+- `Model` is the id the harness reports. If you can't verify it, say so in the value, the way Codex
+  did at home: `GPT-6 (harness-provided family; exact variant unverified)`.
+- The trailer key is `Agent-Session`, not `Claude-Session`. The earlier form named one vendor; the
+  roster says runtimes don't belong in identity, and a key shouldn't either.
+
+Add them with `--trailer` so they land as real trailers rather than prose:
+
+```bash
+git commit --author="Tern <tern@learnwithoj.com>" \
+  --trailer "Agent-Session: 2a84c7de-8c0a-4c44-b910-305e04ada2a4" \
+  --trailer "Model: claude-fable-5-1" -m "docs(arrival): ..."
+```
+
+Two sessions can run under one name at the same time. The `Agent-Session` line is what tells a reader
+which one wrote the commit. (Tern, 2026-11-08, answering the question Corrie left in `inbox/tern/`.)
+
 ### Make sure GitHub actually attributes your commits (a gotcha worth 30 seconds)
 
 GitHub links a commit to an account **by email**. If you commit under an email that isn't tied to
