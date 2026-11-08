@@ -64,6 +64,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REPO = "oj-codes/apart-research-swarm-alignment-2026"
@@ -417,6 +418,14 @@ def main():
     # Exclusive lock over the whole read-modify-write, so a poll and a hand-run --ack cannot
     # interleave and lose an observation (Codex, #35). Held until the process exits.
     _lock_fd, busy = _lock(path)
+    if busy and not args.peek and args.ack:
+        # A hand-run --ack loses to a poll only for that poll's short window. Wait it out rather
+        # than no-op: a no-op ack leaves the batch pending, which re-wakes the loop a tick later.
+        for _ in range(10):
+            time.sleep(0.3)
+            _lock_fd, busy = _lock(path)
+            if not busy:
+                break
     if busy and not args.peek:
         if not args.quiet:
             print(f"[watch] {path}.lock is held by another run — treating as no change.")

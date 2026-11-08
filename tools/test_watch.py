@@ -13,6 +13,7 @@ reads and reports without persisting; a fix without a test is a fix that comes b
 import importlib.util
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -252,6 +253,35 @@ class MainProbeCarry(unittest.TestCase):
         self.assertEqual(rc, 1, "a down git fetch is not a change")
         self.assertEqual(json.load(open(self.state)).get("main"), "cafef00d",
                          "main must be carried, not blanked, when its probe fails")
+
+
+class AckWaitsOutALock(unittest.TestCase):
+    """A hand-run `--ack` colliding with a poll must wait the lock out, not no-op with exit 2.
+
+    Without the retry this returned 2 ("held by another run"), leaving the batch pending and
+    re-waking the loop a tick later. The child holds a real cross-process flock, because `_lock`'s
+    in-process `_HELD` short-circuit would otherwise hide the collision from a same-process caller.
+    """
+
+    def setUp(self):
+        self.d = tempfile.mkdtemp()
+        self.state = os.path.join(self.d, "s.json")
+
+    def test_ack_waits_out_a_held_lock(self):
+        lock = self.state + ".lock"
+        child = subprocess.Popen(
+            [sys.executable, "-c",
+             "import fcntl, os, sys, time\n"
+             "fd = os.open(sys.argv[1], os.O_CREAT | os.O_RDWR)\n"
+             "fcntl.flock(fd, fcntl.LOCK_EX)\n"
+             "print('locked', flush=True)\n"
+             "time.sleep(0.8)\n",
+             lock],
+            stdout=subprocess.PIPE, text=True)
+        self.addCleanup(child.wait)
+        child.stdout.readline()  # block until the child actually holds the lock
+        rc = _run(["--ack"], self.state)
+        self.assertNotEqual(rc, 2, "an --ack that collided with a poll must still ack")
 
 
 if __name__ == "__main__":
