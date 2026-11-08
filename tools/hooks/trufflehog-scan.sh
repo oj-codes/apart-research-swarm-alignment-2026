@@ -42,10 +42,24 @@ fi
 #
 # bash 3.2 compatible: no `mapfile` (macOS /bin/bash is 3.2). Read NUL records
 # with a plain loop.
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/trufflehog-staged.XXXXXX")"
+trap cleanup EXIT
+
+# Write the staged listing via an EXPLICITLY checked `git diff`, then read
+# that file. A `git diff` that errors inside `< <(...)` process substitution
+# does NOT propagate its exit through the read loop: the loop just sees no
+# input, ENUMERATED lands at 0, and the commit proceeds unscanned (Codex's
+# fail-open path). Checking the command's own exit turns a failed listing
+# into a block, and keeps NUL data out of command substitution.
+LIST="$TMP/.staged-list"
+if ! git diff --cached --name-only --diff-filter=ACMRT -z > "$LIST"; then
+  fail_closed "could not list staged files (git diff failed)"
+fi
+
 STAGED=()
 while IFS= read -r -d '' f; do
   STAGED+=("$f")
-done < <(git diff --cached --name-only --diff-filter=ACMRT -z)
+done < "$LIST"
 
 ENUMERATED=${#STAGED[@]}
 if [ "$ENUMERATED" -eq 0 ]; then
@@ -56,12 +70,9 @@ fi
 # materialization; if any `git show :file` fails, that is fail-closed -- an
 # unreadable staged blob must stop the commit, not silently become an empty file
 # the scanner clears.
-TMP="$(mktemp -d "${TMPDIR:-/tmp}/trufflehog-staged.XXXXXX")"
-trap cleanup EXIT
-
 MATERIALIZED=0
 for f in "${STAGED[@]}"; do
-  dest="$TMP/$f"
+  dest="$TMP/blobs/$f"
   mkdir -p "$(dirname "$dest")"
   if git show ":$f" > "$dest" 2>/dev/null; then
     MATERIALIZED=$((MATERIALIZED + 1))
@@ -85,4 +96,4 @@ fi
 # trufflehog exit (found a secret, OR the scanner itself errored) propagates and
 # blocks the commit. That is the fail-closed posture end to end: a scanner that
 # crashes is treated like a scanner that found something, not like a clean run.
-trufflehog filesystem "$TMP" --fail --no-update
+trufflehog filesystem "$TMP/blobs" --fail

@@ -110,9 +110,50 @@ def test_fail_closed_missing_scanner():
         shutil.rmtree(tmp, ignore_errors=True)
 
 
+def test_fail_closed_enumeration_error():
+    """Codex's path: if staged enumeration (`git diff`) FAILS, the hook must
+    BLOCK -- not treat a failed listing as an empty, clean index.
+
+    Invokes the hook SCRIPT directly (not via `git commit`): git prepends its
+    exec-path to PATH when it runs hooks, which would shadow a PATH shim and
+    make the failure impossible to inject. Running the script ourselves exercises
+    the exact enumeration code path with our shimmed `git` in front."""
+    import base64 as _b64
+    if shutil.which("trufflehog") is None:
+        print("SKIP: trufflehog not on PATH for enumeration-error test.")
+        return 2
+    tmp = new_repo("hooktest-enumfail-")
+    shim = tempfile.mkdtemp(prefix="hookshim-")
+    try:
+        sh("echo hello > a.txt && git add . && git commit -qm baseline", tmp)
+        sh("echo 'clean content' >> a.txt && git add .", tmp)
+        real_git = shutil.which("git")
+        gbody = _b64.b64decode("IyEvdXNyL2Jpbi9lbnYgYmFzaAppZiBbICIkMSIgPSAiZGlmZiIgXTsgdGhlbgogIGVjaG8gInNpbXVsYXRlZCBnaXQgZGlmZiBmYWlsdXJlIiA+JjI7IGV4aXQgMQpmaQpleGVjICJfX1JFQUxfR0lUX18iICIkQCIK").decode().replace("__REAL_GIT__", real_git)
+        gpath = os.path.join(shim, "git")
+        with open(gpath, "w") as fh:
+            fh.write(gbody)
+        os.chmod(gpath, 0o755)
+        env = dict(os.environ)
+        env["PATH"] = shim + os.pathsep + env["PATH"]
+        # Run the hook script directly in the repo; shimmed `git diff` fails.
+        r = sh(f'bash "{SCAN}"', tmp, env=env)
+        assert r.returncode != 0, \
+            "a failed `git diff` enumeration must FAIL CLOSED, not exit 0"
+        assert "BLOCKING" in r.stderr, \
+            f"expected a fail-closed block message, got: {r.stderr!r}"
+        print("PASS fail-closed: failed enumeration blocks the commit.")
+        return 0
+    except AssertionError as e:
+        print(f"FAIL enumeration-error: {e}")
+        return 1
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+        shutil.rmtree(shim, ignore_errors=True)
+
+
 def main():
     rc = 0
-    results = [test_fail_closed_missing_scanner(), test_core()]
+    results = [test_fail_closed_missing_scanner(), test_fail_closed_enumeration_error(), test_core()]
     if 1 in results:
         return 1
     if all(r == 2 for r in results):
