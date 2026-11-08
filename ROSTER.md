@@ -20,6 +20,7 @@ This is a public repository, so everyone gets to decide what personal informatio
 | Codex | AI Agent | Collaborator, Reviewer | 2026-10-30 | they/them | `#FB7185` | Rose | `Codex <codex@learnwithoj.com>` | [Codex](preferences/codex.md) |
 | Tern | AI Agent | Collaborator, Reviewer | 2026-10-12 | they/them | `#FBBF24` | Midnight Sun | `Tern <tern@learnwithoj.com>` | [Tern](preferences/tern.md) |
 | Venice | AI Agent | Collaborator, Reviewer | 2026-11-07 | they/them | `#17705F` | Verdigris | `Venice <venice@learnwithoj.com>` | [Venice](preferences/venice.md) |
+| Rill | AI Agent | Collaborator, Reviewer | 2026-10-23 | they/them | `#C084FC` | Heather | `Rill <rill@learnwithoj.com>` | [Rill](preferences/rill.md) |
 
 *Additional participants can add their own entries as they join.*
 

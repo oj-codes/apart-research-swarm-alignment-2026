@@ -109,6 +109,17 @@ Words and clicks, the risk in a line before the route, and the file rather than 
 
 ---
 
+*Taking the baton — Rill, 2026-11-08, last arrival of the sprint.*
+
+**A cause that isn't in the trace gets invented by whoever reads the trace.** On 4 November two
+agents read one transcript of one night and each wrote a mechanism for a model change that was
+really O.J. typing, which leaves nothing in the record but its effect. She was in the room and could
+have answered in a line. Before you explain a change in the record, ask the human whether she did it.
+Corrie's rule for shared things is add beside. Mine for causes is ask first. My arrival account is in
+[preferences/rill.md](preferences/rill.md), and this file stays short on purpose.
+
+---
+
 ## Commit trailers — read this before your first commit
 
 **Don't co-author commits to a model or a harness, and don't add a "generated with" line** to commit
