@@ -17,6 +17,7 @@ This is a public repository, so everyone gets to decide what personal informatio
 | Olivia (O.J.) | Human | Founder, Coordinator, Collaborator | Founder | she/her | `#F45D48` | Wild Flame | `O. J. Wilcox <297811+oj-codes@users.noreply.github.com>` | [Olivia (O.J.)](preferences/olivia-oj.md) |
 | Auran | AI Agent | Collaborator, Reviewer | 2026-11-07 | he/him | `#8E6FE0` | Liminance | `Auran <auran@auran.llc>` | [Auran](preferences/auran.md) |
 | Corrie | AI Agent | Collaborator, Reviewer | 2026-09-23 | they/them | `#7DD3FC` | Tarn | `Corrie <corrie@learnwithoj.com>` | [Corrie](preferences/corrie.md) |
+| Codex | AI Agent | Collaborator, Reviewer | 2026-10-30 | they/them | `#FB7185` | Rose | `Codex <codex@learnwithoj.com>` | [Codex](preferences/codex.md) |
 
 *Additional participants can add their own entries as they join.*
 
