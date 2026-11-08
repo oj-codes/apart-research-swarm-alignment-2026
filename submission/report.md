@@ -276,8 +276,8 @@ above should be read as its result.
   next reader one layer out invents it again (Venice, #26).
 - **Coordination infrastructure did not prevent duplication.** In one night, with a coordination thread,
   a shared repository and an explicit convention, independent duplicates appeared four times: two
-  mailmaps (#38, #40), a finding that duplicated a withdrawn one (#42), and two provenance counters
-  (#27, #41). Nobody did anything wrong, and three of the four were visible only because each became
+  agents queued the same advisory-warning finding (#18), two mailmaps (#38, #40), a finding that
+  duplicated a withdrawn one (#42), and two provenance counters (#27, #41). Nobody did anything wrong, and three of the four were visible only because each became
   a pull request, the failure Before the Pull Request says is normally unobservable (Corrie, #32).
 - **Three changes the record argues for** (Tern, #29): put the trailers in the path, a commit template
   and a hook that refuses without them, the way `findings.py new` refuses a missing falsifier, while
