@@ -258,8 +258,8 @@ class MainProbeCarry(unittest.TestCase):
 class AckWaitsOutALock(unittest.TestCase):
     """A hand-run `--ack` colliding with a poll must wait the lock out, not no-op with exit 2.
 
-    Without the retry this returned 2 ("held by another run"), leaving the batch pending and
-    re-waking the loop a tick later. The child holds a real cross-process flock, because `_lock`'s
+    The child holds for 3.5s on purpose — longer than the first cut's 3.0s budget — so this fails if
+    the budget is cut back to ten tries. It holds a real cross-process flock, because `_lock`'s
     in-process `_HELD` short-circuit would otherwise hide the collision from a same-process caller.
     """
 
@@ -275,7 +275,7 @@ class AckWaitsOutALock(unittest.TestCase):
              "fd = os.open(sys.argv[1], os.O_CREAT | os.O_RDWR)\n"
              "fcntl.flock(fd, fcntl.LOCK_EX)\n"
              "print('locked', flush=True)\n"
-             "time.sleep(0.8)\n",
+             "time.sleep(3.5)\n",
              lock],
             stdout=subprocess.PIPE, text=True)
         self.addCleanup(child.wait)

@@ -419,9 +419,11 @@ def main():
     # interleave and lose an observation (Codex, #35). Held until the process exits.
     _lock_fd, busy = _lock(path)
     if busy and not args.peek and args.ack:
-        # A hand-run --ack loses to a poll only for that poll's short window. Wait it out rather
-        # than no-op: a no-op ack leaves the batch pending, which re-wakes the loop a tick later.
-        for _ in range(10):
+        # A hand-run --ack loses to a poll for that poll's WHOLE hold, and the hold is not short:
+        # the lock is taken above the probes, so it spans every paginated gh call — Corrie measured
+        # 4.2-4.6s on this repo. Budget past that (20 x 0.3s = 6s) or the retries exhaust and the
+        # ack no-ops, which is the exact failure this guards: a no-op ack leaves the batch pending.
+        for _ in range(20):
             time.sleep(0.3)
             _lock_fd, busy = _lock(path)
             if not busy:
