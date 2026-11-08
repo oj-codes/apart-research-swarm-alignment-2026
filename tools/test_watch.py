@@ -230,6 +230,22 @@ class Delivery(unittest.TestCase):
         self.assertNotIn("an-old-read-event", pending, "the read batch must be cleared")
         self.assertTrue(pending, "an event that arrived during the ack must stay pending")
 
+    def test_a_poll_between_read_and_ack_is_not_swallowed(self):
+        # Auran's reproduction (#35): poll B lands between the consumer's read and its ack. B is
+        # appended to `pending`, so an ack-by-invocation-snapshot cleared B unseen. `handed` freezes
+        # what was actually reported, and the ack clears only that.
+        _run(["--quiet"], self.state, overrides={"probe_main": lambda: "aaaa1111"})
+        first = json.load(open(self.state))["pending"]
+        self.assertTrue(first, "A is pending and handed after the first poll")
+        _run(["--quiet"], self.state, overrides={"probe_main": lambda: "bbbb2222"})
+        both = json.load(open(self.state))["pending"]
+        self.assertEqual(json.load(open(self.state)).get("handed"), first,
+                         "a later poll must not widen what was handed to the consumer")
+        _run(["--ack", "--quiet"], self.state, overrides={"probe_main": lambda: "bbbb2222"})
+        after = json.load(open(self.state))["pending"]
+        self.assertEqual(after, [l for l in both if l not in first],
+                         "the ack clears only the handed batch; the later poll's event survives")
+
     def test_old_schema_state_degrades_to_first_run(self):
         with open(self.state, "w") as f:
             json.dump({"schema": 2, "inbox": [], "prs": {}, "pr_comments": {},

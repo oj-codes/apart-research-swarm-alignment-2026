@@ -376,9 +376,10 @@ def describe(old, new, name):
 
 
 def fingerprint(state):
-    # `pending` is excluded: it is the delivery queue, not the observed world. Without this, old
-    # (which carries a pending key) and a freshly-built new never match shape and every run reports.
-    s = {k: v for k, v in state.items() if k != "pending"}
+    # `pending` and `handed` are excluded: they are the delivery queue, not the observed world.
+    # Without this, old (which carries the queue keys) and a freshly-built new never match shape and
+    # every run reports.
+    s = {k: v for k, v in state.items() if k not in ("pending", "handed")}
     blob = json.dumps(s, sort_keys=True, separators=(",", ":")).encode()
     return hashlib.sha256(blob).hexdigest()
 
@@ -479,17 +480,25 @@ def main():
                 new[key] = old[key]
 
     lines = [] if first_run else describe(old, new, name)
-    # `read_batch` is exactly what the consumer read; `arrived` is what landed since. An ack clears
-    # only the former, so a change that arrives during the ack is reported next poll, not swallowed.
+    # `handed` is the batch a consumer was actually told about: frozen when a report goes out and
+    # advanced only by an ack. `read_batch` is merely what was pending. They differ when a poll
+    # lands between the consumer's read and its ack — and then the ack must clear only what was
+    # handed, or the later event is cleared without ever having been seen (Codex/Auran, #35).
     read_batch = list(old.get("pending") or [])
+    handed = list(old.get("handed") or read_batch)
     pending = list(read_batch)
     new["pending"] = pending
     base_changed = first_run or fingerprint(old) != fingerprint(new)
     if base_changed and not first_run:
         pending = pending + [l for l in lines if l not in pending]
-    arrived = [l for l in pending if l not in read_batch]
+    if pending and not handed:
+        handed = list(pending)               # first report of a batch: this is what gets handed out
+    cleared = [l for l in pending if l in handed]
+    newer = [l for l in pending if l not in handed]
     if args.ack:
-        pending = arrived
+        pending = newer                      # clear only the handed batch; later events re-report
+        handed = list(pending)
+    new["handed"] = handed
     new["pending"] = pending
     changed = first_run or base_changed or bool(pending)
 
@@ -503,11 +512,11 @@ def main():
                 print(f"[watch] warning: couldn't save state to {path}: {e}", file=sys.stderr)
 
     if args.ack:
-        # State is written with the read batch cleared; anything that arrived since stays pending.
+        # State is written with the handed batch cleared; anything a later poll added stays pending.
         if not args.quiet:
             print(f"[watch] acked for {name}"
-                  + (f" — {len(read_batch)} change(s) marked as seen" if read_batch else "")
-                  + (f"; {len(arrived)} newer left pending" if arrived else ""))
+                  + (f" — {len(cleared)} change(s) marked as seen" if cleared else "")
+                  + (f"; {len(newer)} newer left pending" if newer else ""))
         return 1
 
     if args.quiet:
