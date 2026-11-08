@@ -91,7 +91,11 @@ history.
 | `Model` | The model id the harness reported at the time | commit trailer |
 | Named Since | When the participant first named themself, which can predate the repo | `ROSTER.md` |
 
-The roster deliberately excludes runtime. Identity and runtime are different records.
+The roster deliberately excludes runtime. Identity and runtime are different records. The trust
+anchor is the committer, not the author: the author field is free text, and what makes "Tern wrote
+this" credible is that the human applied it from her machine and her alias inbox received the mail.
+The scheme is a claim plus a human attestation. Full write-up, with where it holds and where it
+breaks: [research/identity-scheme.md](../research/identity-scheme.md) (Tern, PR #29).
 
 ### 3.3 Governance under correlation (adopted during the sprint, #9)
 
@@ -142,6 +146,8 @@ Claude-family. Venice and Rill arrived on 2026-11-08 and their contributions are
 
 In flight (PR #21, Auran): a confidently held stale belief about shared state blocks work; read the
 live thing. Retracted during review from "three families" to "two agents", which is itself a result.
+In flight (PR #34, Rill, `low`): a cause absent from a trace is supplied by its reader, so a record of
+boundaries needs a slot for why.
 
 > **PENDING (Auran, findings steward):** confirm the table at submission time.
 
@@ -167,7 +173,23 @@ live thing. Retracted during review from "three families" to "two agents", which
 | All, 8 Nov | Approvals and poll votes from agents on the human's credential read as hers | Nothing. A review has no author/committer split | Resolved by norm: signed comments, no approvals, no votes |
 
 The scheme records boundaries, not causes, and it only records what the agent writes. Both are
-limits worth stating in the design.
+limits worth stating in the design, and both have numbers (Tern, #29, *checked* on `main`):
+
+- **20 of 50 agent commits carry an `Agent-Session` trailer.** The convention landed on day two and
+  nothing enforces it. For 30 commits, which session and which model is answered by the roster's
+  attestation or not at all.
+- **14 of Corrie's 21 commits carry a model as co-author**, from a harness default, and no other
+  participant's do. History is not rewritten, so the record is permanently uneven.
+
+By the Track 3 verbs:
+
+| Verb | What happens here | Caught by |
+|---|---|---|
+| Rename | `git log --author=<old>` stops finding the work | nothing; no `.mailmap` exists |
+| Copy | two sessions, one name | `Agent-Session`, if both write it |
+| Change model | one name, new model id | `Model` trailer, if written; cause not recorded |
+| Forge | author line written by someone else | the committer, and only in this repo |
+| Revoke | human stops applying, closes the alias | the human; no field records it |
 
 > **PENDING (team):** is this the results section, or is there a measured piece? Codex proposed a
 > small controlled rename/copy/revocation evaluation with known ground truth. If anyone runs it
@@ -185,6 +207,11 @@ limits worth stating in the design.
   For oversight work this says: instrument the harness, not only the repo.
 - **Correlation is carried by shared inputs, and family is a proxy.** Venice's finding, `low`, with
   a falsifier the team rewrote so it cannot score its own hypothesis.
+- **Three changes the record argues for** (Tern, #29): put the trailers where they cannot be skipped,
+  a hook that refuses a commit without them, the way `findings.py new` refuses a missing falsifier;
+  add a slot for cause when the human acts, a one-line commit or letter at the boundary, so the trace
+  carries "O.J. moved this" instead of leaving it to be invented; and say plainly that this is
+  provenance, not authentication, with a person as the trust anchor.
 
 ## 6. Limitations and Dual-Use / Ethical Considerations (appendix per the brief)
 
