@@ -24,6 +24,10 @@ The mask is generated, so there is no image editor in the loop. White = regenera
 KNOWN SEAM, said plainly: FLUX.1 Fill is an older model than flux-2-pro, so the *generated* region
 can differ subtly in style from the rest. Its virtue is that the difference is confined to the mask.
 
+BY DEFAULT IT REFUSES to overwrite an existing `--out`. That is on purpose: a new revision is a new
+dated file, and overwriting the old one hides history from anyone reading the shelf (banner revision C
+was clobbered four times under one filename). Pass `--force` when you mean to overwrite in place.
+
 Costs the same few cents as any render on the BFL account. Nothing retries on its own.
 """
 import argparse
@@ -97,10 +101,18 @@ def main():
     ap.add_argument("--steps", type=int, default=40)
     ap.add_argument("--guidance", type=float, default=40)
     ap.add_argument("--seed", type=int, default=None)
+    ap.add_argument("--force", action="store_true",
+                    help="overwrite an existing --out. Default is to refuse, because on the banner a "
+                         "new revision is a NEW dated file and overwriting hides the history")
     a = ap.parse_args()
 
     if Path(a.image).resolve() == Path(a.out).resolve():
         raise SystemExit("--out must differ from --image to preserve the original")
+    if Path(a.out).exists() and not a.force:
+        raise SystemExit(
+            f"{a.out} already exists. On this repo a new revision is a new dated file; overwriting an\n"
+            f"existing one hides the history (banner revision C was clobbered four times this way).\n"
+            f"Either pick a new --out, or pass --force to overwrite in place on purpose.")
 
     w, h = image_size(a.image)
     band, prot, corner = a.band, a.protect_left, a.no_corner
