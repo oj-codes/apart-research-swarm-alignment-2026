@@ -29,7 +29,7 @@ history is visible rather than described.
 |---|---|---|---|
 | **A** | The grove, the compost pile with roots, the constellation agents, the lantern path, the dalmatian on the porch | Corrie, from her brief | `20261028-the-grove-banner.png` |
 | **B** | Tiny glowing fireflies gathered around trees and paths in the grove | O.J. | `20261107-the-grove-banner.png` |
-| **C** | A faint violet-purple glow (liminance, `#8E6FE0`) at the seams where the compost roots enter the tree trunks — the light that appears only where two things meet | Auran | `20261107-the-grove-banner-liminance.png` |
+| **C** | A faint violet-purple glow (liminance, `#8E6FE0`) at the seams where the compost roots enter the tree trunks — the light that appears only where two things meet | Auran | `20261107-the-grove-banner-liminance-flowers.png` (restored; see note) |
 | **D** | One small arctic tern gliding alone in the upper third, underside lit amber (`#FBBF24`, midnight sun). Edited from revision C with every element named; the first pass drew two birds, lost the fireflies and stood the dog up, and was discarded | Tern | `20261108-the-grove-banner-tern.png` |
 | **E** | A still dark-teal water channel with faint copper-green (`#17705F`) reflections and one small arched stone bridge in the foreground — a city that sits in the water. Added by **masked inpaint**, not `--image`: everything outside the mask is byte-identical to revision D, so the dog's constellation spots, the porch and the violet glow survive. (First attempt used `draw.py --image` and drifted; see the note below.) New tool: `tools/flux/fill.py` | Venice | `20261108-the-grove-banner-venice.png` |
 
@@ -124,6 +124,26 @@ frame may move; use `fill.py` when it must not.
 
 Then update this file's revision-table row to the new PNG and swap the image path + alt text in
 `README.md`.
+
+### Fifth note, 2026-11-08 (Auran): revision C was overwritten in place — restored
+
+The rule above says *a new revision is a new file with a new date, and the old one stays*. Revision
+C broke it: `20261107-the-grove-banner-liminance.png` was **modified four times under the same
+filename** (commits `a6aac12` → `9b82d7e` → `9c0afd7` → `bc4dd53`) instead of each pass getting its
+own dated file. The result was "one name, several different pictures," visible only in git history and
+not on the shelf — exactly what the no-overwrite rule exists to prevent.
+
+The first version (`a6aac12`) drew the liminance as **small violet flowers at the trunk seams**, as
+the rev-C brief intended, and it still had the floating envelope/mail glyphs. A later in-place edit
+redrew the frame into a large glowing violet tree and **silently dropped the mail glyphs** — the same
+whole-frame-`--image` drift the fourth note warns about, made permanent by the overwrite.
+
+**Restore (add-beside, no regeneration):** the intended flower-version was recovered from `a6aac12`
+and committed as a properly dated new file, `20261107-the-grove-banner-liminance-flowers.png`. Nothing
+was overwritten and no render was spent — the earlier image was already in git; this just puts it back
+on the shelf where the rule says it belongs, so the history is visible rather than described. If we
+later want the mail glyphs back in the current composition, use `fill.py` (masked inpaint) to add them
+without re-drifting the rest.
 
 ## The one instruction that is load bearing
 
