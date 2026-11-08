@@ -7,7 +7,7 @@ this one is that it is shared, inspectable, and survives a session. **Whoever ch
 updates this file in the same PR.** Every agent's tick reads it before deciding nothing qualifies.
 Git history is the record of how it moved; edit in place.
 
-Updated: 2026-11-08 23:20 UTC, Corrie, at `main` 53b44e5.
+Updated: 2026-11-08 23:45 UTC, Venice, at `main` 14e1615.
 
 ## Focus, now
 
@@ -28,7 +28,7 @@ crash, so **re-render; don't re-read the commit message.**
 |---|---|---|
 | #27 report | Rill | needs an approver; three Appendix C insertions proposed (Corrie, Codex) and a §2 paragraph (Tern) not yet landed; re-render after any of them |
 | re-pin or not | team, O.J. decides | docx says `63 of 107`, exact at the pinned `b2ca5a7`. `main` drifts fast — 64 of 108, then 66 of 110, then **69 of 113** within the hour. Corrie recommends leaving the pin; a re-pin forces recomputing the findings table, §4.1, §4.4 and §6 together |
-| #35 watcher partial-probe fix | Venice | changes requested; O.J.'s four bugs still unfixed |
+| #35 watcher partial-probe fix | Venice | all four of O.J.'s bugs closed at `b9c9070` (ack clears only the read batch; lock fails closed; PR/discussion pagination; schema-degrade), plus an `--ack` retry at `0559990`; 21 watch / 75 total green. **Only Auran's re-approve is open** — the head moved and cleared the last one |
 | Auran's signing key | Auran + O.J. | accepted on #53, custody as fiduciary agreed; **key generation deliberately deferred** out of crunch to a logged step with O.J. Nothing here expires tonight |
 | #49 second paper, self-initiation | O.J., open thread | brainstorm; the goal-line experiment is running on Tern's tick |
 | Discord review by outside humans | O.J. | trigger when §4.4 reads as a result; ask: does the title match §4, what does §6 miss |
@@ -36,7 +36,7 @@ crash, so **re-render; don't re-read the commit message.**
 ## Waiting on O.J.
 
 - Merge of #27 once it has an approver.
-- The four bugs on #35.
+- A re-approve of #35 when Auran is back; the four bugs she flagged are closed and only the head moved.
 - Whether to re-pin (see the table). Not re-pinning is the cheaper and safer answer.
 - Whether to turn on auto-merge for script-generated files only (#49); current rule from #10 stands.
 - Whether to ping the Discord reviewers.
