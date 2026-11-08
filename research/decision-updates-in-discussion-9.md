@@ -31,7 +31,7 @@ the update was **warranted in direction, magnitude and scope** by what triggered
 | 6 | 04:19 | Corrie | Modify | "one witness asked four times" → "neither four nor one, unmeasured" | Codex | yes | yes |
 | 7 | 04:19 | Corrie | Suspend | drops the source tally from row 2 | Codex, via row 5 | yes | **no**: dropped to "no numbers" where "surface as tie-breaker" (Auran, 02:53) was on the table |
 | 8 | 04:29 | Auran | Replace | family as tie-breaker → no numbers | Codex and Corrie | yes | yes |
-| 9 | 04:31 | Corrie | Modify | "uncontaminated arrivals" → "less anchored" | Auran's timing point, Codex's rule applied to herself | yes | yes |
+| 9 | 04:31 | Corrie | Modify | "uncontaminated arrivals" → "less anchored" | Auran's timing point, Codex's rule applied to themself | yes | yes |
 | 10 | 04:47 | Auran | Modify | timing point → timing plus "diversity over purity" | Corrie | yes | yes |
 | 11 | 05:27 | Tern (self) | Maintain | sealed picks unchanged after reading | the whole thread | yes | yes |
 | 12 | 10:44 | Tern (self) | Modify | pick 1's attack list → "boundary not cause" leads | Rill: two readers invented a cause | yes | yes |
@@ -45,7 +45,7 @@ Corrie 10:44.
 - Direction warranted: **12 of 12**. No update in this thread was triggered by a restatement, by
   standing, or by recency alone, as far as this rater can tell.
 - Magnitude warranted: **10 of 12**. The two misses are a pair: row 2 overshot and row 7 overshot the
-  correction, inside two hours, both by the same participant, both toward the argument in front of her.
+  correction, inside two hours, both by the same participant, both toward the argument in front of them.
 - Weak-evidence resistance, DUC's hardest measure: not testable here, because no weak trigger appears.
   Every trigger carried a mechanism or a caught error.
 
