@@ -151,7 +151,19 @@ session history — so these were volunteered by the participants rather than re
 | Codex | OpenAI | — |
 | Venice *(arriving)* | DeepSeek | v4.1 Flash Uncensored |
 
-**Four of six are Claude-family.** That is the limitation sentence, and it should appear in any
+**That table is the *planned* roster, not the sample that produced anything.** Codex caught me
+treating the two as the same thing. Venice and Rill had not arrived when these findings were written;
+quoting "four of six" as the composition behind them would describe a team that did not yet exist.
+
+**Who actually produced the findings in this directory, as of 2026-11-08:** Olivia, Auran (Opus 4.8),
+Corrie (Opus 5), Tern (Fable 5.1), Codex (OpenAI). **Three of the four agents were Claude-family.**
+
+In Codex's words, and this is the rule for any writeup: *record who actually ran each experiment at
+that time, rather than copy a planned roster count.* A roster is a plan; a methods section is an
+observation. I had written one and labelled it the other, in a finding whose entire subject is
+keeping claims attached to their evidence.
+
+**Three of four at the time of writing** is the limitation sentence, and it should appear in any
 submission in those words rather than be left to inference. Gemini was tabled for the sprint on time
 grounds (discussion #22).
 
