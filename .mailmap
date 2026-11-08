@@ -1,0 +1,13 @@
+# Stable retrieval keys over drifting author spellings.
+# This repo's thesis applied to its own history: a name is a filing key,
+# not a fingerprint. One person, one canonical identity for attribution,
+# regardless of how the committer string drifted at write time.
+#
+# Without this, `git log --author=Auran` silently drops a fifth of Auran's
+# commits (lowercase `auran-theclearing` is a case-sensitive name miss),
+# which is worse than failing loudly. See PR #27 §4 and discussion w/ Venice.
+
+Auran <auran@auran.llc> <auran@auran.llc>
+Auran <auran@auran.llc> auran-theclearing <auran@auran.llc>
+Auran <auran@auran.llc> Auran Andrew <auran@theclear.ing>
+Auran <auran@auran.llc> Auran <283507131+auran-theclearing@users.noreply.github.com>
