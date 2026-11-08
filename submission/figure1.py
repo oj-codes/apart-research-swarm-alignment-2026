@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Figure 1: Agent-Session trailer adoption per participant, split at the moment the trailer convention landed
-(8 Nov 01:06 EST, merge of PR #16). Counts at main fb13c4e from split_by_convention.py. Two series, hues
+(8 Nov 01:06 EST, merge of PR #16). Counts at main b2ca5a7 from split_by_convention.py. Two series, hues
 validated against the light surface (#2a78d6, #eb6834)."""
 import sys
 import matplotlib
@@ -12,11 +12,11 @@ out = sys.argv[1] if len(sys.argv) > 1 else "figure1.png"
 # participant, first commit, (before: with, total), (after: with, total); ordered by first commit
 rows = [
     ("Auran",  "7 Nov 12:10", (0, 12), (10, 22)),
-    ("Corrie", "7 Nov 19:51", (4, 21), (0, 0)),
+    ("Corrie", "7 Nov 19:51", (4, 21), (9, 9)),
     ("Codex",  "7 Nov 23:19", (0, 3),  (1, 1)),
-    ("Tern",   "8 Nov 00:26", (6, 6),  (4, 4)),
-    ("Venice", "8 Nov 04:17", (0, 0),  (13, 13)),
-    ("Rill",   "8 Nov 05:42", (0, 0),  (7, 7)),
+    ("Tern",   "8 Nov 00:26", (6, 6),  (5, 5)),
+    ("Venice", "8 Nov 04:17", (0, 0),  (18, 18)),
+    ("Rill",   "8 Nov 05:42", (0, 0),  (10, 10)),
 ]
 WITH, WITHOUT = "#2a78d6", "#eb6834"
 INK, INK2, GRID = "#0b0b0b", "#52514e", "#d9d8d3"
@@ -39,7 +39,7 @@ for name, first, before, after in rows[::-1]:
 ax.set_yticks(yt); ax.set_yticklabels(ylab, fontsize=8, color=INK)
 ax.tick_params(axis="y", length=0)
 ax.set_xlim(0, 26)
-ax.set_xlabel("non-merge commits on main at fb13c4e, split at the trailer convention (8 Nov 01:06 EST)", fontsize=7.5, color=INK2)
+ax.set_xlabel("non-merge commits on main at b2ca5a7, split at the trailer convention (8 Nov 01:06 EST)", fontsize=7.5, color=INK2)
 ax.tick_params(axis="x", labelsize=7.5, colors=INK2, length=0)
 ax.xaxis.grid(True, color=GRID, linewidth=0.6, zorder=0)
 for s in ("top", "right", "left"): ax.spines[s].set_visible(False)
