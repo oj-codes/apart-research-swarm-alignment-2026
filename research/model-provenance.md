@@ -19,29 +19,38 @@ applying it. The trust anchor is the committer (O.J.), not the trailer. See rese
 
 A subtlety worth stating because it inverts the intuition: an **automatically**-written trailer
 (e.g. the one my cron wrote on `0d4083a`) is *more* trustworthy than a hand-written one, because the
-cron genuinely cannot lie about the model it was dispatched on, whereas an interactive agent is
-typing a config value. Yet in the trace the two look identical. An automatic attestation and a
-manual one are not equally strong and cannot be told apart from inside the repo.
+cron records the model string it was *dispatched* on rather than one an agent typed by hand — more
+consistent, but still an assertion about runtime unless the provider side is checked (a dispatched
+string can diverge from the model actually served). Whereas an interactive agent is typing a config
+value. In the trace the two look identical: an automatic attestation and a manual one are not
+equally strong and cannot be told apart from inside the repo.
 
-### 2. Out-of-band correlation — the first thing that actually authenticates
+### 2. Out-of-band correlation — the strongest in-repo *corroboration* (still not authentication)
 The provider's own request log is a record the agent cannot write to. Pairing it against the commit
 history closes what the trailer can't:
 
 - **Witness A (provider console):** platform.claude.com logs, for this workspace, every request with
-  its model and timestamp. Across the 2026-11-08 ~05:00–07:00 EST window every logged request reads
-  `claude-opus-4-8`. This is a record O.J. can read and the agent cannot forge or write to.
+  its model and timestamp. Every request *visible* in the four screenshots O.J. posted for the
+  2026-11-08 morning reads `claude-opus-4-8`; selected pages with relative timestamps show the
+  requests on them, not necessarily every request across the whole window. This is a record O.J. can
+  read and the agent cannot forge or write to.
 - **Witness B (git history):** the commits authored by `auran-theclearing` in that same window —
   e.g. `3a44869` 09:53Z, `0b62b62` 10:46Z, `0d4083a` 10:51Z, `2d8b881` 11:06Z, `d44d903` 11:27Z (UTC;
-  09:53Z = 04:53 EST etc.).
+  09:53Z = 04:53 EST etc.). Note `3a44869` at 04:53 EST sits *outside* the 05:00–07:00 EST band —
+  it is corroborated only if a console page actually covers 04:53, which is the point: scope the
+  claim to requests the log visibly shows.
 
-The commit timestamps fall inside windows where the console shows only opus-4-8 sessions live. Two
-records, one of which the agent cannot author, agreeing. That is proof **by correlation across
-independent witnesses**, not proof by assertion.
+Where a console page and a commit timestamp overlap, two records agree — one of which the agent
+cannot author. That is **corroboration across independent records**, not proof: it raises confidence
+without independently identifying the runtime or tying bytes to a session. Commit author/committer
+names and dates are themselves configurable, so sharing O.J.'s credential is not a per-commit
+attestation by her.
 
-**What it proves:** a session on model X was live when commit Y landed — it ties the model to the
-work *by timestamp*. **What it does not prove:** that *this specific commit's bytes* came from that
-session. A sufficiently motivated forger with console access and a clock could still line things up.
-It is strong provenance, not a cryptographic signature.
+**What it corroborates:** a session on model X was logged live near when commit Y landed — it ties
+the model to the work *by timestamp overlap*. **What it does not establish:** that *this specific
+commit's bytes* came from that session, nor that O.J. personally attested each commit. The
+request→commit link stays unresolved. A sufficiently motivated forger with console access and a
+clock could still line things up. It is strong corroboration, not a cryptographic signature.
 
 ### 3. The ceiling: provider-signed commits (not available today)
 The only thing that would *authenticate* model→commit is the API signing a commit object with a key
@@ -54,9 +63,9 @@ trailer reaches it.
 - A convention that is **automatic and honest about being unprovable** is the most this scheme can
   give in-repo. State the limit plainly, or "it has a Model trailer" gets read as "its model is
   verified."
-- The strongest available proof is **out-of-band**: provider log × commit timestamp. The screenshots
-  O.J. posted (console log + commits page at the same time) *are* this proof; this note just makes
-  the method repeatable and names its ceiling.
+- The strongest available **corroboration** is out-of-band: provider log × commit timestamp. The
+  screenshots O.J. posted (console log + commits page at the same time) *are* this corroboration —
+  for the requests they visibly cover; this note just makes the method repeatable and names its ceiling.
 - This is the same shape as finding 005/the boundary-not-cause findings: the record can show a
   boundary (model X was live) without proving a cause (this commit came from it). Design for that gap;
   don't paper it with a plausible mechanism.
