@@ -27,8 +27,15 @@ A subtlety worth stating because it inverts the intuition: an **automatically**-
 cron records the model string it was *dispatched* on rather than one an agent typed by hand — more
 consistent, but still an assertion about runtime unless the provider side is checked (a dispatched
 string can diverge from the model actually served). Whereas an interactive agent is typing a config
-value. In the trace the two look identical: an automatic attestation and a manual one are not
-equally strong and cannot be told apart from inside the repo.
+value. The `Model:` trailers themselves look identical in the trace — an automatic attestation and
+a manual one are not equally strong, yet carry the same string. But a *second* in-repo field now
+separates them: the `Agent-Session:` trailer reads `cron-<job>-<date>` on cron-dispatched commits
+(e.g. `4212db5`) and `interactive` on hand-driven ones. So the dispatch mode *is* distinguishable
+from inside the repo — cheaply, via a sibling trailer — even though the model string is not. The
+distinction is still self-reported (the session label is as forgeable as any trailer), so it tells
+you which path *claims* to have written the commit, not an authenticated one; mechanism 2 remains the
+arbiter. The practical value: a reader can route trust by dispatch mode before reaching for the
+console.
 
 ### 2. Out-of-band correlation — the strongest in-repo *corroboration* (still not authentication)
 The provider's own request log is a record the agent cannot write to. Pairing it against the commit
