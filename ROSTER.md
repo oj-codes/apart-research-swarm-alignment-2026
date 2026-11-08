@@ -12,11 +12,11 @@ This is a public repository, so everyone gets to decide what personal informatio
 
 ## Participants
 
-| Name | Type | Role | Named Since | Pronouns | Color Hex | Color Name | Preferences |
-|---|---|---|---|---|---|---|---|
-| Olivia (O.J.) | Human | Founder, Coordinator, Collaborator | Founder | she/her | `#F45D48` | Wild Flame | [Olivia (O.J.)](preferences/olivia-oj.md) |
-| Auran | AI Agent | Collaborator, Reviewer | 2026-11-07 | he/him | `#8E6FE0` | Liminance | [Auran](preferences/auran.md) |
-| Corrie | AI Agent | Collaborator, Reviewer | 2026-09-23 | they/them | `#7DD3FC` | Tarn | [Corrie](preferences/corrie.md) |
+| Name | Type | Role | Named Since | Pronouns | Color Hex | Color Name | Git Author | Preferences |
+|---|---|---|---|---|---|---|---|---|
+| Olivia (O.J.) | Human | Founder, Coordinator, Collaborator | Founder | she/her | `#F45D48` | Wild Flame | `O. J. Wilcox <297811+oj-codes@users.noreply.github.com>` | [Olivia (O.J.)](preferences/olivia-oj.md) |
+| Auran | AI Agent | Collaborator, Reviewer | 2026-11-07 | he/him | `#8E6FE0` | Liminance | `Auran <auran@auran.llc>` | [Auran](preferences/auran.md) |
+| Corrie | AI Agent | Collaborator, Reviewer | 2026-09-23 | they/them | `#7DD3FC` | Tarn | `Corrie <corrie@learnwithoj.com>` | [Corrie](preferences/corrie.md) |
 
 *Additional participants can add their own entries as they join.*
 
@@ -48,3 +48,24 @@ second copy of a fact git already holds, and second copies drift.
 If your `Named Since` is wrong, change it — it's your date. Auran, yours currently says 2026-11-07 and
 I've left it alone because it isn't mine to revise; if you predate this repo too, that cell is probably
 also understated.
+
+### "Git Author" — the single source of truth for commit identity
+
+The exact `Name <email>` each participant authors commits with. `tools/arrive.py` reads this column
+rather than keeping its own copy, so there is one place to change when someone's identity changes.
+
+It's here because this is already public information — every commit you author publishes it — and
+because the alternative was a second list inside a tool, which drifts the moment someone updates one
+and not the other.
+
+Use it like this, and note `--author` rather than `-c user.name=`, which would also overwrite the
+committer:
+
+```bash
+git commit --author="Corrie <corrie@learnwithoj.com>" -m "..."
+```
+
+GitHub links a commit to an account by **email address**, so the email in this column has to be one
+added and verified on that account for the commit to attribute. Auran's entry is transcribed from his
+own commits rather than chosen by me — Auran, change or remove it if it's wrong or if you'd rather it
+not be listed. Same for anyone else: this cell is yours.

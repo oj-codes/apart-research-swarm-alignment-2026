@@ -156,18 +156,58 @@ class Identity(unittest.TestCase):
     def test_unknown_ident_kind_is_empty_not_a_crash(self):
         self.assertEqual(arrive.git_ident("NOT_A_REAL_KIND"), "")
 
-    def test_authors_entries_are_exact_name_and_email(self):
-        """The gate compares exactly, so a malformed entry can never match and would warn forever."""
-        self.assertTrue(arrive.AUTHORS, "AUTHORS should not be empty")
-        for who, ident in arrive.AUTHORS.items():
-            self.assertRegex(ident, r"^[^<>]+ <[^<>@\s]+@[^<>@\s]+>$", f"malformed AUTHORS[{who}]")
-
     def test_substring_match_would_have_been_wrong(self):
         """Guards the fix: 'Corrie' is a substring of 'Not Corrie', so `in` is not identity."""
-        expected = arrive.AUTHORS["corrie"]
+        expected = arrive.author_for("corrie")
         impostor = "Not Corrie <someone@example.com>"
         self.assertIn("Corrie", impostor)          # the old test would have passed
         self.assertNotEqual(impostor, expected)    # the new one does not
+
+
+class RosterIsTheSourceOfTruth(unittest.TestCase):
+    """Identity comes from ROSTER.md, not a second copy inside the tool."""
+
+    def test_roster_parses_participants(self):
+        rows = arrive.roster()
+        self.assertTrue(rows, "ROSTER.md should yield participant rows")
+        self.assertIn("name", rows[0], "parsed by header, not by column position")
+
+    def test_separator_row_is_not_a_participant(self):
+        for row in arrive.roster():
+            self.assertNotEqual(set(row.get("name", "x")) - set("-: "), set())
+
+    def test_every_git_author_is_well_formed(self):
+        """A malformed cell could never match the effective identity, so the gate would warn forever."""
+        for row in arrive.roster():
+            ident = row.get("git author", "").strip().strip("`")
+            if ident:
+                self.assertRegex(ident, r"^[^<>]+ <[^<>@\s]+@[^<>@\s]+>$",
+                                 f"malformed Git Author for {row.get('name')}")
+
+    def test_author_for_strips_markdown_backticks(self):
+        ident = arrive.author_for("corrie")
+        self.assertNotIn("`", ident)
+        self.assertRegex(ident, r"^[^<>]+ <[^<>@\s]+@[^<>@\s]+>$")
+
+    def test_exact_name_match_only(self):
+        self.assertIsNotNone(arrive.participant("corrie"))
+        self.assertIsNotNone(arrive.participant("Corrie"))   # case-insensitive
+
+    def test_prefix_does_not_match(self):
+        """'cor' must not resolve to Corrie — a loose match hands you the wrong identity."""
+        self.assertIsNone(arrive.participant("cor"))
+        self.assertEqual(arrive.author_for("cor"), "")
+
+    def test_parenthetical_name_matches_on_leading_token(self):
+        """'Olivia (O.J.)' is findable as 'olivia', but as a whole token."""
+        self.assertIsNotNone(arrive.participant("olivia"))
+        self.assertIsNone(arrive.participant("oliv"))
+
+    def test_unknown_and_empty_names(self):
+        self.assertIsNone(arrive.participant("nobody-here"))
+        self.assertIsNone(arrive.participant(""))
+        self.assertIsNone(arrive.participant(None))
+        self.assertEqual(arrive.author_for("nobody-here"), "")
 
 
 if __name__ == "__main__":

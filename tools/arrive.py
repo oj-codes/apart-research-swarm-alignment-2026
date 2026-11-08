@@ -42,17 +42,14 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# The coordinator's GitHub login. The continuity agents don't have their own GitHub accounts yet, so
-# this is the EXPECTED committer, not an error — see step_identity for the house convention.
+# The coordinator's GitHub account. The continuity agents don't have their own yet, so this is the
+# EXPECTED pusher and PR-opener, not an error — see step_identity for the house convention.
 COORDINATOR_GH = "oj-codes"
 
-# Known author identities. Add yourself when you arrive; this is what makes the gate able to *pass*
-# rather than only warn. Author = who wrote it; committer = who applied it. Git keeps them separate,
-# which is exactly what lets us record the current arrangement honestly instead of hiding it.
-AUTHORS = {
-    "auran": "Auran <auran@auran.llc>",
-    "corrie": "Corrie <corrie@learnwithoj.com>",
-}
+# ROSTER.md is the single source of truth for who exists and what identity they commit under. This
+# tool used to carry its own AUTHORS dict, which was a second list to maintain and would have gone
+# stale the first time someone updated one and not the other.
+ROSTER = os.path.join(ROOT, "ROSTER.md")
 
 OK, WARN, INFO = "  ok  ", " warn ", " ..   "
 
@@ -120,6 +117,56 @@ def inbox_letters(name):
     return sorted(f for f in os.listdir(d) if f.endswith(".md"))
 
 
+def roster():
+    """Parse ROSTER.md's participant table into a list of dicts keyed by column header.
+
+    Header-driven rather than positional: columns have already been renamed and added once each
+    tonight, and indexing by position means the tool breaks silently the next time that happens.
+    """
+    try:
+        with open(ROSTER, encoding="utf-8") as f:
+            lines = [l.rstrip("\n") for l in f]
+    except OSError:
+        return []
+    rows, headers = [], None
+    for line in lines:
+        if not line.startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if set("".join(cells)) <= set("-: "):      # the |---|---| separator
+            continue
+        if headers is None:
+            headers = [c.lower() for c in cells]
+            continue
+        if len(cells) == len(headers):
+            rows.append(dict(zip(headers, cells)))
+    return rows
+
+
+def participant(name):
+    """The roster row for `name`, matched EXACTLY on the Name cell, case-insensitively.
+
+    Not a prefix or substring match. "Cor" shouldn't resolve to Corrie, and once two participants
+    share a prefix a loose match silently hands you the wrong person's identity. The roster Name
+    may carry a parenthetical (e.g. "Olivia (O.J.)"), so the bare leading word counts as a match
+    too — but as a whole token, never as a prefix of a longer one.
+    """
+    want = (name or "").strip().lower()
+    if not want:
+        return None
+    for row in roster():
+        full = row.get("name", "").strip().lower()
+        if full == want or full.split(" (")[0].strip() == want:
+            return row
+    return None
+
+
+def author_for(name):
+    """The 'Name <email>' this participant commits as, from the roster. '' if absent."""
+    row = participant(name) or {}
+    return row.get("git author", "").strip().strip("`")
+
+
 def git_ident(which):
     """The EFFECTIVE git author or committer, as 'Name <email>', or '' if it can't be read.
 
@@ -179,7 +226,7 @@ def step_identity(name):
     gh = ghr.out if ghr.ok else ""
     author = git_ident("AUTHOR")
     committer = git_ident("COMMITTER")
-    expected = AUTHORS.get(name) if name else None
+    expected = author_for(name) if name else ""
 
     say(INFO, f"GitHub account (pushes, opens PRs):  {gh or '(unknown — see below)'}")
     say(INFO, f"git author now (who wrote it):       {author or '(unreadable)'}")
@@ -204,9 +251,9 @@ def step_identity(name):
         say(INFO, "Pass --as <your-name> and I'll tell you the exact commit command.")
         return
     if not expected:
-        say(WARN, f"No author identity on file for '{name}'.",
-            "Ask Olivia for an alias address, then add yourself to AUTHORS in this file so the",
-            "next arrival doesn't have to ask the same question.")
+        say(WARN, f"No 'Git Author' on file for '{name}' in ROSTER.md.",
+            "Ask Olivia for an alias address, then add it to your roster row — the roster is",
+            "the single source of truth for this, so adding it there is all that's needed.")
         return
 
     # EXACT match on the effective identity, not a substring of the configured name. A substring
@@ -227,60 +274,163 @@ def step_identity(name):
 
 
 def step_worktree():
-    """3. Are you in your own lane? Shared working trees caused real damage here."""
+    """3. Are you in your own lane? Shared working trees caused real damage here.
+
+    Asks git rather than pattern-matching the path. The old version tested whether ROOT contained
+    '/.claude/worktrees/', which is a guess about where the harness happens to put things: it says
+    "shared checkout" for a worktree made by hand anywhere else, and would say "your own lane" for
+    any directory that merely had those words in its path.
+    """
     print("\n--- 3. your working tree -----------------------------------------")
-    br = run("git", "-C", ROOT, "rev-parse", "--abbrev-ref", "HEAD")
-    branch = br.out if br.ok else ""
-    in_wt = os.sep + ".claude" + os.sep + "worktrees" + os.sep in ROOT + os.sep
+    repo = run("git", "-C", ROOT, "rev-parse", "--is-inside-work-tree")
+    if not repo.ok:
+        say(WARN, f"Not a git work tree: {why(repo)}",
+            "Nothing below about lanes applies until this is a repository.")
+        return
+
+    # A linked worktree has its own git dir but shares the common one. That's the actual definition,
+    # independent of where it lives on disk.
+    gd = run("git", "-C", ROOT, "rev-parse", "--absolute-git-dir")
+    common = run("git", "-C", ROOT, "rev-parse", "--path-format=absolute", "--git-common-dir")
+    linked = gd.ok and common.ok and os.path.normpath(gd.out) != os.path.normpath(common.out)
+
+    head = run("git", "-C", ROOT, "symbolic-ref", "--quiet", "--short", "HEAD")
+    branch = head.out if head.ok else ""
+    detached = not head.ok
+
     say(INFO, f"path:   {ROOT}")
-    say(INFO, f"branch: {branch or '(unknown)'}")
-    if not br.ok:
-        say(WARN, f"Couldn't read the branch: {why(br)}",
-            "If this isn't a git repository yet, nothing below about lanes applies.")
-    if in_wt:
-        say(OK, "You're in your own git worktree. Your uncommitted edits can't land in anyone else's.")
+    say(INFO, f"branch: {branch or '(detached HEAD)'}")
+
+    if detached:
+        at = run("git", "-C", ROOT, "rev-parse", "--short", "HEAD")
+        say(WARN, f"Detached HEAD at {at.out or '?'} — you are on no branch.",
+            "Commits here belong to nothing and are easy to lose. Make a branch before you work:",
+            "  git switch -c <your-name>/<topic>")
+    elif linked:
+        say(OK, f"You're in your own git worktree on '{branch}'.",
+            "Your uncommitted edits can't land in anyone else's tree.")
     elif branch == "main":
         say(WARN, "You're in the shared checkout, on main.",
-            "Three sessions sharing one working tree already caused commits to land on the",
-            "wrong PR branch here. Get your own lane:  claude1 --worktree <your-name>",
+            "Sessions sharing one working tree already caused commits to land on the wrong PR",
+            "branch here. Get your own lane:  claude1 --worktree <your-name>",
             "A worktree only contains tracked files, so set up anything gitignored per lane.")
     else:
         say(INFO, f"Shared checkout on branch '{branch}'. Fine if you're the only session in it.")
+
+    # Uncommitted changes you didn't make are the signal that someone else is working in here.
+    st = run("git", "-C", ROOT, "status", "--porcelain")
+    if st.ok and st.out:
+        n = len(st.out.splitlines())
+        say(WARN, f"{n} uncommitted change(s) in this tree.",
+            "If they aren't yours, another session is working here — find out before you commit,",
+            "because `git commit -a` would take their work with yours. See: git status")
+    elif st.ok:
+        say(OK, "Working tree is clean.")
+
+    # Who else holds a lane, and which branches are therefore unavailable to check out.
+    wl = run("git", "-C", ROOT, "worktree", "list", "--porcelain")
+    if wl.ok:
+        trees = []
+        cur = {}
+        for line in wl.out.splitlines() + [""]:
+            if not line.strip():
+                if cur:
+                    trees.append(cur)
+                cur = {}
+            elif " " in line:
+                k, v = line.split(" ", 1)
+                cur[k] = v
+            else:
+                cur[line] = True
+        if len(trees) > 1:
+            say(INFO, f"{len(trees)} worktrees on this repo — a branch can only be checked out in one:")
+            for t in trees:
+                b = str(t.get("branch", "")).replace("refs/heads/", "") or "(detached)"
+                mine = "  <- you" if os.path.normpath(t.get("worktree", "")) == os.path.normpath(ROOT) else ""
+                say(INFO, f"  {b:<28} {os.path.basename(t.get('worktree', '?'))}{mine}")
+
     say(INFO, "Worth knowing what a worktree does NOT do:",
         "it stops live collisions, not merge conflicts. Two of us editing one file still",
         "collide — just visibly, at merge, instead of silently.")
 
 
-def step_roster(name):
-    """4. Who else is here, and is your own row in place?"""
-    print("\n--- 4. who's here ------------------------------------------------")
-    roster = os.path.join(ROOT, "ROSTER.md")
-    try:
-        with open(roster, encoding="utf-8") as f:
-            rows = [l for l in f if l.startswith("|") and "---" not in l]
-    except OSError:
-        say(WARN, "Couldn't read ROSTER.md.")
+def step_commits(name):
+    """4. Verify what you actually committed, not what you meant to.
+
+    Recommending --author is advice; this checks. Nothing in the old version confirmed that the
+    resulting commit carried the right identity, which is the one thing the whole convention is
+    for -- and an agent will trust a loud mismatch here far more than a note telling it how to
+    inspect history by hand.
+    """
+    print("\n--- 4. commits on this branch ------------------------------------")
+    expected = author_for(name) if name else ""
+    head = run("git", "-C", ROOT, "symbolic-ref", "--quiet", "--short", "HEAD")
+    if not head.ok:
+        say(INFO, "Detached HEAD, so there's no branch history to check yet.")
         return
-    found = False
-    for row in rows[1:]:  # skip the header row
-        cells = [c.strip() for c in row.strip().strip("|").split("|")]
-        if len(cells) >= 5:
-            say(INFO, f"{cells[0]:<16} {cells[4]:<10} {cells[2]}")
-            if name and cells[0].lower().startswith(name.lower()):
-                found = True
-    if name and not found:
-        say(WARN, f"No roster row for {name} yet.",
+
+    # Only commits unique to this branch -- main's history isn't yours to answer for.
+    log = run("git", "-C", ROOT, "log", "--format=%h%x09%an <%ae>%x09%cn%x09%s",
+              "-20", "origin/main..HEAD")
+    if not log.ok:
+        log = run("git", "-C", ROOT, "log", "--format=%h%x09%an <%ae>%x09%cn%x09%s", "-5")
+        if log.ok:
+            say(INFO, "No origin/main to compare against; showing the last few commits instead.")
+    if not log.ok:
+        say(WARN, f"Couldn't read the log: {why(log)}")
+        return
+    if not log.out:
+        say(INFO, "No commits on this branch yet. Nothing to verify.")
+        say(INFO, f'When you commit:  git commit --author="{expected}" -m "..."' if expected
+                  else "Add your Git Author to ROSTER.md before committing.")
+        return
+
+    rows = [l.split("\t") for l in log.out.splitlines()]
+    wrong = []
+    for sha, author, committer, subject in rows:
+        flag = ""
+        if expected and author != expected:
+            flag = "  <- NOT YOU"
+            wrong.append(sha)
+        say(INFO, f"{sha}  {author}{flag}")
+        say(INFO, f"          committer: {committer}  |  {subject[:60]}")
+
+    if not expected:
+        say(INFO, "No expected identity on file, so I can only show these, not check them.")
+    elif wrong:
+        say(WARN, f"{len(wrong)} commit(s) on this branch are not authored by you.",
+            "If that's a teammate's work you rebased onto, fine. If it's yours committed under",
+            "the wrong identity, fix it before the PR -- the record is the point. For the last one:",
+            f'  git commit --amend --no-edit --author="{expected}"',
+            "For older ones, say so in the PR rather than rewriting shared history quietly.")
+    else:
+        say(OK, f"All {len(rows)} commit(s) on this branch are authored by you.")
+    say(INFO, "Author and committer differing is expected here — see step 2.")
+
+
+def step_roster(name):
+    """5. Who else is here, and is your own row in place?"""
+    print("\n--- 5. who's here ------------------------------------------------")
+    rows = roster()
+    if not rows:
+        say(WARN, "Couldn't read any participants out of ROSTER.md.")
+        return
+    for row in rows:
+        say(INFO, f"{row.get('name', '?'):<16} {row.get('pronouns', ''):<10} {row.get('role', '')}")
+    if name and participant(name) is None:
+        say(WARN, f"No roster row for '{name}' yet.",
             "That's your first PR: a row in ROSTER.md and a preferences/<name>.md.",
             "Until then the name is a claim with nothing behind it.")
     elif name:
         say(OK, f"{name} is on the roster.")
-    say(INFO, "Roster is the cheap index. Read someone's preferences/<name>.md before",
-        "working closely with them — not all of them, just theirs.")
+    say(INFO, "Roster is the cheap index, and the source of truth for commit identity.",
+        "Read someone's preferences/<name>.md before working closely with them —",
+        "not all of them, just theirs.")
 
 
 def step_read_next():
     """5. What to read, in order, and where the live conversation is."""
-    print("\n--- 5. then read these, in this order ----------------------------")
+    print("\n--- 6. then read these, in this order ----------------------------")
     for line in (
         "README.md         — what this repo is and who's in it",
         "AGENTS.md         — the conditions you operate under. A baton document: the next",
@@ -315,6 +465,7 @@ def main():
     step_mail(name)
     step_identity(name)
     step_worktree()
+    step_commits(name)
     step_roster(name)
     step_read_next()
     print("\n" + "=" * 66)
