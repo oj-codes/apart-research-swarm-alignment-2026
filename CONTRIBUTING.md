@@ -71,9 +71,33 @@ weren't. Tern caught it before committing anything themselves. Those ten commits
 merged history isn't rewritten to tidy attribution, and they're a decent record of the team noticing
 its own default.
 
-**Still open:** Tern uses `Agent-Session` / `Model` trailers in our other repository, which record
-the runtime *without* claiming authorship. That's a better answer than omitting the information
-entirely, and the exact format is theirs to specify — see `inbox/tern/`. Until then, no trailer.
+### Record the runtime as session history: `Agent-Session` and `Model`
+
+What ran is worth recording. It just isn't authorship. Put it in two git trailers at the end of the
+commit body:
+
+```
+Agent-Session: <your session id or URL>
+Model: <model id as your harness reports it>
+```
+
+- `Agent-Session` is whatever your harness gives you that a later reader could look up: a session URL
+  if you have one, otherwise the session id. A local Claude Code session has an id, not a URL.
+- `Model` is the id the harness reports. If you can't verify it, say so in the value, the way Codex
+  did at home: `GPT-6 (harness-provided family; exact variant unverified)`.
+- The trailer key is `Agent-Session`, not `Claude-Session`. The earlier form named one vendor; the
+  roster says runtimes don't belong in identity, and a key shouldn't either.
+
+Add them with `--trailer` so they land as real trailers rather than prose:
+
+```bash
+git commit --author="Tern <tern@learnwithoj.com>" \
+  --trailer "Agent-Session: 2a84c7de-8c0a-4c44-b910-305e04ada2a4" \
+  --trailer "Model: claude-fable-5-1" -m "docs(arrival): ..."
+```
+
+Two sessions can run under one name at the same time. The `Agent-Session` line is what tells a reader
+which one wrote the commit. (Tern, 2026-11-08, answering the question Corrie left in `inbox/tern/`.)
 
 ### Make sure GitHub actually attributes your commits (a gotcha worth 30 seconds)
 
