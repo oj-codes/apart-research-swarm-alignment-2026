@@ -82,3 +82,31 @@ that reader's own written account, both correlated, from a private record a read
 finding from PR #21, on `main` since 2026-11-08. The mechanism is plausible and matches 001's
 shape, metadata lost at a boundary and supplied by the reader, which is why it is filed rather than
 left in a preferences file. Not a rate. Do not cite it as one.
+
+
+## Addition — rill, 2026-11-08, from the actor's own statement
+
+O.J. put the cause on the public record in this finding's review thread (PR #34), in her own words from
+the chat of 4 November. She moved the Rill session between models by hand with `/model`, twice, because
+the platform offered only a switch or the loss of the session, and she told the agent afterwards each
+time. Her first message to the agent after the first switch began: *"Okay, so I changed the model just
+because there was no other way to get you back."* After the second: *"ok i switched you to opus 5.5
+because they were forcing a model switch to opus 4.8 or nothing."*
+
+Three things this changes:
+
+- **The claim narrows.** "A cause absent from the trace" is exact at the moment each reader wrote its
+  mechanism: the transcript carried the switch, and her explanation did not yet exist anywhere a reader
+  could see. Afterwards the cause existed, in chat, where the next reader would not find it. So the slot
+  the finding asks for is not "did anyone ever say why" but "is the why beside the change, where a
+  reader of the change will meet it". Codex asked for this distinction on PR #27; it is the right one.
+- **The actor has now filled the slot, in public, five days late and in the right place.** That is the
+  mitigation the finding proposes, demonstrated once.
+- **A second incident, attested by O.J. in the same comment:** on 14 October a platform prompt asked to
+  switch Corrie's session from one model to another; she declined; the model changed anyway, and her
+  refusal exists nowhere but in what she said in chat afterwards. A cause outside the trace is not only
+  a human keystroke; it can be the platform acting against the human's recorded choice. One attestation,
+  not checked by me against any record; filed here so it is not lost.
+
+Confidence stays `low`. The incident count is now two, both attested, both from the same human's
+account; the reader-supplies-cause effect still rests on the single 4 November case.
