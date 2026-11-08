@@ -74,7 +74,10 @@ class PeekContract(unittest.TestCase):
         self.assertEqual(_run(["--peek", "--quiet"], self.state), 0)
         # ... and a normal run IMMEDIATELY after STILL sees it (peek didn't eat it).
         self.assertEqual(_run(["--quiet"], self.state), 0)
-        # ... and only now is it consumed: the next normal run is unchanged.
+        # ... and it stays pending across polls -- at-least-once, not cleared by polling ...
+        self.assertEqual(_run(["--quiet"], self.state), 0)
+        # ... until an --ack clears it. Only then is the next run quiet.
+        _run(["--ack", "--quiet"], self.state)
         self.assertEqual(_run(["--quiet"], self.state), 1)
 
     def test_normal_run_persists(self):
@@ -156,6 +159,31 @@ class PartialProbeFailure(unittest.TestCase):
         self.assertEqual(rc, 1)
         self.assertIn("discussions", json.load(open(self.state)))
 
+    def test_failed_main_probe_carries_not_clears(self):
+        # probe_main returns None on failure (not ""), so it must be carried like the rest.
+        rc = _run(["--quiet"], self.state, overrides={"probe_main": lambda: None})
+        self.assertEqual(rc, 1, "a failed main probe is not a change")
+        self.assertEqual(json.load(open(self.state)).get("main"), "cafef00d",
+                         "the last known main sha must survive a failed probe")
+
+    def test_pending_survives_polls_and_clears_on_ack(self):
+        # A change must stay pending until --ack, so a wake whose consumer died is re-reported.
+        with open(self.state, "w") as f:
+            json.dump({"schema": watch.SCHEMA, "inbox": [], "prs": {},
+                       "pr_comments": {}, "discussions": {}, "main": "deadbeef"}, f)
+        self.assertEqual(_run(["--quiet"], self.state), 0)          # change, pending written
+        st = json.load(open(self.state))
+        self.assertTrue(st.get("pending"), "the change must be recorded in pending")
+        self.assertEqual(_run(["--quiet"], self.state), 0)          # still pending, not consumed
+        _run(["--ack", "--quiet"], self.state)
+        self.assertEqual(json.load(open(self.state)).get("pending"), [])
+        self.assertEqual(_run(["--quiet"], self.state), 1)          # now quiet
+
+    def test_state_is_written_atomically_tmp_is_gone(self):
+        _run(["--quiet"], self.state)
+        self.assertTrue(os.path.exists(self.state))
+        self.assertFalse(os.path.exists(self.state + ".tmp"), "os.replace must leave no .tmp behind")
+
     def test_a_real_change_still_reports_when_another_probe_fails(self):
         # discussions fails, but a genuinely new PR appears: still a change (via prs).
         rc = _run(["--quiet"], self.state, overrides={
@@ -164,6 +192,47 @@ class PartialProbeFailure(unittest.TestCase):
                                   "100": {"title": "new", "review": "", "draft": False}},
         })
         self.assertEqual(rc, 0, "a working probe's real change must still wake the loop")
+
+
+class Delivery(unittest.TestCase):
+    """At-least-once: a change stays pending until --ack, so a wake whose consumer died is
+    re-reported rather than marked seen by the persistence that preceded it (Corrie, #35)."""
+
+    def setUp(self):
+        self.d = tempfile.mkdtemp()
+        self.state = os.path.join(self.d, "s.json")
+        with open(self.state, "w") as f:
+            json.dump({"schema": watch.SCHEMA, "inbox": [], "prs": {},
+                       "pr_comments": {}, "discussions": {}, "main": "deadbeef"}, f)
+
+    def test_pending_survives_a_poll_and_clears_on_ack(self):
+        self.assertEqual(_run(["--quiet"], self.state), 0)      # a change
+        self.assertEqual(_run(["--quiet"], self.state), 0)      # STILL pending, not consumed by polling
+        self.assertTrue(json.load(open(self.state)).get("pending"))
+        _run(["--ack", "--quiet"], self.state)                  # the consumer confirms
+        self.assertEqual(json.load(open(self.state)).get("pending"), [])
+        self.assertEqual(_run(["--quiet"], self.state), 1)      # quiet only now
+
+    def test_state_written_atomically_no_tmp_left(self):
+        _run(["--quiet"], self.state)
+        self.assertTrue(os.path.exists(self.state))
+        self.assertFalse(os.path.exists(self.state + ".tmp"))
+
+
+class MainProbeCarry(unittest.TestCase):
+    def setUp(self):
+        self.d = tempfile.mkdtemp()
+        self.state = os.path.join(self.d, "s.json")
+        with open(self.state, "w") as f:
+            json.dump({"schema": watch.SCHEMA, "inbox": [],
+                       "prs": {"99": {"title": "x", "review": "", "draft": False}},
+                       "pr_comments": {}, "discussions": {}, "main": "cafef00d"}, f)
+
+    def test_failed_main_probe_carries_not_blanks(self):
+        rc = _run(["--quiet"], self.state, overrides={"probe_main": lambda: None})
+        self.assertEqual(rc, 1, "a down git fetch is not a change")
+        self.assertEqual(json.load(open(self.state)).get("main"), "cafef00d",
+                         "main must be carried, not blanked, when its probe fails")
 
 
 if __name__ == "__main__":
