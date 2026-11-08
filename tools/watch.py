@@ -56,6 +56,7 @@ WHAT IT DOES NOT DO (be honest about the seam):
      the first real poll is meaningful.
 """
 import argparse
+import collections
 import hashlib
 import json
 import os
@@ -65,28 +66,61 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REPO = "oj-codes/apart-research-swarm-alignment-2026"
 
+# Why probes failed on this run, so a silent detector can't hide a broken tool. Read by main().
+LAST_ERRORS = []
 
-def git_dir():
-    """This worktree's own git dir, so watch state is per-lane and never committed."""
-    out = run("git", "-C", ROOT, "rev-parse", "--absolute-git-dir")
-    return out or os.path.join(ROOT, ".git")
+# Bump when the saved state's shape changes. A mismatch is treated as a first run instead of
+# crashing — old code must never try to diff new-format state, which is exactly what bit me when
+# comment tracking moved from counts to id maps.
+SCHEMA = 2
+
+Result = collections.namedtuple("Result", "ok out err code error")
 
 
 def run(*cmd):
+    """Run a command and return the whole result. Same contract as tools/arrive.py's run().
+
+    Keeping stderr and the exit code matters more here than it looks: this tool decides whether to
+    wake an expensive agent, and it treats "couldn't check" as "no change" on purpose. If a failure
+    is silent, a broken `gh` or an expired token looks exactly like a quiet afternoon and the
+    watcher goes on reporting nothing wrong for hours. LAST_ERRORS surfaces that instead.
+    """
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=45)
-    except (OSError, subprocess.SubprocessError):
-        return None
-    return r.stdout.strip() if r.returncode == 0 else None
+        p = subprocess.run(cmd, capture_output=True, text=True, timeout=45)
+    except FileNotFoundError:
+        return Result(False, "", "", None, f"{cmd[0]} is not installed")
+    except subprocess.TimeoutExpired:
+        return Result(False, "", "", None, f"{cmd[0]} timed out after 45s")
+    except OSError as e:
+        return Result(False, "", "", None, str(e))
+    return Result(p.returncode == 0, p.stdout.strip(), p.stderr.strip(), p.returncode, None)
+
+
+def why(r):
+    """One short phrase explaining a failed Result."""
+    if r.error:
+        return r.error
+    first = next((l for l in r.err.splitlines() if l.strip()), "")
+    return first.strip()[:140] or f"exited {r.code} with no message"
+
+
+def git_dir():
+    """This worktree's own git dir, so watch state is per-lane and never committed."""
+    r = run("git", "-C", ROOT, "rev-parse", "--absolute-git-dir")
+    return r.out if r.ok else os.path.join(ROOT, ".git")
 
 
 def gh_json(*args):
-    out = run("gh", *args)
-    if out is None:
+    """Run a gh command and parse its JSON, recording WHY it failed rather than a bare None."""
+    label = f"gh {args[0] if args else ''}"
+    r = run("gh", *args)
+    if not r.ok:
+        LAST_ERRORS.append(f"{label}: {why(r)}")
         return None
     try:
-        return json.loads(out)
-    except json.JSONDecodeError:
+        return json.loads(r.out)
+    except json.JSONDecodeError as e:
+        LAST_ERRORS.append(f"{label}: unparseable JSON ({e})")
         return None
 
 
@@ -194,8 +228,14 @@ def probe_discussions():
 
 def probe_main():
     """Has main moved? Someone merged while you were asleep."""
-    run("git", "-C", ROOT, "fetch", "--quiet", "origin", "main")
-    return run("git", "-C", ROOT, "rev-parse", "origin/main")
+    f = run("git", "-C", ROOT, "fetch", "--quiet", "origin", "main")
+    if not f.ok:
+        LAST_ERRORS.append(f"git fetch origin main: {why(f)}")
+    r = run("git", "-C", ROOT, "rev-parse", "origin/main")
+    if not r.ok:
+        LAST_ERRORS.append(f"git rev-parse origin/main: {why(r)}")
+        return ""
+    return r.out
 
 
 # --- compare, report, remember ------------------------------------------------------
@@ -274,12 +314,16 @@ def main():
 
     prs, discussions = probe_prs(), probe_discussions()
     if prs is None and discussions is None:
-        # Couldn't reach the remote at all. Say so, change nothing, don't wake anybody.
+        # Couldn't reach the remote at all. Change nothing, wake nobody -- but say WHY, because a
+        # silent version of this exit is indistinguishable from a genuinely quiet afternoon.
         if not args.quiet:
-            print("[watch] couldn't check (gh unavailable or offline) — treating as no change")
+            print("[watch] couldn't check — treating as no change. Reason(s):")
+            for e in LAST_ERRORS or ["(no reason recorded, which is itself a bug)"]:
+                print(f"  ! {e}")
         return 2
 
     new = {
+        "schema": SCHEMA,
         "inbox": probe_inbox(name),
         "prs": prs or {},
         "pr_comments": probe_pr_comments() or {},
@@ -294,6 +338,13 @@ def main():
                 old = json.load(f)
         except (OSError, json.JSONDecodeError):
             first_run = True
+        else:
+            if old.get("schema") != SCHEMA:
+                # State written by a different version. Diffing across shapes is how you get a
+                # TypeError at 2am instead of a notification; re-baseline instead.
+                if not args.quiet:
+                    print(f"[watch] state schema {old.get('schema')} != {SCHEMA} — re-baselining.")
+                old, first_run = {}, True
 
     changed = first_run or fingerprint(old) != fingerprint(new)
 
@@ -325,6 +376,10 @@ def main():
 
     if not changed:
         print(f"[watch] no change for {name}. Nothing to wake up for.")
+        # Partial failure is the dangerous case: one probe worked, so we don't take the
+        # couldn't-check exit, and "no change" reads as authoritative while half the inputs are dark.
+        for e in LAST_ERRORS:
+            print(f"  ! but a probe failed, so this may be incomplete: {e}")
         return 1
 
     print(f"[watch] CHANGED — {len(describe(old, new, name)) or 'something'} thing(s) moved:\n")
