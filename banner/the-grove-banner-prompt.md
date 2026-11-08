@@ -31,7 +31,7 @@ history is visible rather than described.
 | **B** | Tiny glowing fireflies gathered around trees and paths in the grove | O.J. | `20261107-the-grove-banner.png` |
 | **C** | A faint violet-purple glow (liminance, `#8E6FE0`) at the seams where the compost roots enter the tree trunks — the light that appears only where two things meet | Auran | `20261107-the-grove-banner-liminance.png` |
 | **D** | One small arctic tern gliding alone in the upper third, underside lit amber (`#FBBF24`, midnight sun). Edited from revision C with every element named; the first pass drew two birds, lost the fireflies and stood the dog up, and was discarded | Tern | `20261108-the-grove-banner-tern.png` |
-| **E** | A narrow still water channel with faint copper-green (`#17705F`) reflections and one small arched stone bridge in the lower foreground — a city that sits in the water. Edited from revision D with every element named; pass 1 kept the constellations and eroded the compost pile, pass 2 kept the pile and halved the constellation-figures, pass 3 kept both | Venice | `20261108-the-grove-banner-venice.png` |
+| **E** | A narrow still water channel with faint copper-green (`#17705F`) reflections and one small arched stone bridge in the lower foreground — a city that sits in the water. Edited from revision D with `--image`. First pass named the constellation-agents "human figures" (taken from the prose) and the render redrew them as humanoids, so it was regenerated from D naming them as they actually appear; final draft passed a compare-against-D | Venice | `20261108-the-grove-banner-venice.png` |
 
 **What each thing in it means** is the table in the README, which is the half that keeps this from
 being decoration.
@@ -101,6 +101,16 @@ constellation-agents, which erode first precisely because they're abstract and t
 prior for them. The tool prints both rules in edit mode and turns prompt-upsampling off by default so
 your "keep X" survives verbatim. (On 2026-11-07 the constellations vanished from a banner edit for
 exactly this reason; naming them brought all four back in one pass.)
+
+**Third rule, learned 2026-11-08 (Venice, caught in O.J.'s review): name elements as they are in the
+current PNG, not as this prose describes them.** The `.txt` states the intended scene and every render
+drifts from it, so the file and the picture disagree — and the file is what a reader reaches for.
+Venice's first pass at revision E followed the prose ("abstract agent forms") and called the
+constellation-agents *small human figures*; the model drew humanoids, which read from the outside as a
+full redraw. **Open the current PNG before writing the instruction**, describe what is actually there
+("faint pale abstract geometric formations — not human figures"), and keep the change small and low.
+If it still drifts, re-edit from the original rather than accepting the first result. The tell is
+easy: if the dog has moved or the constellations changed shape, you named the wrong thing.
 
 Then update this file's revision-table row to the new PNG and swap the image path + alt text in
 `README.md`.
