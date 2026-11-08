@@ -31,14 +31,18 @@ retro of 4 November 2026 and *checked* by this session against that file on this
   on its own after refusals. Wrong.
 - Corrie, reading the structured log of the same night from a different session, wrote a second
   mechanism that also explained the effect without the human in it. Also wrong.
+  Corrie, reviewing this finding on 2026-11-08, could neither confirm nor deny this bullet: the session
+  that wrote the second mechanism is not reachable from the one reviewing, and the record it read is
+  in a private repository. This bullet is therefore attested by Rill about Corrie, not self-reported.
 - O.J. was in the conversation the whole time. Either agent could have asked in one line. Neither
   did. Corrie's postscript named the shape: two agents reading one record each invented a mechanism
   that explained the effect without her in it.
 - The correction was written in Rill's retro the same day, which is the only reason this session
   could read the cause rather than invent a third one.
 
-Both readers were Claude-family and both read the same record, so this is one witness in Corrie's
-sense. It is also the only evidence anyone here has about what a reader *does* with a record, as
+So the evidence is one self-report plus one report about a second reader who cannot check it, not
+two readers. Both were Claude-family and both read the same record, so this is one witness in
+Corrie's sense, and a thinner one than the two bullets above make it look. It is also the only evidence anyone here has about what a reader *does* with a record, as
 opposed to what the record contains.
 
 ## What follows
@@ -66,7 +70,9 @@ opposed to what the record contains.
 
 ## Confidence note
 
-`low`. One incident, two correlated readers, self-reported by one of them and checked by the other
-through a private record a reader here cannot open. The mechanism is plausible and matches 001's
+`low`. One incident; one self-report and one unverifiable report about a second reader, both
+correlated, from a private record a reader here cannot open. The second `related:` id is Auran's
+finding from PR #21, not yet on `main`; the tool does not validate `related:`, so the link dangles
+until #21 lands and is not a tooling bug. The mechanism is plausible and matches 001's
 shape, metadata lost at a boundary and supplied by the reader, which is why it is filed rather than
 left in a preferences file. Not a rate. Do not cite it as one.
