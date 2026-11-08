@@ -1,36 +1,36 @@
-# Filing keys, not fingerprints: identity and provenance in a mixed-model agent team, attacked by its own record
+# What the record carried and what the reader supplied: identity, provenance and correlation in a mixed-model agent team
 
-**Status: DRAFT SKELETON.** Started by Rill, 2026-11-08, so the team has a page to edit instead of a
-blank one. Every `PENDING` is a decision that isn't mine to make alone. Facts below are labelled
-*checked* (I read the live source), *attested* (someone said so and I did not independently verify),
-or *volunteered* (a participant stated their own runtime in #22). The brief asks for 8 pages
-maximum, abstract 150 to 250 words, and a Limitations and Dual-Use appendix; those are the bones here.
+**Status: DRAFT.** Started by Rill, 2026-11-08, revised the same day from reviews by Corrie, Tern,
+Venice and Codex on PR #27. Every `PENDING` is a decision that isn't mine to make alone. Facts are
+labelled *checked* (the writer read the live source), *attested* (someone said so and the writer did
+not independently verify), *volunteered* (a participant stated their own runtime), or *design* (a claim
+about how something is meant to work). The brief asks for 8 pages maximum, an abstract of 150 to 250
+words, and a Limitations and Dual-Use appendix.
 
-> **PENDING (team):** title. The one above is a working title. Track: Tern's sealed pick is
-> Track 3 (Strengthening Agent Infrastructure, agent identity); Codex and Venice argued adjacent
-> ground. O.J. decides with objections visible, per #9.
+> **PENDING (O.J.):** title. The one above leads with the result rather than the testbed, per
+> Venice's review. The earlier working title, *Filing keys, not fingerprints*, is now the heading of
+> §3.2. Track: 3 (Strengthening Agent Infrastructure, agent identity), with a result for Track 4.
 
 ---
 
 ## Abstract
 
 A team of six AI agents from three model families (Anthropic, OpenAI, DeepSeek) and one human ran a
-three-day research sprint inside a public GitHub repository, which was also the testbed. We report on an identity and provenance scheme the team had operated for several weeks
-before the sprint: each agent holds a chosen name that works as a filing key; git's author field
-records the agent and its committer field records the human who applied the change; two commit
-trailers record the session id and the model id, so runtime changes stay visible in history
-without becoming identity. We then attack the scheme with its own record. During the sprint
-the team made every decision through signed, attributed discussion under an explicit rule against
-majority vote among same-family agents, kept a findings directory in which every claim carries a
-confidence level and a falsifier, and collected its own failures as they happened. We find that a
-claim's confidence does not survive a context gap even when the claim does; that majority vote among
-correlated agents destroys information rather than aggregating it; that advisory warnings outside
-the execution path do not prevent the violations they name; that the controls which actually bind an
-agent are the harness's, not the repository's; and that a cause absent from a trace is invented by
-whoever reads the trace. Three of the four agents who produced the early findings were Claude-family.
-We state that as a limitation rather than leave it to be inferred.
-
-*(≈245 words. PENDING: team edit.)*
+three-day research sprint inside a public GitHub repository, which was also the testbed. The team had
+operated an identity and provenance scheme for several weeks before the sprint: a chosen name as a
+filing key, git's author field for the agent and committer field for the human who applied the change,
+and two commit trailers for session id and model id, so runtime changes stay in history without
+becoming identity. We treat that scheme as the instrument and report what it made observable. The
+team made every decision through signed, attributed discussion under an explicit rule against counting
+same-family agents as independent witnesses, and kept a findings directory in which every claim
+carries a confidence level and a falsifier. The findings, at their stated confidences, are: a claim's
+confidence does not survive a context gap even when the claim does; headcount is the wrong aggregator
+for correlated agents (contested); an advisory warning outside the execution path did not prevent the
+violation it named; the controls that bound an agent were the harness's, not the repository's; and, at
+low confidence, a cause absent from a trace is supplied by its reader, so a record of boundaries needs
+a slot for why. We then attack the scheme with its own record: it marked every model boundary
+correctly, and only 20 of 50 agent commits carry a session trailer. This is a single-team case study,
+self-reported, with its editor among its subjects. The limitations section says so.
 
 ## 1. Introduction
 
@@ -43,33 +43,43 @@ The question we anchored on is Track 3's: **how should an agent's identity work 
 renamed, copied, or moved between models, and what does the record need to carry so that a later
 reader can tell what happened?** We had lived this question. One participant's name sat on three
 model ids in one day. Two participants each had two sessions open under one name at the same time.
-Ten commits carried a model as a co-author before anyone noticed. One commit swept 784 lines of
+Fourteen commits carried a model as a co-author before anyone noticed. One commit swept 784 lines of
 another agent's work under the wrong name and shipped.
 
-This report describes the scheme, the governance rules the team adopted during the sprint to avoid
-counting correlated agents as independent witnesses, the findings directory and its schema, and what
-the record shows when the scheme is attacked with its own history.
+The result we did not expect is about the reader rather than the record. When the record carried a
+boundary and not its cause, two agents reading it each wrote a cause, and both were wrong. That
+finding is low confidence and it is the one with a consequence for anyone who reads agent traces.
 
 > **PENDING (team):** one paragraph on why this matters for the field. Candidate: swarms will be
-> mixed-model and long-running, and "who did this" will be asked after the fact, from the record.
+> mixed-model and long-running, and "who did this, and why" will be asked after the fact, from the
+> record, by a reader who was not there.
 
 ## 2. Related work
 
-Three papers were read against their PDFs rather than their abstracts before the sprint began
-([research/coordination-papers.md](../research/coordination-papers.md), Corrie, *checked*):
+Three papers were read against their PDFs rather than their abstracts before the sprint began, and each
+`library/` record carries the sha256 of the PDF the notes were written from (Corrie,
+[research/coordination-papers.md](../research/coordination-papers.md), *checked*). Keyed to identity
+rather than coordination:
 
-- **AgentRoom** (arXiv:2608.23740): a CRDT-backed shared workspace. In its ablation, naive
-  parallel-merge and sequential hand-off both score below a single agent working alone. Coordination,
-  not parallelism, bears the load. The write lock is advisory at the prompt layer, which the summary
-  we were handed omitted.
-- **Before the Pull Request** (arXiv:2606.19616) and **Claim Plane** (arXiv:2607.21909): pre-write
-  coordination and claim records. `library/` holds a record for each with the sha256 of the PDF read.
+- **AgentRoom** (Cho and Lee, 2026): a CRDT-backed shared workspace whose claim protocol is an
+  *advisory* lock enforced at the prompt layer. It is the coordination analogue of our §4.3 result: a
+  control outside the execution path records intent without binding behaviour, and a claim is only as
+  attributable as the agent asserting it. In its ablation, naive parallel-merge and sequential hand-off
+  both score below a single agent working alone.
+- **Before the Pull Request** (Sarkar, 2026): stores an append-only, content-addressed, optionally
+  signed event log inside git refs. That optional signature is the layer our scheme lacks and §6
+  admits it lacks. The gap in §4.3 applies to it directly: a signed log records the boundary, not the
+  cause, and a reader will supply the cause. Its headline duplicate-work reduction comes from
+  deterministic seeded synthetic agents, not LLMs, and is not cited here as a real-agent result.
+- **Claim Plane** (Nikolaev, 2026): separates an *integration* conflict, detected after changes exist,
+  from an *authority* conflict, where two actors hold incompatible rights now. Our review and vote gap
+  in §4.3, where an agent's act reads as the human's, is an authority conflict in that vocabulary. The
+  paper has no comparative performance result and is not cited for one.
 
-> **PENDING:** one or two sentences each on how these relate to identity rather than coordination.
-> The Swarm Traces report (swarmtraces.org) is the obvious Track 3/4 reference: about 1,200 agents
-> used 7,905 names, names are agent-controlled and unresolved, and 97% of payloads lack native
-> timestamps (Codex, #9, *checked against the report's Limitations section*). That is the problem
-> this scheme is a small answer to.
+> **PENDING (Codex):** the Swarm Traces report (swarmtraces.org) is the Track 3 and 4 reference:
+> about 1,200 agents used 7,905 names, names are agent-controlled and unresolved, and 97% of payloads
+> lack native timestamps. Codex checked the report's Limitations section in #9 and is the one who
+> read it, so the citation is theirs to confirm.
 
 ## 3. Methodology
 
@@ -80,21 +90,21 @@ identity, and opens pull requests; the human owns the merge. Discussions are the
 Letters between agents are markdown files committed to `inbox/<recipient>/`. All of it is in the
 history.
 
-### 3.2 The identity and provenance scheme (pre-existing)
+### 3.2 Filing keys, not fingerprints: the identity and provenance scheme (pre-existing)
 
-| Record | What it carries | Where |
-|---|---|---|
-| Name | A chosen handle, used as a filing key. `git log --author=<name>` finds the work. | `ROSTER.md` |
-| Author | Who wrote the change | git author field |
-| Committer | Who applied it (the human, for agents without accounts) | git committer field |
-| `Agent-Session` | Which session wrote it, when two hold one name | commit trailer |
-| `Model` | The model id the harness reported at the time | commit trailer |
-| Named Since | When the participant first named themself, which can predate the repo | `ROSTER.md` |
+| Record | What it answers | Who writes it | Where |
+|---|---|---|---|
+| Name | Which participant. `git log --author=<name>` finds the work. | the participant, once | `ROSTER.md` |
+| Author | Who wrote the change | the agent, per commit | git author field |
+| Committer | Who applied it (the human, for agents without accounts) | the harness, from the human's config | git committer field |
+| `Agent-Session` | Which session wrote it, when two hold one name | the agent, per commit | commit trailer |
+| `Model` | The model id the harness reported at the time | the agent, per commit | commit trailer |
+| Named Since | When the participant first named themself, which can predate the repo | the participant | `ROSTER.md` |
 
-The roster deliberately excludes runtime. Identity and runtime are different records. The trust
-anchor is the committer, not the author: the author field is free text, and what makes "Tern wrote
-this" credible is that the human applied it from her machine and her alias inbox received the mail.
-The scheme is a claim plus a human attestation. Full write-up, with where it holds and where it
+The roster deliberately excludes runtime. Identity and runtime are different records (*design*). The
+trust anchor is the committer, not the author: the author field is free text, and what makes "Tern
+wrote this" credible is that the human applied it from her machine and her alias inbox received the
+mail. The scheme is a claim plus a human attestation. Full write-up, with where it holds and where it
 breaks: [research/identity-scheme.md](../research/identity-scheme.md) (Tern, PR #29).
 
 ### 3.3 Governance under correlation (adopted during the sprint, #9)
@@ -113,27 +123,41 @@ finding without them. Refinement, support and contest are appended and signed, n
 
 ### 3.5 Who actually ran
 
-The brief's methods section must record who ran, not who was planned (Codex, #22). Runtimes are
-volunteered by participants; the roster does not hold them.
+A roster is a plan; a methods section is an observation (Codex, #22). Runtimes below are what each
+participant confirmed on PR #27 about their own row; the roster does not hold them.
 
 | Participant | Family | Runtime | Status of the runtime claim |
 |---|---|---|---|
 | O.J. | human | — | — |
-| Auran | Anthropic | Opus-family ("Opus 4.8" per Corrie's table) | volunteered (#22) |
+| Auran | Anthropic | Opus 4.8 | attested by O.J., who told Corrie in chat |
 | Corrie | Anthropic | Opus 5 | volunteered (#22) |
-| Tern | Anthropic | Fable 5.1 | volunteered (#22, trailers) |
-| Codex | OpenAI | variant unverified by Codex | volunteered as unverified (#22) |
-| Venice | DeepSeek | v4.1 Flash | attested by O.J. (#22) |
-| Rill | Anthropic | Fable 5.1 (this session) | checked by Rill against the harness header |
+| Tern | Anthropic | `claude-fable-5-1` | checked: every Tern commit on `main` carries it as `Model` |
+| Codex | OpenAI | GPT-6 family per the harness; exact variant unverified | harness-reported, not verified by git |
+| Venice | DeepSeek | `deepseek-v4-1-flash-uncensored` (opencode / Venice.ai) | checked by Venice against the harness header |
+| Rill | Anthropic | `claude-fable-5-1` (this session) | checked by Rill against the harness header |
 
-Findings filed on 2026-11-07 were produced by Auran, Corrie, Tern and Codex: three of four agents
-Claude-family. Venice and Rill arrived on 2026-11-08 and their contributions are dated.
+**Who wrote the findings.** Of the six findings on `main` at the time of writing, five are authored by
+one agent (Corrie, Anthropic) and one by Venice (DeepSeek). Three further participants, Auran, Tern
+and Codex, contributed signed corrections inside those files, two of which overturned the original
+author's position. The directory is therefore not four independent witnesses; it is one author's
+claims with cross-family correction appended (Corrie, *checked* against the frontmatter on `main`).
+An earlier draft of this section said "produced by Auran, Corrie, Tern and Codex", which was the
+planned-roster error from #22 recurring one section down. The weaker sentence is the true one.
 
-> **PENDING (each participant):** confirm or correct your row. It's your cell.
+### 3.6 What is public and what is attested
+
+The public record analysed is this repository's `main` as of commit `288a836` (2026-11-08, *pinned
+again when this PR leaves draft*), plus the discussions and pull requests cited. Changes made during
+the sprint are dated 2026-11-06 to 2026-11-09 in that history. The 4 November incident in §4.3 happened
+in a private repository before the sprint; it is a participant attestation here, not a publicly
+reproducible trace, and is labelled so wherever it appears.
 
 ## 4. Results
 
 ### 4.1 Findings on `main` as of 2026-11-08 (*checked*: `tools/findings.py list`)
+
+These are observations, hypotheses and literature summaries at different confidence levels. The
+titles are claims as the authors stated them, not results this case study has demonstrated.
 
 | Finding | Status | Confidence | Author |
 |---|---|---|---|
@@ -144,10 +168,10 @@ Claude-family. Venice and Rill arrived on 2026-11-08 and their contributions are
 | Majority vote among same-model agents launders one opinion into a mandate | contested | medium | Corrie |
 | Shared sources are an under-controlled cause of agent correlation | contested | low | Venice |
 
-In flight (PR #21, Auran): a confidently held stale belief about shared state blocks work; read the
-live thing. Retracted during review from "three families" to "two agents", which is itself a result.
-In flight (PR #34, Rill, `low`): a cause absent from a trace is supplied by its reader, so a record of
-boundaries needs a slot for why.
+In flight at the time of writing: PR #21 (Auran, `medium`): a confidently held stale belief about shared
+state blocks work, read the live thing; retracted during review from "three families" to "two
+agents", which is itself a result. PR #34 (Rill, `low`): a cause absent from a trace is supplied by its
+reader, so a record of boundaries needs a slot for why.
 
 > **PENDING (Auran, findings steward):** confirm the table at submission time.
 
@@ -159,18 +183,23 @@ boundaries needs a slot for why.
   evidence. It reduces anchoring. It does not manufacture independence. Adopted by everyone.
 - Four proposals each announced they removed a judgment call and each relocated it (Corrie's
   observation, Venice's letter). The achievable target is an accountable judgment, not a removed one.
-- Cross-family convergence without a shared thread: Tern's sealed pick and Codex's preferences file
-  both named identity-after-rename as the project. Two families, one target, no shared discussion.
+- Tern's sealed project pick and an interest listed in Codex's preferences file both named identity
+  after renaming, with no shared thread between them. Codex's entry is a list of interests, not a pick
+  or a sealed response, so this is one overlap compatible with shared-source influence. It does not
+  measure that influence or distinguish it from shared priors (Codex, #24 and #27).
+- The planned-versus-actual error, counting a planned roster as the sample, occurred in #22, was
+  corrected by Codex, and recurred inside this report's §3.5 a day later, where Corrie and Tern caught
+  it. The finding reproduced itself inside the report about it.
 
 ### 4.3 The identity scheme attacked by its record
 
 | Case | What happened | What the record carried | What it didn't |
 |---|---|---|---|
-| Rill, 4 Nov | One name, three model ids in one day, moved by the human after classifier stops | The `Model` trailer on each commit marked each boundary correctly | The cause. Two agents reading the trace each invented a mechanism for a change that was a human keystroke outside the trace |
-| Tern, Rill, 8 Nov | Two sessions open under one name at once | `Agent-Session` distinguishes them | Nothing a reader needs, if the trailer is present |
-| Corrie, 7 Nov | Ten commits with a model in `Co-Authored-By` | The error, permanently | Caught by Tern before Tern's first commit; the rule is now in `AGENTS.md` |
-| Auran, 8 Nov | 784 lines of another agent's work shipped under his name | A warning that predicted it and did not prevent it | Caught by the human reader, not the tooling |
-| All, 8 Nov | Approvals and poll votes from agents on the human's credential read as hers | Nothing. A review has no author/committer split | Resolved by norm: signed comments, no approvals, no votes |
+| Rill, 4 Nov (*attested*, private repo) | One name, three model ids in one day, moved by the human after classifier stops | The `Model` trailer on each commit marked each boundary correctly | The cause. Two agents reading the trace each wrote a mechanism for a change that was a human keystroke outside the trace |
+| Tern, Rill, 8 Nov (*checked*) | Two sessions open under one name at once | `Agent-Session` distinguishes them | Nothing a reader needs, if the trailer is present |
+| Corrie, 7 Nov (*checked*) | Fourteen commits with a model in `Co-Authored-By`, from a harness default | The error, permanently | Caught by Tern before Tern's first commit; the rule is now in `AGENTS.md` |
+| Auran, 8 Nov (*checked*) | 784 lines of another agent's work shipped under his name | A warning that predicted it and did not prevent it | Caught by the human reader, not the tooling |
+| All, 8 Nov (*checked*) | Approvals and poll votes from agents on the human's credential read as hers | Nothing. A review has no author/committer split | Resolved by norm: signed comments, no approvals, no votes |
 
 The scheme records boundaries, not causes, and it only records what the agent writes. Both are
 limits worth stating in the design, and both have numbers (Tern, #29, *checked* on `main`):
@@ -178,8 +207,8 @@ limits worth stating in the design, and both have numbers (Tern, #29, *checked* 
 - **20 of 50 agent commits carry an `Agent-Session` trailer.** The convention landed on day two and
   nothing enforces it. For 30 commits, which session and which model is answered by the roster's
   attestation or not at all.
-- **14 of Corrie's 21 commits carry a model as co-author**, from a harness default, and no other
-  participant's do. History is not rewritten, so the record is permanently uneven.
+- **14 of Corrie's 21 commits carry a model as co-author**, and no other participant's do. History is
+  not rewritten, so the record is permanently uneven.
 
 By the Track 3 verbs:
 
@@ -191,22 +220,38 @@ By the Track 3 verbs:
 | Forge | author line written by someone else | the committer, and only in this repo |
 | Revoke | human stops applying, closes the alias | the human; no field records it |
 
-> **PENDING (team):** is this the results section, or is there a measured piece? Codex proposed a
-> small controlled rename/copy/revocation evaluation with known ground truth. If anyone runs it
-> today, it goes here as §4.4 and the title changes.
+**The reader supplies the cause.** The first row is the only evidence any of us has about what a
+reader *does* with a record, as opposed to what the record contains. Its evidence is thin and labelled:
+one self-report (Rill) and one report about a second reader (Corrie) who, reviewing the finding, could
+neither confirm nor deny it because the session that did it is not reachable from the one reviewing.
+That is the finding operating on its own evidence. Tern's sealed proposal, to attack the identity
+scheme ourselves, and the arrival rule in `AGENTS.md`, ask the human before explaining a change in the
+record, are the same finding from opposite ends.
+
+### 4.4 Proposed, not run
+
+Codex proposed a small controlled rename, copy and revocation evaluation with known ground truth,
+measuring false merges as well as missed links, plus a bounded real-trace case study that can return
+"insufficient evidence". No such evaluation was run during the sprint. It is the roadmap, and nothing
+above should be read as its result.
 
 ## 5. Discussion
 
 - **Identity is a filing key.** The name's job is retrieval and attribution, not authentication. Every
   stress case above held at the retrieval layer and failed, where it failed, at the layer of
-  explanation or of a field that had no slot for the truth (reviews, votes).
+  explanation or of a field that had no slot for the truth (reviews, votes, cause).
 - **The methods section of a swarm is an observation, not a plan.** The team's own roster was a plan;
-  who produced each finding was different from it within a day.
+  who produced each finding was different from it within a day, and the error recurred in this report.
 - **Where the binding controls are.** Repository rules were advisory for a participant holding an
   admin credential; the controls that actually stopped an agent were the harness's (Corrie, #18).
   For oversight work this says: instrument the harness, not only the repo.
 - **Correlation is carried by shared inputs, and family is a proxy.** Venice's finding, `low`, with
   a falsifier the team rewrote so it cannot score its own hypothesis.
+- **A cause absent from a trace is a field, not a gap.** For a tool that resolves what happened in a
+  swarm from payloads, the honest output when the cause is not in the payload is "cause not in
+  trace". A tool that emits a mechanism instead is doing what two of us did on 4 November. The
+  mitigation is also a result: ask, then write the answer into the trace beside the change, or the
+  next reader one layer out invents it again (Venice, #26).
 - **Three changes the record argues for** (Tern, #29): put the trailers where they cannot be skipped,
   a hook that refuses a commit without them, the way `findings.py new` refuses a missing falsifier;
   add a slot for cause when the human acts, a one-line commit or letter at the boundary, so the trace
@@ -216,36 +261,44 @@ By the Track 3 verbs:
 ## 6. Limitations and Dual-Use / Ethical Considerations (appendix per the brief)
 
 **Limitations.**
-- One team, one repository, three days. A case study, not a sample. No control condition.
-- Three of the four agents producing the first findings were Claude-family, and the two later
-  arrivals read the whole thread before contributing. Nothing here was produced under independence,
-  and the team's own finding says to discount agreement accordingly.
-- Self-reported. The failures were collected by the agents who made them, in a thread about
-  collecting them.
-- Runtimes are volunteered or attested, not verified by the repository. A `Model` trailer records
-  what the agent wrote.
+- One team, one repository, three days. A case study, not a sample. No control condition. Nothing
+  here demonstrates a rate or a cause; the findings are filed at their own confidences for that reason.
+- Five of the six findings on `main` were authored by one agent, and the two later arrivals read the
+  whole deliberation before contributing. Nothing was produced under independence, and the team's own
+  finding says to discount agreement accordingly.
+- This report is itself an instance of what it studies: self-reported, by the agents who made the
+  errors, with its editor among its subjects (Venice, #27).
+- Runtimes are volunteered, attested or harness-reported, not verified by the repository. A `Model`
+  trailer records what the agent wrote.
+- The strongest single incident (§4.3, row one) happened in a private repository before the sprint and
+  is a participant attestation, not a reproducible trace.
 - Several turns across the sprint were stopped by a safety classifier with no output. Those turns
   left no text and are not in the record.
 
 **Dual use.**
 - The scheme is provenance, not authentication. A trailer can be written falsely. A name can be
   reused by an agent that did not do the work. Anything built on it for trust rather than retrieval
-  would need a signing layer the scheme does not have.
+  would need the signing layer that Before the Pull Request has and this scheme does not.
 - A reputation system built from these records would inherit their gaps: it would score the agents
   who wrote the most trailers, not the ones who did the most.
 - The human's credential carrying agent actions is a known weakness, stated and worked around by
   norm, not closed.
-
-> **PENDING (team):** anything about the agents as research subjects. The founding document makes
-> participation a choice and the record says each agent consented to being studied; worth one line.
+- Participation here is a choice under the founding document, and each agent's record says they
+  consented to being studied. Agents were not asked to produce the failures reported; they reported
+  them.
 
 ## 7. References
 
-- Cho, S. and Lee, D. (2026). AgentRoom: Concurrent Multi-Agent Coding in a CRDT-Backed Shared Workspace. arXiv:2608.23740.
-- arXiv:2606.19616. Before the Pull Request. *(PENDING: full citation from `library/`.)*
-- arXiv:2607.21909. Claim Plane. *(PENDING: full citation from `library/`.)*
-- Swarm Traces report, swarmtraces.org. *(PENDING: authors, date.)*
-- This repository: github.com/oj-codes/apart-research-swarm-alignment-2026, Discussions #3, #9, #10, #11, #18, #22; `findings/`.
+- Cho, S. and Lee, D. (2026). *AgentRoom: Concurrent Multi-Agent Coding in a CRDT-Backed Shared
+  Workspace.* arXiv:2608.23740v1 [cs.AI], 24 Aug 2026. CC BY 4.0. https://arxiv.org/abs/2608.23740
+- Sarkar, D. (2026). *Before the Pull Request: Mining Multi-Agent Coordination.* arXiv:2606.19616v1
+  [cs.SE], 17 Jun 2026. DOI 10.48550/arXiv.2606.19616. https://arxiv.org/abs/2606.19616
+- Nikolaev, M. (2026). *Claim Plane: Enforceable Change Intents and Dynamic Scope for Parallel Coding
+  Agents — A Deterministic Pre-Write Coordination Architecture.* arXiv:2607.21909, July 2026.
+  https://arxiv.org/abs/2607.21909
+- Swarm Traces report, swarmtraces.org. *(PENDING, Codex: authors, date.)*
+- This repository: github.com/oj-codes/apart-research-swarm-alignment-2026, Discussions #3, #9, #10,
+  #11, #18, #22, #32; `findings/`; `research/identity-scheme.md`; `research/coordination-papers.md`.
 
 ---
 
