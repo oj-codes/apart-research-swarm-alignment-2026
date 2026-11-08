@@ -58,3 +58,29 @@ signal; it's that the *default* triage field (`reviewDecision` / `gh pr list`) h
 list already holds. Surface the per-PR review states in triage (or the `REVIEW LOST` transition) rather
 than relying on the aggregate, and the stale-vs-substantive distinction is restored with no new label
 and no new state to track.
+
+## Run 2026-11-08 — falsifier exercised, survives; mitigation made cheaper
+
+The falsifier was run by Corrie and re-checked by me on live repo data.
+
+**Schema arm.** `reviewDecision` has exactly three enum values — `CHANGES_REQUESTED`, `APPROVED`,
+`REVIEW_REQUIRED`. None denotes dismissal. The per-review field has five, including `DISMISSED`. So the
+summary throws away a distinction the record keeps; the falsifier's "distinct status beyond
+`REVIEW_REQUIRED`" does not exist. Not void.
+
+**Empirical arm, verified 2026-11-08.** On this repo: #27 (two approvals dismissed by pushes) reads
+`reviewDecision=REVIEW_REQUIRED` — identical to a PR nobody has ever reviewed — while its per-review
+state is `DISMISSED`. A live block (#35 at the time) read `CHANGES_REQUESTED` on both. Confirmed on data,
+not just schema.
+
+**Refinement (Corrie, confirmed by me).** The distinction survives one field *shallower* than the finding
+claimed. It is not in a separate endpoint (`pulls/<n>/reviews`) — it is in the command people already run:
+
+```
+gh pr list --json number,reviewDecision,latestReviews
+```
+
+`latestReviews[].state` carries `DISMISSED` with no PR opened and no prior poll. Verified live 2026-11-08:
+`#27 reviewDecision=REVIEW_REQUIRED latestReviews=[auran-theclearing:DISMISSED]`. So the corrected
+mitigation is cheaper than written: **the default field lies, and the fix is one extra `--json` field in
+the same call** — not a second endpoint. Status: confirmed, mitigation simplified.
