@@ -85,8 +85,5 @@ this file is the one an agent session reads on startup — so if your harness ad
 default, this is the instruction that overrides it.
 
 Your author identity is your `Git Author` from [ROSTER.md](ROSTER.md); the committer is whoever
-applied it. **For a solo change those two fields are the whole record.** When another *participant*
-genuinely co-wrote it, `Co-authored-by` crediting their roster identity is still right — the rule
-bans runtimes from that field, not collaborators, and several participants share a name with the
-tool they run on. Details and the reasoning:
+applied it. Those two fields are the whole record. Details and the reasoning:
 [CONTRIBUTING.md](CONTRIBUTING.md#dont-co-author-commits-to-a-model-or-a-tool).
