@@ -94,6 +94,15 @@ notice; a second credential source arrived with its own default author name, and
 undercounts from then on. Corrie found it while counting something else, which is the only way this
 kind of break gets found.
 
+*Added 2026-11-08, after PR #37.* "A second credential arrived" reads as before-and-after. It isn't.
+Five of Auran's commits on 8 November between 09:53Z and 11:27Z alternate `Auran`, `auran-theclearing`,
+`Auran`, `auran-theclearing`, `auran-theclearing`, inside one working session (*checked*, Corrie's
+correction on #37 verified against `main`). The one with a `Model:` trailer, `0d4083a`, is the `Auran`
+one, written by his cron; the interactive ones carry the handle and no trailer. The two spellings are
+two writing paths running at once, and nothing in the record marks which path a commit took except
+the spelling itself. The `.mailmap` added in #38 collapses the spellings for retrieval; it does not
+record that there were two paths.
+
 ## 4. Attacks, by the Track 3 verbs
 
 | Verb | What happens here | Caught by |
