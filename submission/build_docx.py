@@ -302,6 +302,10 @@ for child in list(frag.documentElement.childNodes):
     if child.nodeType == 1:
         parent.insertBefore(doc.importNode(child, True), grid)
 parent.removeChild(grid)
+# the template's own "With / Apart Research" paragraph sits beside the grid; the byline lines replace it
+for para in list(title_tbl.getElementsByTagNameNS(W, 'p')):
+    if ptext(para).replace(' ', '') == 'WithApartResearch':
+        para.parentNode.removeChild(para)
 # abstract: paragraph starting with Summarize
 for p in title_tbl.getElementsByTagNameNS(W, 'p'):
     if ptext(p).startswith('Summarize'):
