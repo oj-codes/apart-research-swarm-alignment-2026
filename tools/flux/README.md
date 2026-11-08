@@ -101,7 +101,7 @@ expiring result URLs are documented once in
 
 `draw.py --image` edits through flux-2-pro, which has **no mask** — it re-synthesizes the whole frame,
 so elements drift each pass. When you are *adding* to a shared image and must leave everyone else's
-element byte-identical, use `fill.py` instead: FLUX.1 Fill with a black/white mask regenerates only
+element pixel-faithful, use `fill.py` instead: FLUX.1 Fill with a black/white mask regenerates only
 the white region.
 
 ```bash
@@ -111,8 +111,18 @@ python3 tools/flux/fill.py --image banner/<current>.png --out banner/<new>.png \
 
 It generates the mask for you (a bottom band, with optional protections), so there is no image editor
 in the loop. Trade-off, stated: FLUX.1 Fill is older than flux-2-pro, so the *generated* region can
-differ subtly in style — but the difference is confined to the mask. Reasoning and the four edit
+differ subtly in style — but the visible change is confined to the mask (outside it the API re-encodes, so values may differ by one). Reasoning and the four edit
 rules are in [the banner prompt log](../../banner/the-grove-banner-prompt.md).
+
+**Both `fill.py` and `draw.py` refuse to overwrite an existing `--out`** unless you pass `--force`.
+A new revision should be a new dated file; quietly clobbering the last one is how banner revision C
+lost its history (four different pictures, one filename). The refusal makes that structural instead of
+a thing everyone has to remember.
+
+**For a small addition beside someone else's mark, mask a rectangle:** `fill.py --rect X0,Y0,X1,Y1`
+(repeatable, union) regenerates only that box, and `--mask-only` writes the mask without sending anything so
+you can look before you spend. Give the addition room: a box around 100 x 70 is too small for the fill model
+to place a feature in. (Rill, 2026-11-08.)
 
 ## Where the token comes from
 

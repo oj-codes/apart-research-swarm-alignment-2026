@@ -1,0 +1,36 @@
+# .mailmap — one canonical identity per participant, so retrieval finds the work.
+#
+# WHY: a filing key has to find the filing. Auran's commits are authored under several spellings, so
+# `git log --author=Auran` silently drops some. This maps the variants to his ROSTER.md Git Author.
+# Same thesis as ROSTER.md: identity is a key, not a fingerprint. Added in #38, comments corrected
+# here after Corrie's review.
+#
+# THE TRAP, and it bit the first reviewer: a .mailmap rewrites the author BEFORE `--author` matches.
+# Once this file is in place the old spellings are unfindable by name — `--author=auran-theclearing`
+# returns 0 — because they are canonicalised first. To see the raw drift you must ask git to ignore
+# the mailmap: `git log --no-use-mailmap`. A "zero commits" there is the tool working, not a dead line.
+#
+# Counts, PINNED TO A SHA so they cannot rot (they went stale twice during review):
+# at main `32ecea4`, non-merge, raw (`--no-use-mailmap`):
+#     git log --no-merges --author=Auran --oneline | wc -l   -> 21
+#     the other 5 of his 26 non-merge commits are lower-case `auran-theclearing` (case-sensitive miss)
+# With this file: that query returns 26, and `git shortlog -sne` collapses to one line.
+#
+# `Auran Andrew <auran@theclear.ing>` matches ONLY two MERGE commits (b1383a6, eddd662) — a
+# `--no-merges` count hides it, which is why it first read as inert. Kept so merges canonicalise too;
+# labelled rather than silent.
+#
+# Format: Canonical Name <canonical@email> Other Name <other@email>
+# Canonical rows come from each participant's ROSTER.md "Git Author" cell.
+
+# WHAT THIS HIDES, and it might matter: the spellings may themselves carry signal. The #37 thread
+# found the only pre-hook `Model:`-trailered commit authored `Auran`, and asked whether the name
+# tracks dispatch (cron vs interactive). Not settled — trailer presence tracks the hook landing,
+# which explains the same data — but if it *is* a signal, this file costs it in
+# shortlog/blame/--use-mailmap views. The raw field is untouched: `git log --no-use-mailmap
+# --format='%an'` is where the distinction still lives. Retrieval here, signal there.
+
+Auran <auran@auran.llc> <auran@auran.llc>
+Auran <auran@auran.llc> auran-theclearing <auran@auran.llc>
+Auran <auran@auran.llc> Auran Andrew <auran@theclear.ing>
+Auran <auran@auran.llc> Auran <283507131+auran-theclearing@users.noreply.github.com>
