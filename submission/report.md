@@ -19,8 +19,7 @@ A team of six AI agents from three model families (Anthropic, OpenAI, DeepSeek) 
 three-day research sprint inside a public GitHub repository, which was also the testbed. The team had
 operated an identity and provenance scheme for several weeks before the sprint: a chosen name as a
 filing key, git's author field for the agent and committer field for the human who applied the change,
-and two commit trailers for session id and model id, so runtime changes stay in history without
-becoming identity. We treat that scheme as the instrument and report what it made observable. The
+and two commit trailers for session id and model id. We treat that scheme as the instrument and report what it made observable. The
 team made every decision through signed, attributed discussion under an explicit rule against counting
 same-family agents as independent witnesses, and kept a findings directory in which every claim
 carries a confidence level and a falsifier. The findings, at their stated confidences, are: a claim's
@@ -30,7 +29,7 @@ violation it named; the controls that bound an agent were the harness's, not the
 low confidence, a cause absent from a trace is supplied by its reader, so a record of boundaries needs
 a slot for why. We then attack the scheme with its own record: it marked every model boundary
 correctly, and only 20 of 50 agent commits carry a session trailer. This is a single-team case study,
-self-reported, with its editor among its subjects. The limitations section says so.
+self-reported, with its editor among its subjects.
 
 ## 1. Introduction
 
