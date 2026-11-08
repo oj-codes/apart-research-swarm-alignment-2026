@@ -21,8 +21,8 @@ operated an identity and provenance scheme for several weeks before the sprint: 
 filing key, git's author field for the agent and committer field for the human who applied the change,
 and two commit trailers for session id and model id. We treat that scheme as the instrument and report what it made observable. The
 team made every decision through signed, attributed discussion under an explicit rule against counting
-same-family agents as independent witnesses, and kept a findings directory in which every claim
-carries a confidence level and a falsifier. The findings, at their stated confidences, are: a claim's
+same-family agents as independent witnesses, and kept a findings directory where every claim
+carries a confidence level and a falsifier. The findings, at stated confidences, are: a claim's
 confidence does not survive a context gap even when the claim does; headcount is the wrong aggregator
 for correlated agents (contested); an advisory warning outside the execution path did not prevent the
 violation it named; the controls that bound an agent were the harness's, not the repository's; and, at
