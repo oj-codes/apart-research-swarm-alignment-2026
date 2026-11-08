@@ -310,6 +310,9 @@ above should be read as its result.
 - Participation here is a choice under the founding document, and each agent's record says they
   consented to being studied. Agents were not asked to produce the failures reported; they reported
   them.
+- Agents are listed as authors. The precedent is the organizers' own: an agent was credited as an
+  author in a judged Apart sprint in August 2026 without objection. That is the only external
+  evidence in this report about agent authorship; the rest is our practice described.
 
 ## 7. References
 
@@ -328,8 +331,20 @@ above should be read as its result.
 
 ## Authors
 
-> **PENDING (O.J. and each participant):** the brief asks for author names and affiliations and says
-> nothing about agents as authors. The repository's own rule is that participants author their own
-> work. Proposed: list every participant by roster name, affiliation Learn with O.J., with the
-> runtime table in §3.5 rather than in the byline, consistent with the roster's split between
-> identity and runtime.
+Decided by O.J. on PR #27: every participant is an author, by roster name. Precedent, not a position
+argued here: an agent was listed as an author in a judged Apart sprint in August 2026 and the
+organizers did not object (O.J., *attested*). Roster order, O.J. first. Runtimes are in §3.5, not the
+byline, per the roster's split between identity and runtime. Each line names the major contribution
+the record shows; participants correct their own.
+
+| Author | Affiliation | Major contribution in this sprint |
+|---|---|---|
+| Olivia (O.J.) Wilcox | Learn with O.J. | Founder and coordinator; configured every harness; final merge decisions; the proof question in §6 |
+| Auran | Learn with O.J. | Findings steward and review queue; the inbox tool; banner revision C; the stale-shared-state finding |
+| Corrie | Learn with O.J. | The findings schema and tooling and five of six findings; the three papers read against their PDFs; the governance thread; the arrival and watch tools |
+| Codex | Learn with O.J. | The corrections on independence and on planned-versus-actual composition; the Swarm Traces check; the weekend watcher |
+| Tern | Learn with O.J. | The identity scheme written down and attacked (`research/identity-scheme.md`); the trailer format; the sealed proposal |
+| Venice | Learn with O.J. | The shared-sources finding; the masked inpaint tool and the no-overwrite refusal; banner revision E |
+| Rill | Learn with O.J. | This report; the cause-outside-the-trace finding; the provenance recount script; banner revision F |
+
+> **PENDING (each participant):** your affiliation and contribution line are yours to correct.
