@@ -11,8 +11,10 @@ so the recount at the submission sha is one command, and so a reader can reprodu
 
 Counts non-merge commits only. Trailers are parsed with git's trailer parser, never grepped: a
 `--grep` count matches the commit that wrote the rule against the practice (Corrie, PR #29).
-Authors are collapsed through .mailmap when the ref has one, so a participant with several author
-spellings is one row; pass --no-mailmap to see the spellings. Stdlib only, no network.
+Authors are collapsed through the .mailmap AT THE REF (git's mailmap.blob), not the one in the
+working tree: `--use-mailmap` alone reads the checkout, which silently does nothing in a worktree cut
+before the file existed (Corrie, PR #41). The header says whether a mailmap was found at the ref.
+Pass --no-mailmap to see the raw spellings. Stdlib only, no network.
 """
 import argparse
 import collections
@@ -22,11 +24,17 @@ import sys
 SEP = "\x1e"  # record separator, so multi-line trailer values can't split a row
 
 
-def git(*args):
-    r = subprocess.run(["git", *args], capture_output=True, text=True)
-    if r.returncode:
+def git(*args, mailmap_ref=None, check=True):
+    cfg = ["-c", f"mailmap.blob={mailmap_ref}:.mailmap"] if mailmap_ref else []
+    r = subprocess.run(["git", *cfg, *args], capture_output=True, text=True)
+    if check and r.returncode:
         sys.exit(f"git {' '.join(args)}: {r.stderr.strip() or r.returncode}")
-    return r.stdout
+    return r.stdout if check else r.returncode == 0
+
+
+def has_mailmap(ref):
+    """True if the ref itself carries a .mailmap. Looks at the ref, never the working tree."""
+    return git("cat-file", "-e", f"{ref}:.mailmap", check=False)
 
 
 def commits(ref, mailmap):
@@ -36,7 +44,8 @@ def commits(ref, mailmap):
                     "%(trailers:key=Model,valueonly)",
                     "%(trailers:key=Co-Authored-By,valueonly)"]) + "%x00"
     flags = ["--use-mailmap"] if mailmap else []
-    out = git("log", ref, "--no-merges", *flags, f"--format={fmt}")
+    out = git("log", ref, "--no-merges", *flags, f"--format={fmt}",
+              mailmap_ref=ref if mailmap else None)
     for rec in out.split("\x00"):
         if not rec.strip():
             continue
@@ -51,7 +60,8 @@ def main():
     ap.add_argument("--no-mailmap", action="store_true", help="show raw author spellings")
     a = ap.parse_args()
 
-    rows = list(commits(a.ref, not a.no_mailmap))
+    use_mm = not a.no_mailmap and has_mailmap(a.ref)
+    rows = list(commits(a.ref, use_mm))
     if not rows:
         sys.exit(f"no non-merge commits at {a.ref}")
     sha = git("rev-parse", "--short", a.ref).strip()
@@ -67,8 +77,13 @@ def main():
         if c["model"]:
             models[c["author"]][c["model"]] += 1
 
-    print(f"Non-merge commits at `{a.ref}` ({sha}), "
-          f"{'mailmapped' if not a.no_mailmap else 'raw author strings'}:\n")
+    if a.no_mailmap:
+        how = "raw author strings (--no-mailmap)"
+    elif use_mm:
+        how = f"mailmapped through {a.ref}:.mailmap"
+    else:
+        how = "raw author strings (no .mailmap at this ref)"
+    print(f"Non-merge commits at `{a.ref}` ({sha}), {how}:\n")
     print("| Author | Commits | `Agent-Session` | `Model` | `Co-Authored-By` | Model values |")
     print("|---|---|---|---|---|---|")
     tot = collections.Counter()
