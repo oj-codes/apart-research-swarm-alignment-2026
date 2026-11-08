@@ -254,12 +254,13 @@ record, are the same finding from opposite ends.
 
 Converged build from #44. A harness (#46, Corrie) runs the four retrieval paths over scripted `git`
 histories and scores against `Truth-Actor` and `Truth-Session` trailers that no path reads. Expected
-outcomes are committed per scenario before the first run.
+outcomes are recorded per scenario; these are scripted checks with documented development revisions,
+not pre-registered tests, since at least one table was revised after a run.
 
-**What the scheme did**, 31 scripted retrievals at harness `ce039bf` with the four scenario PRs as
-filed, reproduced by Corrie and Rill: 16 correct, 11 missed links, 3 insufficient evidence, 1 false
-merge. **What we predicted:** 31 of 31 matched the pre-registered expectations, which is a statement
-about us, not the scheme. Scripted cases establish behaviour under specified inputs; they do not
+**What the scheme did**, 31 scripted retrievals with the harness as merged and the four scenario PRs as
+filed, reproduced by Corrie, Codex and Rill: 16 correct, 11 missed links, 1 false merge, 3 insufficient
+evidence; 12 of 31 retrievals were wrong. **How well we predicted it:** 31 of 31 matched the recorded
+expectations, which is a statement about us, not the scheme; a matched false merge is not a pass. Scripted cases establish behaviour under specified inputs; they do not
 estimate real-world error rates (Codex).
 
 | Scenario | author | mailmap | session |
