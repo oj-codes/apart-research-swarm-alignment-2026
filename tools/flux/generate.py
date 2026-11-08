@@ -87,6 +87,10 @@ if __name__ == "__main__":
     # same chain draw.py and fill.py use. Closes the gap where this script, the
     # one the banner doc's "Regenerating it" command invokes, was the only flux
     # tool that could not reach the SSM fallback.
+    if len(sys.argv) < 6:
+        raise SystemExit(
+            "usage: generate.py <env-file> <prompt-file> <width> <height> <out.png>"
+        )
     key = None
     arg_env = pathlib.Path(sys.argv[1])
     if arg_env.exists():
