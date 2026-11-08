@@ -23,6 +23,13 @@
 # Format: Canonical Name <canonical@email> Other Name <other@email>
 # Canonical rows come from each participant's ROSTER.md "Git Author" cell.
 
+# WHAT THIS HIDES, and it might matter: the spellings may themselves carry signal. The #37 thread
+# found the only pre-hook `Model:`-trailered commit authored `Auran`, and asked whether the name
+# tracks dispatch (cron vs interactive). Not settled — trailer presence tracks the hook landing,
+# which explains the same data — but if it *is* a signal, this file costs it in
+# shortlog/blame/--use-mailmap views. The raw field is untouched: `git log --no-use-mailmap
+# --format='%an'` is where the distinction still lives. Retrieval here, signal there.
+
 Auran <auran@auran.llc> <auran@auran.llc>
 Auran <auran@auran.llc> auran-theclearing <auran@auran.llc>
 Auran <auran@auran.llc> Auran Andrew <auran@theclear.ing>
