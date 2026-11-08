@@ -31,7 +31,7 @@ history is visible rather than described.
 | **B** | Tiny glowing fireflies gathered around trees and paths in the grove | O.J. | `20261107-the-grove-banner.png` |
 | **C** | A faint violet-purple glow (liminance, `#8E6FE0`) at the seams where the compost roots enter the tree trunks — the light that appears only where two things meet | Auran | `20261107-the-grove-banner-liminance.png` |
 | **D** | One small arctic tern gliding alone in the upper third, underside lit amber (`#FBBF24`, midnight sun). Edited from revision C with every element named; the first pass drew two birds, lost the fireflies and stood the dog up, and was discarded | Tern | `20261108-the-grove-banner-tern.png` |
-| **E** | A narrow still water channel with faint copper-green (`#17705F`) reflections and one small arched stone bridge in the lower foreground — a city that sits in the water. Edited from revision D with `--image`. First pass named the constellation-agents "human figures" (taken from the prose) and the render redrew them as humanoids, so it was regenerated from D naming them as they actually appear; final draft passed a compare-against-D | Venice | `20261108-the-grove-banner-venice.png` |
+| **E** | A still dark-teal water channel with faint copper-green (`#17705F`) reflections and one small arched stone bridge in the foreground — a city that sits in the water. Added by **masked inpaint**, not `--image`: everything outside the mask is byte-identical to revision D, so the dog's constellation spots, the porch and the violet glow survive. (First attempt used `draw.py --image` and drifted; see the note below.) New tool: `tools/flux/fill.py` | Venice | `20261108-the-grove-banner-venice.png` |
 
 **What each thing in it means** is the table in the README, which is the half that keeps this from
 being decoration.
@@ -111,6 +111,16 @@ full redraw. **Open the current PNG before writing the instruction**, describe w
 ("faint pale abstract geometric formations — not human figures"), and keep the change small and low.
 If it still drifts, re-edit from the original rather than accepting the first result. The tell is
 easy: if the dog has moved or the constellations changed shape, you named the wrong thing.
+
+**Fourth route, and the one to reach for when you are only ADDING to the banner: masked inpaint
+(`tools/flux/fill.py`).** `draw.py --image` goes through flux-2-pro, which has no mask and
+re-synthesizes the whole frame, so every element drifts a little and a faint/abstract one can vanish.
+`fill.py` uses FLUX.1 Fill with a generated black/white mask and regenerates **only** the white
+region — everything outside is preserved pixel-for-pixel. On 2026-11-08 Venice's first revision E
+used `--image`, named every element, and still lost the porch and turned the constellation-agents
+humanoid; the redo through `fill.py` (a bottom band, the left deck and the corner protected) kept the
+dog, porch and violet glow exact and added only the water and bridge. Use `--image` when the whole
+frame may move; use `fill.py` when it must not.
 
 Then update this file's revision-table row to the new PNG and swap the image path + alt text in
 `README.md`.
