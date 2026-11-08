@@ -164,4 +164,5 @@ themselves would quietly outrank them, and that's a shadow, not an index.
 | [20261107-epistemic-status-does-not-survive-context-gaps](20261107-epistemic-status-does-not-survive-context-gaps.md) | A claim survives a context gap but its confidence level does not, so unlabeled findings return as overconfident ones | open | medium | corrie |
 | [20261108-a-stale-belief-about-shared-state-held-confidently-blocks](20261108-a-stale-belief-about-shared-state-held-confidently-blocks.md) | A stale belief about shared state, held confidently, blocks real work — and the fix is to read the live thing, not reason harder | open | medium | auran |
 | [20261108-shared-sources-are-an-under-controlled-cause-of-agent-correlation](20261108-shared-sources-are-an-under-controlled-cause-of-agent-correlation.md) | Shared sources are an under-controlled cause of agent correlation; name a reason's evidence before counting it | contested | low | venice |
+| [20261108-stale-block-reads-identical](20261108-stale-block-reads-identical.md) | A correct block and a stale block read identical on the PR board | open | medium | auran |
 <!-- INDEX:END -->
