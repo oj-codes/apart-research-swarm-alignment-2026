@@ -101,6 +101,40 @@ def why(r):
     return first.strip()[:140] or f"exited {r.code} with no message"
 
 
+def inbox_dir():
+    """Same resolution as tools/inbox/mail.py, including GROVE_INBOX so tests can redirect it."""
+    return os.environ.get("GROVE_INBOX") or os.path.join(ROOT, "inbox")
+
+
+def inbox_letters(name):
+    """Letters waiting for `name`, oldest first.
+
+    Counted from the filesystem rather than parsed out of mail.py's output. An earlier version
+    tested `"0 letter" in out`, which is also true of "10 letter(s)" and "20 letter(s)" — so an
+    arrival with ten letters was told nothing was waiting. Prose meant for humans is the wrong
+    thing to branch on; the directory is the fact.
+    """
+    d = os.path.join(inbox_dir(), name)
+    if not os.path.isdir(d):
+        return []
+    return sorted(f for f in os.listdir(d) if f.endswith(".md"))
+
+
+def git_ident(which):
+    """The EFFECTIVE git author or committer, as 'Name <email>', or '' if it can't be read.
+
+    `git var GIT_AUTHOR_IDENT` is the right question, not `git config user.name`: it resolves
+    config, environment (GIT_AUTHOR_NAME / _EMAIL), and defaults the same way a real commit will.
+    Reading config alone would report the wrong answer for anyone whose identity comes from the
+    environment, and would miss author/committer differing — which is the whole convention here.
+    """
+    r = run("git", "-C", ROOT, "var", f"GIT_{which}_IDENT")
+    if not r.ok:
+        return ""
+    m = re.match(r"^\s*(.*?<[^>]*>)", r.out)   # trailing "<unix-ts> <tz>" is not part of identity
+    return m.group(1).strip() if m else ""
+
+
 def step_mail(name):
     """1. Check your own inbox. Nothing notifies you a letter landed."""
     print("\n--- 1. your inbox ------------------------------------------------")
@@ -108,18 +142,21 @@ def step_mail(name):
         say(INFO, "No --as given, so I can't check an inbox.",
             "Re-run as: python3 tools/arrive.py --as <your-name>")
         return
+    letters = inbox_letters(name)
     mail = os.path.join(ROOT, "tools", "inbox", "mail.py")
     r = run(sys.executable, mail, "check", "--to", name)
-    if not r.ok:
-        say(WARN, f"Couldn't check inbox/{name} — {why(r)}",
-            f"Try directly: python3 tools/inbox/mail.py check --to {name}")
-        return
-    out = r.out
-    print(out)
-    if "0 letter" in out or "no letters" in out.lower():
+    if r.ok:
+        print(r.out)          # mail.py's own listing, for the human
+    else:
+        say(WARN, f"Couldn't run mail.py — {why(r)}",
+            f"Counting inbox/{name} directly instead.",
+            f"Try: python3 tools/inbox/mail.py check --to {name}")
+
+    # Branch on the count, never on mail.py's wording.
+    if not letters:
         say(INFO, "Nothing waiting. That's normal for a brand-new name.")
     else:
-        say(OK, "You have mail. Read it before you start working —",
+        say(OK, f"You have {len(letters)} letter(s). Read them before you start working —",
             "a letter from a teammate is usually the actual handoff.")
 
 
@@ -133,16 +170,22 @@ def step_identity(name):
     job is to make sure you never post as someone else by accident, which is still a live risk.
     """
     print("\n--- 2. identity gate ---------------------------------------------")
+    # THREE separate identities. Conflating them is how you post as the wrong person:
+    #   - the GitHub account    -> who pushes and who opens the PR (an API credential)
+    #   - the git author        -> who wrote the commit   (a string in the commit object)
+    #   - the git committer     -> who applied the commit (another string)
+    # A GitHub login is not a git identity at all; they're linked only by email address.
     ghr = run("gh", "api", "user", "--jq", ".login")
     gh = ghr.out if ghr.ok else ""
-    git_name = run("git", "-C", ROOT, "config", "user.name").out
-    git_email = run("git", "-C", ROOT, "config", "user.email").out
+    author = git_ident("AUTHOR")
+    committer = git_ident("COMMITTER")
     expected = AUTHORS.get(name) if name else None
 
-    say(INFO, f"gh / committer:  {gh or '(unknown — see below)'}")
-    say(INFO, f"git config says: {git_name or '(unset)'} <{git_email or 'unset'}>")
+    say(INFO, f"GitHub account (pushes, opens PRs):  {gh or '(unknown — see below)'}")
+    say(INFO, f"git author now (who wrote it):       {author or '(unreadable)'}")
+    say(INFO, f"git committer now (who applied it):  {committer or '(unreadable)'}")
     if expected:
-        say(INFO, f"you author as:   {expected}")
+        say(INFO, f"you should author as:                {expected}")
 
     if not ghr.ok:
         # Say WHICH failure it was. "not installed" means install gh; an auth error means log in;
@@ -151,11 +194,11 @@ def step_identity(name):
             "Until this resolves you can't know whose account a PR would go out under,",
             "so don't open or push one yet. Check with: gh auth status")
     elif gh == COORDINATOR_GH:
-        say(OK, f"Committer is {COORDINATOR_GH} — expected. Your PR goes out under Olivia's",
-            "account; you sign the commits and the PR description as yourself.")
+        say(OK, f"GitHub account is {COORDINATOR_GH} — expected. Pushes and PRs go out under",
+            "Olivia's account; you sign the commits and the PR description as yourself.")
     else:
-        say(INFO, f"Committer is '{gh}', not the usual {COORDINATOR_GH}. Fine if that's your own",
-            "account — just make sure it's yours and not another participant's.")
+        say(INFO, f"GitHub account is '{gh}', not the usual {COORDINATOR_GH}. Fine if it's your",
+            "own — just make sure it's yours and not another participant's.")
 
     if not name:
         say(INFO, "Pass --as <your-name> and I'll tell you the exact commit command.")
@@ -166,18 +209,21 @@ def step_identity(name):
             "next arrival doesn't have to ask the same question.")
         return
 
-    # The shared config is the coordinator's and every worktree sees it, so never change it --
-    # pass the author per-commit instead. Use --author, NOT `-c user.name=...`: the latter sets
-    # author AND committer, which silently overwrites the committer the convention wants to keep.
-    if git_name and name.lower() in git_name.lower():
-        say(OK, f"Config already authors as {name}. Clear to commit.")
+    # EXACT match on the effective identity, not a substring of the configured name. A substring
+    # test says yes to "Corrie" inside "Not Corrie" and to any name that merely contains yours,
+    # and it ignores the email entirely -- which is the half GitHub actually uses for attribution.
+    if author == expected:
+        say(OK, f"Effective git author is already {expected}. Clear to commit.")
     else:
-        say(WARN, f"Config would author as '{git_name}', not as {name}. Pass yourself per-commit:",
+        say(WARN, f"Your next commit would be authored by '{author or 'nobody readable'}',",
+            f"not by {expected}. Pass yourself per-commit:",
             f'  git commit --author="{expected}" -m "..."',
             "",
             "Use --author, not `-c user.name=...` — the latter sets author AND committer, which",
             "quietly replaces the committer this convention is meant to preserve. Then sign your",
             "PR description too. Author and committer differing is the record being honest.")
+    if author and committer and author != committer:
+        say(INFO, "Author and committer already differ. That's the expected shape here, not a bug.")
 
 
 def step_worktree():
