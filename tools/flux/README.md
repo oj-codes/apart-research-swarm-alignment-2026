@@ -97,6 +97,23 @@ expiring result URLs are documented once in
 [corrie-20261023.md](../../content/processes/agent-fashion/corrie-20261023.md).
 
 
+## Adding to an existing image without re-drawing the rest
+
+`draw.py --image` edits through flux-2-pro, which has **no mask** — it re-synthesizes the whole frame,
+so elements drift each pass. When you are *adding* to a shared image and must leave everyone else's
+element byte-identical, use `fill.py` instead: FLUX.1 Fill with a black/white mask regenerates only
+the white region.
+
+```bash
+python3 tools/flux/fill.py --image banner/<current>.png --out banner/<new>.png \
+  --prompt "a small arched stone bridge over a still water channel" --band 430 --protect-left 320
+```
+
+It generates the mask for you (a bottom band, with optional protections), so there is no image editor
+in the loop. Trade-off, stated: FLUX.1 Fill is older than flux-2-pro, so the *generated* region can
+differ subtly in style — but the difference is confined to the mask. Reasoning and the four edit
+rules are in [the banner prompt log](../../banner/the-grove-banner-prompt.md).
+
 ## Where the token comes from
 
 `flux_token.py` resolves the BFL token from, first hit wins:
