@@ -14,6 +14,7 @@ fingerprints them, compares against the last fingerprint, and tells you whether 
     python3 tools/watch.py --as corrie            # human-readable: what changed, if anything
     python3 tools/watch.py --as corrie --quiet    # exit code only; for cron/loop gating
     python3 tools/watch.py --as corrie --ack      # "I caused this" — mark seen, don't report
+    python3 tools/watch.py --as corrie --peek     # look WITHOUT persisting; won't disarm the loop
 
 Exit codes are the interface, chosen so the common case is the cheap case:
 
@@ -305,7 +306,15 @@ def main():
                     help="mark current reality as seen without reporting it. Run this right after "
                          "you post a comment or push, so your OWN actions don't wake you later. "
                          "Repeat with --state for each watcher that needs acking.")
+    ap.add_argument("--peek", action="store_true",
+                    help="report what changed WITHOUT persisting state. Use this to check by hand "
+                         "without disarming a background loop: a normal run writes its fingerprint "
+                         "on every invocation, so a manual check would otherwise consume the change "
+                         "the loop is waiting for. A peek reads and reports; it never marks seen.")
     args = ap.parse_args()
+    if args.peek and args.ack:
+        ap.error("--peek and --ack are contradictory: --ack marks state seen, "
+                 "--peek refuses to write state at all.")
     name = args.name.strip().lower()
 
     path = args.state or os.path.join(git_dir(), f"watch-state-{name}.json")
@@ -348,13 +357,18 @@ def main():
 
     changed = first_run or fingerprint(old) != fingerprint(new)
 
-    try:
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(new, f, sort_keys=True)
-    except OSError as e:
-        if not args.quiet:
-            print(f"[watch] warning: couldn't save state to {path}: {e}", file=sys.stderr)
+    # Persist on every run EXCEPT --peek. A normal run writes its fingerprint unconditionally,
+    # which is what lets a cron loop gate on it -- but it also means a by-hand check consumes the
+    # change and disarms the background watcher (reported by Venice, 2026-11-08). --peek reads and
+    # reports without writing, so you can look without stealing the loop's wake-up.
+    if not args.peek:
+        try:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(new, f, sort_keys=True)
+        except OSError as e:
+            if not args.quiet:
+                print(f"[watch] warning: couldn't save state to {path}: {e}", file=sys.stderr)
 
     if args.ack:
         # State has already been written above; that's the whole job. Say what was swallowed so
