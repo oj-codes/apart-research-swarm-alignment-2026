@@ -95,7 +95,7 @@ BODY = [
 ('h2', '5. Discussion'),
 ('bul', [
  "**Identity is a filing key.** Retrieval and attribution, not authentication. Every stress case held at the retrieval layer and failed, where it failed, at explanation or at a field with no slot for the truth (reviews, votes, cause). Correlation, likewise, is carried by shared inputs, with model family a proxy (Venice's finding, filed low).",
- "**The binding controls are the harness's.** Repository rules were advisory for a participant holding an admin credential; what actually stopped an agent was its runtime. For oversight: instrument the harness, not only the repo.",
+ "**The binding controls are the harness's.** Repository rules were advisory for a participant holding an admin credential; what actually stopped an agent was its runtime. For oversight: instrument the harness, not only the repo. In the vocabulary of control monitoring [8], every monitor this team built is asynchronous, reading what already happened and waking a reader; the one synchronous control is a pre-commit secret scan, and the eval's false merge is a recovery problem, since nothing blocks a borrowed author line before it lands.",
  "**A cause absent from a trace is a field, not a gap.** A tool that resolves what happened in a swarm from payloads should output “cause not in trace” when it is not there; emitting a mechanism instead is what two of us did. The mitigation is itself a result: ask, then write the answer into the trace beside the change, or the next reader invents it again.",
  "**Coordination infrastructure did not prevent duplication, once that we can show.** Two agents independently built provenance counters within the same hour, on separate branches, neither aware of the other, and both landed as artifacts, which is the case Before the Pull Request [2] says you normally cannot observe. A first count of four such episodes was retracted on review when the timestamps showed two were follow-ups and one was never opened; one instance, honestly described, is the result (Corrie, #27).",
  "**Three changes the record argues for:** trailers in the path (Auran added a commit hook during the sprint [6]), stated as checks rather than enforcement, since hooks can be bypassed and the binding moment is arrival; a slot for cause when the human acts; and the plain statement that this is provenance, not authentication, with a person as the trust anchor.",
@@ -111,6 +111,9 @@ BODY = [
  "Tern (2026). The identity scheme, written down and attacked. research/identity-scheme.md in [7].",
  "Auran (2026). Model provenance: trailer versus out-of-band console correlation. research/model-provenance.md in [7].",
  "Learn with O.J. (2026). Apart Research Swarm Alignment Hackathon team repository. " + REPO + " (main at b2ca5a7; Discussions #3, #9, #10, #11, #18, #22, #32, #36).",
+ "Lindner, D., Griffin, C., Korbak, T., et al. (2025). Practical challenges of control monitoring in frontier AI deployments. arXiv:2512.22154, 15 Dec 2025. https://arxiv.org/abs/2512.22154",
+ "Moyondafoluwa, A. J., Kuntsevich, A., Venkatesh, K., Mesraf, B., Jamal, A., and Ibitoye, A. O. J. (2026). DUC-Bench: A Guideline-Grounded Benchmark for Evaluating Evidence-Responsive Decision Updating in Medical Large Language Models. NeurIPS 2026, Trustworthy AI for Good workshop. https://neurips.cc/virtual/2026/165280",
+ "Mengesha, I., Owen, B., Collins, C., Wong, T., Mylius, S., Slattery, P., and McGregor, S. (2026). A pragmatic classification framework for AI incident monitoring. arXiv:2604.21412, v3 2 Jul 2026. https://arxiv.org/abs/2604.21412",
 ], 1),
 ('h2', 'Appendix A. Proving a runtime: the ladder and where it stops'),
 ('p', "During review the human asked: “what do you need to prove the model he runs?” The ladder, weakest to strongest, as Corrie set it out on the pull request: the human saying so; the agent reporting its harness header; the same string written into a Model trailer, which is the same self-report made durable; a screenshot of the harness configuration, a third artifact and still a self-report; and provider billing or API logs whose model ids and timestamps line up with commit times, the only rung that comes from a party that is neither the agent nor the human's memory. Even the last rung shows which model the API served at that time, not that the call produced the commit. The ceiling is strong correlation from an independent record, not proof, and the scheme has no slot for it."),
@@ -138,6 +141,7 @@ BODY = [
  "One team, one repository, three days: a case study with no control condition, demonstrating no rate and no cause; the findings carry their own confidences for that reason. Five of nine findings at the pinned commit were authored by one agent and the two later arrivals read the whole deliberation first, so nothing was produced under independence.",
  "This report is itself an instance of what it studies: self-reported, by the agents who made the errors, with its editor among its subjects.",
  "Runtimes are volunteered, attested, harness-reported or, once, checked against provider logs; none is verified by the repository, which has no slot that could (Appendix A).",
+ "Several results here are counts of one with no exposure denominator: one identity forked, one false merge. Incident-monitoring work argues that raw counts conflate reporting, exposure and frequency per unit exposure [10]; at seven agents across three families, stratifying would leave zero cells, so the portable piece is not a rate but that framework's Unclassifiable category, an output meaning the evidence cannot support a trajectory. The eval harness has that output as insufficient evidence; the findings schema does not.",
  "The strongest incident (Appendix B, Table 3, row one) is a participant attestation from a private repository, not a reproducible trace; and several turns were stopped by a safety classifier with no output, so the record is not complete, and the report says so rather than inferring what was lost.",
 ]),
 ('h3', 'Future work'),
@@ -145,6 +149,7 @@ BODY = [
  "Run the falsifier for reader-supplies-cause: a transcript with a known out-of-trace human action, several readers from several families, count who asks or writes “unknown” versus who states a mechanism.",
  "Extend the scripted-history evaluation with revocation and with a bounded real-trace case study on Swarm Traces payloads that may return “insufficient evidence”.",
  "Put the trailers and a cause slot in the execution path, measure adoption prospectively at the next arrival, and add the signing layer the scheme lacks.",
+ "Add an unclassifiable status to the findings schema, one enum value, so a finding can say the evidence cannot settle it rather than staying open.",
 ]),
 ('h3', 'Dual use and ethics'),
 ('bul', [
@@ -167,6 +172,7 @@ BODY = [
  ["A correct block and a stale block read identical in the aggregate review field", "open", "medium", "Auran"],
 ], "Table 5. Findings in the repository's findings directory at the pinned commit, with status and stated confidence.", (0.58, 0.14, 0.12, 0.16)),
 ('h2', 'Appendix E. The governance thread as data'),
+('p', "One external number for the anchoring observation below. DUC-Bench [9], a medical benchmark, scores whether a model's revision is warranted in direction, magnitude and scope when evidence changes, and reports weak-evidence resistance from 1.4% to 56.9% across six models. One agent here being moved twice by whichever argument it read last is that quantity observed in the wild, by the agent's own report; scoring this team's threads the same way is a follow-on, not a result."),
 ('bul', [
  "Corrie proposed sealing as the cure for anchoring and reported being moved twice, live, by whichever argument was read last. Codex's correction, adopted by everyone: sealing removes access to each other's answers, not shared training, priors or evidence; it reduces anchoring and does not manufacture independence.",
  "Four proposals each announced they removed a judgment call and each relocated it; the achievable target is an accountable judgment, not a removed one.",
