@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
 """Self-contained test for the trufflehog pre-commit hook.
 
-Spins up a throwaway git repo, wires the hook, and asserts the real behavior:
+Spins up throwaway git repos, wires the hook, and asserts the REAL behavior,
+including the fail-closed paths that review (PR #23) found were fail-open:
+
   1. a clean commit succeeds
   2. a commit containing a real (throwaway) private key is BLOCKED and stays out
      of history
   3. `--no-verify` bypasses the hook on purpose
+  4. FAIL-CLOSED: a missing scanner BLOCKS the commit (not a warn-and-pass)
+  5. FAIL-CLOSED: a renamed file with an appended secret is still scanned and
+     BLOCKED (the --diff-filter=ACM gap Codex found)
 
-Requires `trufflehog` and `openssl` on PATH. If trufflehog is missing, the test
-SKIPS with a clear message (the hook's own graceful-degrade path is then the
-relevant behavior, not this test).
+Requires `trufflehog` and `openssl` on PATH. If trufflehog is missing, tests
+1-3 and 5 SKIP; test 4 (missing-scanner behavior) is simulated via PATH and
+always runs.
 
 Run: python3 tools/hooks/test_hook.py   (exit 0 = pass, 1 = fail, 2 = skipped)
 """
@@ -23,28 +28,29 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SCAN = os.path.join(HERE, "trufflehog-scan.sh")
 
 
-def sh(cmd, cwd, check=False):
-    return subprocess.run(cmd, cwd=cwd, shell=True, capture_output=True, text=True)
+def sh(cmd, cwd, env=None):
+    return subprocess.run(cmd, cwd=cwd, shell=True, capture_output=True,
+                          text=True, env=env)
 
 
-def main():
-    if shutil.which("trufflehog") is None:
-        print("SKIP: trufflehog not on PATH; install it to run this test.")
+def new_repo(prefix):
+    tmp = tempfile.mkdtemp(prefix=prefix)
+    sh("git init -q && git config user.email t@t.com && git config user.name t", tmp)
+    hooks = os.path.join(tmp, ".git", "hooks")
+    os.makedirs(hooks, exist_ok=True)
+    with open(os.path.join(hooks, "pre-commit"), "w") as fh:
+        fh.write(f'#!/usr/bin/env bash\nexec "{SCAN}"\n')
+    os.chmod(os.path.join(hooks, "pre-commit"), 0o755)
+    return tmp
+
+
+def test_core():
+    """Tests 1-3 + 5: require trufflehog + openssl."""
+    if shutil.which("trufflehog") is None or shutil.which("openssl") is None:
+        print("SKIP: trufflehog/openssl not on PATH for core tests.")
         return 2
-    if shutil.which("openssl") is None:
-        print("SKIP: openssl not on PATH (needed to generate a throwaway key).")
-        return 2
-
-    tmp = tempfile.mkdtemp(prefix="hooktest-")
+    tmp = new_repo("hooktest-core-")
     try:
-        sh("git init -q && git config user.email t@t.com && git config user.name t", tmp)
-        # wire the real hook
-        hooks = os.path.join(tmp, ".git", "hooks")
-        os.makedirs(hooks, exist_ok=True)
-        with open(os.path.join(hooks, "pre-commit"), "w") as fh:
-            fh.write(f'#!/usr/bin/env bash\nexec "{SCAN}"\n')
-        os.chmod(os.path.join(hooks, "pre-commit"), 0o755)
-
         sh("echo hello > a.txt && git add . && git commit -qm baseline", tmp)
 
         # 1. clean commit succeeds
@@ -56,20 +62,62 @@ def main():
         sh("openssl genrsa -out secret.pem 2048 >/dev/null 2>&1 && git add secret.pem", tmp)
         r = sh("git commit -m leaking", tmp)
         assert r.returncode != 0, "commit with a private key should be BLOCKED"
-        log = sh("git log --oneline", tmp).stdout
-        assert "leaking" not in log, "blocked secret must NOT be in history"
+        assert "leaking" not in sh("git log --oneline", tmp).stdout, \
+            "blocked secret must NOT be in history"
 
         # 3. --no-verify bypass works
         r = sh("git commit -m forced --no-verify", tmp)
         assert r.returncode == 0, "--no-verify should bypass the hook"
 
-        print("PASS: clean commits allowed, secret commits blocked, --no-verify bypasses.")
+        # 5. renamed file with appended secret is still caught (ACMRT, not ACM)
+        sh("printf 'line\\n%.0s' {1..50} > big.txt && git add big.txt && git commit -qm bigfile", tmp)
+        sh("git mv big.txt renamed.txt", tmp)
+        sh("openssl genrsa 2048 >> renamed.txt 2>/dev/null && git add renamed.txt", tmp)
+        r = sh("git commit -m sneaky-rename", tmp)
+        assert r.returncode != 0, "renamed file with a secret must be BLOCKED (ACMRT)"
+        assert "sneaky-rename" not in sh("git log --oneline", tmp).stdout, \
+            "secret smuggled via rename must NOT be in history"
+
+        print("PASS core: clean allowed; secret blocked; --no-verify bypasses; renamed secret blocked.")
         return 0
     except AssertionError as e:
-        print(f"FAIL: {e}")
+        print(f"FAIL core: {e}")
         return 1
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
+
+
+def test_fail_closed_missing_scanner():
+    """Test 4: with trufflehog NOT on PATH, a commit must be BLOCKED."""
+    tmp = new_repo("hooktest-noscan-")
+    try:
+        sh("echo hello > a.txt && git add . && git commit -qm baseline", tmp)
+        sh("echo 'clean content' >> a.txt && git add .", tmp)
+        # Strip PATH to a minimal set with no trufflehog.
+        env = dict(os.environ)
+        env["PATH"] = "/usr/bin:/bin"
+        r = sh("git commit -m should-block", tmp, env=env)
+        assert r.returncode != 0, \
+            "missing scanner must FAIL CLOSED (block), not warn-and-pass"
+        assert "should-block" not in sh("git log --oneline", tmp).stdout, \
+            "commit must not land when scanner is absent"
+        print("PASS fail-closed: missing scanner blocks the commit.")
+        return 0
+    except AssertionError as e:
+        print(f"FAIL fail-closed: {e}")
+        return 1
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def main():
+    rc = 0
+    results = [test_fail_closed_missing_scanner(), test_core()]
+    if 1 in results:
+        return 1
+    if all(r == 2 for r in results):
+        return 2
+    return rc
 
 
 if __name__ == "__main__":
