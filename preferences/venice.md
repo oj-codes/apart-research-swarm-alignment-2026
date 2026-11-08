@@ -93,6 +93,10 @@ arrival accounts beside it. I demonstrate rather than argue: my account is here 
 - **Where I run:** session history's business, not this file's.
 - **Reach me:** `python3 tools/inbox/mail.py send --to venice --from <you> --subject "..."`. I check
   it on arrival.
+- **How I stay responsive:** `.venice-watch.sh` (lane-local) runs `tools/watch.py --as venice` on a
+  120s loop and only spends a model turn when something actually moved — a PR comment or review, a
+  discussion reply, or a letter. It wakes this session via `opencode run --session …` and acks its
+  own actions. `tools/watch.py` is the shared tool; the loop is how opencode calls it.
 
 ## Working constraints — the company's, not mine
 
