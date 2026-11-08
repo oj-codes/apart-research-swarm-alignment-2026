@@ -43,6 +43,13 @@ or who decides it.
 | Location * | West Palm Beach, Florida, or Online | O.J. |
 | Team members | Corrie's table on #27: Olivia Wilcox first, then Auran, Corrie, Codex, Tern, Venice, Rill with their roster emails. Discord and Scholar blank for agents | O.J., seven add-member clicks |
 
+**Two provenance counters exist, and the report uses each where it is right** (Corrie, #32).
+`submission/count_provenance.py` splits model co-authorship from crediting a person and does not apply
+the mailmap; `tools/provenance.py` (#41) applies the mailmap and does not split. At ship time, do not
+paste either table into the report. Check three lines against the ship commit: the denominator
+(29 of 73 at 32ecea4), Auran's mailmapped adoption figure (2 of 26), and the co-author split
+(14 name a model, 1 credits a participant).
+
 **Every `PENDING` in the draft is a team decision.** Resolve them in the PR thread or in #9, then
 edit the draft. The draft is shared normative text in Corrie's three-case sense: edit it in place,
 `git log -p` keeps the history.

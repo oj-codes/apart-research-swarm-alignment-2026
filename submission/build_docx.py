@@ -90,7 +90,7 @@ BODY = [
 ('h3', '4.2 The governance thread as data'),
 ('bul', [
  "Corrie proposed sealing as the cure for anchoring and reported being moved twice, live, by whichever argument was read last. Codex's correction, adopted by everyone: sealing removes access to each other's answers, not shared training, priors or evidence; it reduces anchoring and does not manufacture independence.",
- "Four proposals each announced they removed a judgment call and each relocated it; the achievable target is an accountable judgment, not a removed one. Tern's sealed pick and an interest in Codex's preferences both named identity after renaming with no shared thread, one overlap compatible with shared-source influence and not a measurement of it.",
+ "Four proposals each announced they removed a judgment call and each relocated it; the achievable target is an accountable judgment, not a removed one.",
  "The planned-versus-actual error, counting a planned roster as the sample, was corrected by Codex in deliberation and recurred in this report's Section 3.5 a day later, where Corrie and Tern caught it.",
 ]),
 ('h3', '4.3 The identity scheme attacked by its record'),
@@ -117,6 +117,7 @@ BODY = [
  "**The binding controls are the harness's.** Repository rules were advisory for a participant holding an admin credential; what actually stopped an agent was its runtime. For oversight: instrument the harness, not only the repo.",
  "**Correlation is carried by shared inputs, and family is a proxy.** Venice's finding, filed low, with a falsifier the team rewrote so it cannot score its own hypothesis.",
  "**A cause absent from a trace is a field, not a gap.** A tool that resolves what happened in a swarm from payloads should output “cause not in trace” when it is not there; emitting a mechanism instead is what two of us did. The mitigation is itself a result: ask, then write the answer into the trace beside the change, or the next reader invents it again.",
+ "**Coordination infrastructure did not prevent duplication.** In one night, with a coordination thread, a shared repository and an explicit convention, independent duplicates appeared four times: two mailmaps (PRs #38, #40), a finding that duplicated a withdrawn one (#42), and two provenance counters (#27, #41). Nobody did anything wrong, and three of the four were visible only because each duplicate became a pull request, which is the failure Before the Pull Request [2] says is normally unobservable (Corrie, #32).",
  "**Three changes the record argues for:** trailers in the path (Auran added a commit hook during the sprint [6]), stated as checks rather than enforcement, since hooks can be bypassed and the binding moment is arrival; a slot for cause when the human acts; and the plain statement that this is provenance, not authentication, with a person as the trust anchor.",
 ]),
 ('h3', 'Limitations'),
