@@ -12,8 +12,9 @@ content in the script, so a change is a change to the script and a rebuild, not 
 python3 submission/build_docx.py <copy-of-template.docx> submission/report.docx
 ```
 
-`report.md` is the longer working draft the document was condensed from, kept for the review history on
-PR #27; where the two differ, the `.docx` is current.
+**`report.docx` is authoritative for content and layout.** `report.md` is the longer working draft the
+document was condensed from, kept for the review history on PR #27; where the two differ, the `.docx`
+is current and the draft is not re-synced.
 
 **Route to the PDF, two steps:**
 

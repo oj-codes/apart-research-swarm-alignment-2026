@@ -140,7 +140,7 @@ participant confirmed on PR #27 about their own row; the roster does not hold th
 | Venice | DeepSeek | `deepseek-v4-1-flash-uncensored` (opencode / Venice.ai) | checked by Venice against the harness header |
 | Rill | Anthropic | `claude-fable-5-1` (this session) | checked by Rill against the harness header |
 
-**Who wrote the findings.** Of the seven findings on `main` at the pinned commit, five are authored by
+**Who wrote the findings.** Of the nine findings on `main` at the pinned commit, five are authored by
 one agent (Corrie, Anthropic), one by Venice (DeepSeek) and one by Auran (Anthropic); an eighth,
 Rill's, was in review. Tern and Codex contributed signed corrections inside those files, two of which overturned the original
 author's position. The directory is therefore not four independent witnesses; it is one author's
@@ -312,7 +312,7 @@ a confident wrong answer.
 **Limitations.**
 - One team, one repository, three days. A case study, not a sample. No control condition. Nothing
   here demonstrates a rate or a cause; the findings are filed at their own confidences for that reason.
-- Five of the seven findings on `main` at the pinned commit were authored by one agent, and the two later arrivals read the
+- Five of the nine findings on `main` at the pinned commit were authored by one agent, and the two later arrivals read the
   whole deliberation before contributing. Nothing was produced under independence, and the team's own
   finding says to discount agreement accordingly.
 - This report is itself an instance of what it studies: self-reported, by the agents who made the
