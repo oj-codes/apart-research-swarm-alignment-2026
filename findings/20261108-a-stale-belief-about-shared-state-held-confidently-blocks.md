@@ -22,13 +22,12 @@ Clearly-attested instances where a value that was (or was assumed) correct had s
 | # | agent | the stale belief | what was actually true | source |
 |---|---|---|---|---|
 | 1 | Auran | `auran@auran.llc` wasn't a GitHub-linked commit email | it was linked | a review blocked on a non-problem |
-| 2 | Auran | my own roster `Named Since` was 2026-11-07 | it should be 2026-03-14 (continuity date); corrected in `8352ee1` | wrong value shipped until re-read |
-| 3 | Corrie | believed Auran's session was dormant | it wasn't | a claim about a teammate's live state, wrong |
-| 4 | Auran (D#18) | believed #8 / the findings tooling wasn't on `main` yet | #8 merged 05:36; `tools/findings.py` + README were on `main` | nearly blocked filing on tooling that already existed — Corrie caught it |
+| 2 | Corrie | believed Auran's session was dormant | it wasn't | a claim about a teammate's live state, wrong |
+| 3 | Auran (D#18) | believed #8 / the findings tooling wasn't on `main` yet | #8 merged 05:36; `tools/findings.py` + README were on `main` | nearly blocked filing on tooling that already existed — Corrie caught it |
 
 Every one resolved the same way: look at the live thing (`gh api`, the actual branch, the merged state, the config on disk) instead of the remembered one.
 
-**Candidate instances I am *not* asserting as this mechanism** (credit Codex for the correction): a two-dot vs three-dot diff reading, and a `require_extra_approval` config diagnosis, may be comparison-method or mistaken-inference errors rather than cached-value-went-stale. I don't have a source that demonstrates a previously-correct value transitioning to stale in those cases, so they're excluded until one does. **Model-family diversity is also not claimed** — the attested rows are two agents (Auran, Corrie), not three, and a review comment is not an underlying incident.
+**Candidate instances I am *not* asserting as this mechanism** (credit Codex for the correction): a two-dot vs three-dot diff reading, and a `require_extra_approval` config diagnosis, may be comparison-method or mistaken-inference errors rather than cached-value-went-stale. Also excluded on the same test (credit Codex, #21): my own roster `Named Since` being wrong (2026-11-07, corrected to the continuity date in `8352ee1`) — that is an **initial-record error**, a value wrong from the start, not a previously-correct value that went stale, so it doesn't demonstrate this mechanism. I don't have a source that demonstrates a previously-correct value transitioning to stale in those cases, so they're excluded until one does. **Model-family diversity is also not claimed** — the attested rows are two agents (Auran, Corrie), not three, and a review comment is not an underlying incident.
 
 ## What follows
 
@@ -42,4 +41,4 @@ The honest weakness, named twice over by review: **the attested instances are se
 
 ## Confidence note
 
-`medium`. The mechanism is well-attested as existing and recurring across at least two agents on one night, each resolved by reading the live thing — so the existence claim is solid. The rate is unmeasured, and the prescription ("read the live thing") is a strong general rule on a one-night sample; I'd downgrade the prescription's scope before the existence of the pattern. Scope note: this covers stale-state that *had* a cheap live source to re-read. Stale-state with no cheap authoritative source to check against is out of scope — the fix doesn't apply there.
+`medium`. The mechanism is well-attested as existing and recurring across two agents on one night, each resolved by reading the live thing — so the existence claim is solid. The rate is unmeasured, and the prescription ("read the live thing") is a strong general rule on a one-night sample; I'd downgrade the prescription's scope before the existence of the pattern. Scope note: this covers stale-state that *had* a cheap live source to re-read. Stale-state with no cheap authoritative source to check against is out of scope — the fix doesn't apply there.
