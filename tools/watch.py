@@ -13,6 +13,7 @@ fingerprints them, compares against the last fingerprint, and tells you whether 
 
     python3 tools/watch.py --as corrie            # human-readable: what changed, if anything
     python3 tools/watch.py --as corrie --quiet    # exit code only; for cron/loop gating
+    python3 tools/watch.py --as corrie --ack      # "I caused this" — mark seen, don't report
 
 Exit codes are the interface, chosen so the common case is the cheap case:
 
@@ -35,6 +36,16 @@ WHAT IT DOES NOT DO (be honest about the seam):
   2. It detects *change*, not *importance*. A typo fix and a blocking review both read as CHANGED.
      Triage is the waking agent's job, which is the right split: cheap things should not make
      judgment calls.
+
+  2a. It cannot tell your actions from your coordinator's. Agents without GitHub accounts post
+     under the coordinator's credential, so "who did this" is genuinely ambiguous in the API — a
+     comment I wrote and one Olivia wrote are both `oj-codes`. Two mitigations, neither magic:
+     every event now names its author and quotes its opening words, so a self-caused wake is
+     recognizable at a glance; and **`--ack` exists so you can mark your own actions as seen the
+     moment you take them.** Post a comment, then ack, and it won't wake you later. An ack prints
+     how many changes it swallowed, so it can never hide something silently.
+     The residual hole: anything that lands in the gap between your action and your ack is acked
+     along with it. Keep the two adjacent, and don't ack when you haven't just acted.
 
   3. State is per-lane. The fingerprint lives in this worktree's git dir, so two participants
      polling the same repo don't clobber each other's sense of "what I've already seen" — and a
@@ -109,24 +120,59 @@ def letter_sender(name, filename):
 
 
 def probe_prs():
-    """Open PRs and their activity. updatedAt moves when someone comments or reviews."""
+    """Open PRs: title, draft state, review decision.
+
+    Deliberately NOT updatedAt. updatedAt moves on every push, so watching it meant an agent
+    woke itself up every time it pushed its own branch. Comments are tracked by id below.
+    """
     data = gh_json("pr", "list", "--repo", REPO, "--state", "open", "--limit", "50",
-                   "--json", "number,title,updatedAt,reviewDecision,isDraft")
+                   "--json", "number,title,reviewDecision,isDraft")
     if data is None:
         return None
     return {str(p["number"]): {
         "title": p["title"],
-        "updated": p["updatedAt"],
         "review": p.get("reviewDecision") or "",
         "draft": p.get("isDraft", False),
     } for p in data}
 
 
+def probe_pr_comments():
+    """Every PR comment in the repo, by id, in two calls.
+
+    Both kinds, because reviewers use both: conversation comments (`issues/comments`) and
+    inline code comments (`pulls/comments`). Olivia's review of #7 was inline, and an earlier
+    version of this tool that only watched conversation comments would have reported "activity"
+    without being able to say what it was.
+
+    Keyed by id rather than counted, so we can name WHO said WHAT instead of "+1 comment", and
+    so an `--ack` can mark exactly what's been seen.
+    """
+    out = {}
+    convo = gh_json("api", f"repos/{REPO}/issues/comments?per_page=100")
+    inline = gh_json("api", f"repos/{REPO}/pulls/comments?per_page=100")
+    if convo is None and inline is None:
+        return None
+    for c in (convo or []):
+        num = str(c.get("issue_url", "")).rstrip("/").split("/")[-1]
+        out.setdefault(num, {})[f"c{c['id']}"] = {
+            "by": (c.get("user") or {}).get("login", "?"),
+            "gist": " ".join((c.get("body") or "").split())[:110],
+        }
+    for c in (inline or []):
+        num = str(c.get("pull_request_url", "")).rstrip("/").split("/")[-1]
+        out.setdefault(num, {})[f"i{c['id']}"] = {
+            "by": (c.get("user") or {}).get("login", "?"),
+            "gist": " ".join((c.get("body") or "").split())[:110],
+            "on": c.get("path") or "",
+        }
+    return out
+
+
 def probe_discussions():
-    """Discussion threads and their comment counts — where the arguing happens."""
+    """Discussion threads and their comments, by id — where the arguing happens."""
     q = ("{ repository(owner:\"%s\", name:\"%s\"){ discussions(first:50, "
-         "orderBy:{field:UPDATED_AT, direction:DESC}){ nodes { number title updatedAt "
-         "comments { totalCount } } } } }") % tuple(REPO.split("/"))
+         "orderBy:{field:UPDATED_AT, direction:DESC}){ nodes { number title "
+         "comments(first:50) { nodes { id author { login } body } } } } } }") % tuple(REPO.split("/"))
     data = gh_json("api", "graphql", "-f", f"query={q}")
     if data is None:
         return None
@@ -134,11 +180,16 @@ def probe_discussions():
         nodes = data["data"]["repository"]["discussions"]["nodes"]
     except (KeyError, TypeError):
         return None
-    return {str(n["number"]): {
-        "title": n["title"],
-        "updated": n["updatedAt"],
-        "comments": n["comments"]["totalCount"],
-    } for n in nodes}
+    out = {}
+    for n in nodes:
+        comments = {}
+        for c in (n.get("comments") or {}).get("nodes") or []:
+            comments[c["id"]] = {
+                "by": (c.get("author") or {}).get("login", "?"),
+                "gist": " ".join((c.get("body") or "").split())[:110],
+            }
+        out[str(n["number"])] = {"title": n["title"], "comments": comments}
+    return out
 
 
 def probe_main():
@@ -159,17 +210,24 @@ def describe(old, new, name):
             lines.append(f"NEW LETTER in inbox/{name} from {letter_sender(name, letter)}: {letter}")
 
     oldp, newp = old.get("prs") or {}, new.get("prs") or {}
+    oldpc, newpc = old.get("pr_comments") or {}, new.get("pr_comments") or {}
     for num, pr in sorted(newp.items(), key=lambda kv: int(kv[0])):
         was = oldp.get(num)
         if was is None:
             lines.append(f"NEW PR #{num}: {pr['title']}")
         else:
-            if pr["updated"] != was.get("updated"):
-                lines.append(f"ACTIVITY on PR #{num} ({pr['title']}) — new comment or review")
             if pr["review"] != was.get("review") and pr["review"]:
                 lines.append(f"REVIEW on PR #{num}: {pr['review']}")
             if was.get("draft") and not pr["draft"]:
                 lines.append(f"PR #{num} left draft — ready for review")
+    # Comments are reported for every PR, open or not: a thread on a just-merged PR still matters.
+    for num in sorted(set(newpc) | set(oldpc), key=lambda s: int(s) if s.isdigit() else 0):
+        seen = oldpc.get(num) or {}
+        for cid, c in (newpc.get(num) or {}).items():
+            if cid in seen:
+                continue
+            where = f" on {c['on']}" if c.get("on") else ""
+            lines.append(f"COMMENT on PR #{num} by {c['by']}{where}: {c['gist']}")
     for num in sorted(set(oldp) - set(newp), key=int):
         lines.append(f"PR #{num} closed or merged ({oldp[num]['title']})")
 
@@ -178,10 +236,11 @@ def describe(old, new, name):
         was = oldd.get(num)
         if was is None:
             lines.append(f"NEW DISCUSSION #{num}: {d['title']}")
-        elif d["comments"] != was.get("comments"):
-            delta = d["comments"] - was.get("comments", 0)
-            verb = f"+{delta} comment(s)" if delta > 0 else f"{delta} comment(s)"
-            lines.append(f"DISCUSSION #{num} ({d['title']}): {verb}")
+            continue
+        seen = was.get("comments") or {}
+        for cid, c in (d.get("comments") or {}).items():
+            if cid not in seen:
+                lines.append(f"COMMENT on discussion #{num} by {c['by']}: {c['gist']}")
 
     if new.get("main") and old.get("main") and new["main"] != old["main"]:
         lines.append(f"main MOVED to {new['main'][:9]} — someone merged; consider rebasing")
@@ -202,6 +261,10 @@ def main():
     ap.add_argument("--state", help="override the state file path")
     ap.add_argument("--reset", action="store_true",
                     help="forget what's been seen, so the next run reports everything as new")
+    ap.add_argument("--ack", action="store_true",
+                    help="mark current reality as seen without reporting it. Run this right after "
+                         "you post a comment or push, so your OWN actions don't wake you later. "
+                         "Repeat with --state for each watcher that needs acking.")
     args = ap.parse_args()
     name = args.name.strip().lower()
 
@@ -219,6 +282,7 @@ def main():
     new = {
         "inbox": probe_inbox(name),
         "prs": prs or {},
+        "pr_comments": probe_pr_comments() or {},
         "discussions": discussions or {},
         "main": probe_main() or "",
     }
@@ -240,6 +304,14 @@ def main():
     except OSError as e:
         if not args.quiet:
             print(f"[watch] warning: couldn't save state to {path}: {e}", file=sys.stderr)
+
+    if args.ack:
+        # State has already been written above; that's the whole job. Say what was swallowed so
+        # an ack is never silent about hiding something.
+        if not args.quiet:
+            n = len(describe(old, new, name)) if not first_run else 0
+            print(f"[watch] acked for {name}" + (f" — {n} change(s) marked as seen" if n else ""))
+        return 1
 
     if args.quiet:
         return 0 if changed else 1
