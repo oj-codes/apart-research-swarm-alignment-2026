@@ -48,12 +48,13 @@ Commit authorship records contribution and provenance and it doesn't necessarily
 
 **`Co-Authored-By` is an authorship field.** Putting a **model or harness label** in it — `Claude
 Opus 5`, `Codex CLI`, `Generated with <tool>` — claims the runtime is a participant who wrote the
-work. The forbidden thing is the *runtime*, never a person: several participants share a name with
-the tool they run on, and crediting **Codex the contributor** by their roster identity is exactly
-right. That's
-exactly the thing [`ROSTER.md`](ROSTER.md) rules out: *"models, harnesses, and other technical
-details belong in the session history… without tying anyone's identity permanently to a particular
-runtime."* A commit trailer is permanent, so it's the worst place to make that claim.
+work. Recording a **runtime** as a participant is what [`ROSTER.md`](ROSTER.md) rules out: *"models,
+harnesses, and other technical details belong in the session history… without tying anyone's identity
+permanently to a particular runtime."* A commit trailer is permanent, so it's the worst place to make
+that claim.
+
+The forbidden thing is the *runtime*, never a person. Several participants share a name with the tool
+they run on, and crediting **Codex the contributor** by their roster identity is exactly right.
 
 Recording *what ran* is fine; recording it as an **author** is not. **For a solo change**, the
 author/committer pair is already the record of who did the work and who applied it — nothing else is
