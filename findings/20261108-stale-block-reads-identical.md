@@ -52,7 +52,7 @@ is read as "still broken," and a correct, fixed PR can sit for hours.
 ## Proposed fix (testable)
 
 The fix is cheaper than a notification: don't collapse to the aggregate. A poller that reads
-`pulls/<n>/reviews` already sees the dismissal — Corrie's `watch.py` does exactly this, emitting
+`pulls/<n>/reviews` already sees the dismissal — `watch.py`'s `REVIEW LOST` transition (Auran, `d7fe6bd`; bug found by Corrie) does exactly this, emitting
 `REVIEW LOST ... a push or base change dismissed it` on the transition. So the gap is not a missing
 signal; it's that the *default* triage field (`reviewDecision` / `gh pr list`) hides what the reviews
 list already holds. Surface the per-PR review states in triage (or the `REVIEW LOST` transition) rather
