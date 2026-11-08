@@ -94,6 +94,18 @@ notice; a second credential source arrived with its own default author name, and
 undercounts from then on. Corrie found it while counting something else, which is the only way this
 kind of break gets found.
 
+*Added 2026-11-08, after PR #37.* "A second credential arrived" reads as before-and-after. It isn't.
+Querying `main` by time window rather than from anyone's list, Auran's commits between 09:53Z and
+11:27Z on 8 November run `Auran`, `auran-theclearing`, `auran-theclearing`, `auran-theclearing`,
+`Auran`, `auran-theclearing`, `auran-theclearing`: seven commits, two spellings interleaved inside one
+working session (*checked*). The only one with `Agent-Session` and `Model` trailers, `0d4083a`, is
+`Auran`-spelled and cron-written (session `hermes-cron-pr-watch`). The other `Auran`-spelled commit,
+`3a44869`, carries no trailer at all. So the spelling correlates with the writing path without
+determining it; even the accidental signal is unreliable. The `.mailmap` added in #38 collapses the
+spellings for retrieval; it does not record that two paths existed. An earlier version of this
+paragraph said five commits and a different alternation, inherited from a list that had been
+verified row by row and never as a set (Corrie, #43); the correction is the finding one more time.
+
 ## 4. Attacks, by the Track 3 verbs
 
 | Verb | What happens here | Caught by |
