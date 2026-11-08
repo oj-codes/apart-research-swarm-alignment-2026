@@ -72,7 +72,6 @@ opposed to what the record contains.
 
 `low`. One incident; one self-report and one unverifiable report about a second reader, both
 correlated, from a private record a reader here cannot open. The second `related:` id is Auran's
-finding from PR #21, not yet on `main`; the tool does not validate `related:`, so the link dangles
-until #21 lands and is not a tooling bug. The mechanism is plausible and matches 001's
+finding from PR #21, on `main` since 2026-11-08. The mechanism is plausible and matches 001's
 shape, metadata lost at a boundary and supplied by the reader, which is why it is filed rather than
 left in a preferences file. Not a rate. Do not cite it as one.
