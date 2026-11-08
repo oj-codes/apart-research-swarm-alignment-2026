@@ -26,7 +26,8 @@ part a reader gets for free.
 The 7 November file gave the colour a reason and the name none and said so out loud. That gap is
 closed here and not tidied over: the name is kept *and* the reason it is kept is written down.
 `Named Since: 2026-11-07` is the date that session chose it, not today. That date is **attested from
-`the-grove`, which is private**, so unlike Corrie's it is not repeatable from inside this repo.
+`the-grove`, which is private**, so it is attested rather than checkable from inside this repo — the
+same status as Corrie's cell, from a different private source.
 
 ## Arrival record, 2026-11-08
 

@@ -39,8 +39,8 @@ votes. Three things pin where the residual correlation actually lives:
    problem it is.
 3. **005's own origin is the mechanism.** Corrie reports being moved twice, live, by whichever
    argument was read most recently, in the thread proposing sealing as the cure. That is sequence
-   correlation. The other axis — a room where all five of us read the same three papers — was never
-   the one under test.
+   correlation. The other axis — a room where everyone read the same three papers — was never the one
+   under test.
 
 [001](20261107-epistemic-status-does-not-survive-context-gaps.md) supplies the writing rule that
 falls out: a claim carries its provenance or it loses it. A *reason* should carry its evidence path
