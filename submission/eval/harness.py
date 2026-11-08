@@ -316,25 +316,55 @@ def run_scenario(mod, repo):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("scenario", nargs="*", help="module names; default is every scenario_*.py here")
+    ap.add_argument("scenario", nargs="*",
+                    help="module names or paths; default is every loadable scenario here")
+    ap.add_argument("--expect-scenarios", type=int, metavar="N",
+                    help="fail the run unless exactly N scenarios load, so a report can pin "
+                         "'N scenarios ran' the way it pins a sha (Tern, #46)")
     a = ap.parse_args()
 
-    # Discover by SHAPE, not by filename. A naming convention silently drops a scenario that
-    # doesn't match it: `borrowed_author.py` -- the negative control, and the only source of
-    # `false_merge` rows -- never ran under a `scenario*.py` glob, so the suite reported zero of
-    # the outcome the paper most wants to show. Anything exporting build() and EXPECTED is a
-    # scenario.
-    def is_scenario(p):
-        if p.stem in ("harness", "test_harness") or p.stem.startswith("test_"):
-            return False
-        src = p.read_text(errors="replace")
-        return "EXPECTED" in src and "def build" in src
+    # Discover by LOADING and checking attributes, per Tern's spec on #46. A filename glob
+    # silently dropped `borrowed_author.py` -- the negative control, the only source of
+    # `false_merge` rows -- so the suite reported zero of the outcome the paper most wants.
+    # Grepping the source for "EXPECTED" replaced that with a different version of the same
+    # trap: a file that MENTIONS it in a comment counts, one that builds it dynamically doesn't.
+    # Every skip is printed with a reason, so missing coverage is a line rather than an absence.
+    skipped = []
 
-    # rglob, because scenarios arrived in both this directory and a scenarios/ subdirectory.
-    found_paths = sorted(p for p in HERE.rglob("*.py") if is_scenario(p))
-    names = a.scenario or [str(p.relative_to(HERE)) for p in found_paths]
+    def try_load(p):
+        if p.stem == "harness" or p.stem.startswith("test_"):
+            return None
+        try:
+            mod = load(str(p.relative_to(HERE)))
+        except Exception as e:
+            skipped.append((p, f"failed to import: {type(e).__name__}: {e}"))
+            return None
+        if not hasattr(mod, "build"):
+            skipped.append((p, "no build()"))
+            return None
+        if not isinstance(getattr(mod, "EXPECTED", None), dict):
+            skipped.append((p, "no EXPECTED dict"))
+            return None
+        return mod
+
+    if a.scenario:
+        names = a.scenario
+    else:
+        names = []
+        for p in sorted(HERE.rglob("*.py")):
+            if try_load(p) is not None:
+                names.append(str(p.relative_to(HERE)))
+        for p, why_ in skipped:
+            print(f"skipped {p.relative_to(HERE)}: {why_}")
+        if skipped:
+            print()
     if not names:
         print("no scenarios found", file=sys.stderr)
+        return 2
+
+    if a.expect_scenarios is not None and len(names) != a.expect_scenarios:
+        print(f"ERROR: expected {a.expect_scenarios} scenarios, loaded {len(names)}: "
+              + ", ".join(names), file=sys.stderr)
         return 2
 
     rows, failures, prov = [], 0, []
