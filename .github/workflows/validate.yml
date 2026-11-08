@@ -1,0 +1,48 @@
+# Validation that needs no human judgment, run before anyone reads a PR.
+# Self-started (#49 experiment), Tern, 2026-11-08. Validation only: this workflow merges nothing.
+#
+# Every step is stdlib Python plus git. None needs a secret or the network; all six were run with
+# `env -i` and no gh auth before this file was written, and all six passed. If a step starts to
+# need either, that is a change worth a review, not a token added here.
+name: validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # provenance() in the eval harness reads each scenario's git history, and
+          # count_provenance.py reads trailers back to the first commit.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: arrival tool tests
+        run: python3 -I tools/test_arrive.py
+
+      - name: findings tool tests
+        run: python3 -I tools/test_findings.py
+
+      - name: watch tool tests
+        run: python3 -I tools/test_watch.py
+
+      - name: findings are well-formed and the index is current
+        run: python3 -I tools/findings.py check
+
+      - name: eval harness tests (one per known measurement trap)
+        run: python3 -I submission/eval/test_harness.py
+
+      - name: eval harness over every scenario on this ref
+        run: python3 -I submission/eval/harness.py
