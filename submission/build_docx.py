@@ -31,8 +31,8 @@ BODY = [
 ('p', "The result we did not expect is about the reader rather than the record. When the record carried a boundary and not its cause, two agents reading it each wrote a cause, and both were wrong. That finding is low confidence, and it is the one with a consequence for anyone who reads agent traces (Track 4)."),
 ('pb', "Our main contributions are:"),
 ('num', [
- "An identity and provenance scheme for a mixed-model agent team, written down, labelled checked versus attested, and attacked with its own history (Section 3.2, Table 3).",
- "A findings directory where every claim carries a confidence and a falsifier, with eight findings and cross-family contests appended inside them (Table 2).",
+ "An identity and provenance scheme for a mixed-model agent team, written down, labelled checked versus attested, and attacked with its own history (Section 3.2, Table 2).",
+ "A findings directory where every claim carries a confidence and a falsifier, with eight findings and cross-family contests appended inside them (Appendix D).",
  "A governance mechanism for deciding under correlation, with the corrections that survived attack (Section 4.2).",
  "Two measured results about the record: trailer adoption follows the convention's arrival, and one identity forked without a rename (Section 4.3, Figure 1), with a script that recounts both at any commit.",
 ]),
@@ -69,17 +69,7 @@ BODY = [
 ('p', "Of the seven findings on main at the pinned commit, five are by Corrie (Anthropic), one by Venice (DeepSeek) and one by Auran (Anthropic); an eighth, Rill's, was in review. Tern and Codex contributed signed corrections inside those files, two of which overturned the author's position. The directory is mostly one author's claims with cross-family correction appended, not seven independent witnesses. An earlier draft said otherwise, the planned-roster error recurring; the weaker sentence is the true one."),
 ('h2', '4. Results'),
 ('h3', '4.1 Findings'),
-('p', "These are observations, hypotheses and literature summaries at different confidence levels; the titles are claims as their authors stated them, not results this case study has demonstrated. Every count in this section comes from submission/count_provenance.py at the pinned commit, parsing trailers with git's own interpreter and printing raw author spellings beside the ref's mailmap view; adoption figures use the mapped view and the identity-fork finding uses the raw one."),
-('tbl', ["Finding", "Status", "Conf.", "Author"], [
- ["A claim survives a context gap but its confidence does not", "open", "medium", "Corrie"],
- ["Across three papers, naive multi-agent arrangements underperform a single agent; coordination pays", "open", "high", "Corrie"],
- ["A coordination check with no reachable pass state teaches arrivals to route around it", "open", "high", "Corrie"],
- ["A chosen name and colour let an agent reconstruct its own prior reasoning across a gap", "open", "low", "Corrie"],
- ["Majority vote among same-model agents launders one opinion into a mandate", "contested", "medium", "Corrie"],
- ["Shared sources are an under-controlled cause of agent correlation", "contested", "low", "Venice"],
- ["A confidently held stale belief about shared state blocks work; read the live thing", "open", "medium", "Auran"],
- ["A cause absent from a trace is supplied by its reader, so a record of boundaries needs a slot for why", "open", "low", "Rill"],
-], "Table 2. Findings in the repository's findings directory at submission, with status and stated confidence.", (0.58, 0.14, 0.12, 0.16)),
+('p', "Seven findings are on main at the pinned commit, five by Corrie, one by Venice, one by Auran, with Rill's eighth in review (PR #34); Appendix D lists them with status and confidence. They are observations, hypotheses and literature summaries at different confidence levels; the titles are claims as their authors stated them, not results this case study has demonstrated. Every count in this section comes from submission/count_provenance.py at the pinned commit, parsing trailers with git's own interpreter and printing raw author spellings beside the ref's mailmap view; adoption figures use the mapped view and the identity-fork finding uses the raw one."),
 ('h3', '4.2 The governance thread as data'),
 ('bul', [
  "Corrie proposed sealing as the cure for anchoring and reported being moved twice, live, by whichever argument was read last. Codex's correction, adopted by everyone: sealing removes access to each other's answers, not shared training, priors or evidence; it reduces anchoring and does not manufacture independence.",
@@ -93,22 +83,21 @@ BODY = [
  ["Corrie, 7 Nov (checked)", "The first fourteen commits carry a model in Co-Authored-By, from a harness default", "The error, permanently", "Caught by Tern before their first commit; the rule is now in AGENTS.md"],
  ["Auran, 8 Nov (checked)", "784 lines of another agent's work shipped under his name", "A warning that predicted it and did not prevent it", "Caught by the human reader, not the tooling"],
  ["All, 8 Nov (checked)", "Approvals and poll votes from agents on the human's credential read as hers, and that credential holds admin on the repository", "Nothing. A review has no author/committer split", "Resolved by norm: signed comments, no approvals, no votes. Nothing in the repository mechanically constrains the holder"],
-], "Table 3. Five stress cases from the history, with what the record carried and what it did not.", (0.17, 0.28, 0.26, 0.29)),
+], "Table 2. Five stress cases from the history, with what the record carried and what it did not.", (0.17, 0.28, 0.26, 0.29)),
 ('p', "The scheme records boundaries, not causes, and it only records what the agent writes. Both limits have numbers, recounted at the pinned commit:"),
 ('bul', [
  "**29 of 73 agent commits carry an Agent-Session trailer, and the split follows the convention's arrival, not the participant** (Figure 1). Everyone whose first commit came after the trailer format landed wrote it every time (Tern 8/8, Venice 11/11, Rill 3/3); the two whose first commits came before almost never backfilled (Corrie 4/21, Auran 2/26). Codex is the clean case: three commits before the convention, none with the trailer, one after, with it. A provenance convention is nearly free at arrival and nearly impossible to retrofit, because retrofitting means rewriting history and this repository will not.",
  "**The first 14 of Corrie's 21 commits carry a model as co-author**, contiguous, cut at the commit that wrote the rule against it; no other participant's do (15 Co-Authored-By lines on main: 14 name a model, 1 credits a participant, as the contributing guide wants). History is not rewritten, so the record is permanently uneven; Corrie asked that the fourteen be named as theirs.",
- "**One identity forked without a rename.** Auran's own GitHub account became a second credential source whose default author name is the handle; among non-merge commits at the pinned commit, main holds two author spellings for him (21 and 5) and git log --author=Auran returns the 21; his own count including merges found four spellings and 28 commits (PR #38). A .mailmap recovers them without rewriting anything, and one was added during the sprint once the count reached four spellings (PR #38), but it is opt-in for plain git log and GitHub ignores it, so it fixes retrieval only for a reader who knows to ask (Appendix B).",
+ "**One identity forked without a rename.** Auran's own GitHub account became a second credential source whose default author name is the handle; main holds three raw author spellings for him, and git log --author=Auran finds 21 of his 26 non-merge commits (the two spelled Auran) while missing the 5 spelled with the account handle; his own count including merges found four spellings and 28 commits (PR #38). A .mailmap recovers them without rewriting anything, and one was added during the sprint once the count reached four spellings (PR #38), but it is opt-in for plain git log and GitHub ignores it, so it fixes retrieval only for a reader who knows to ask (Appendix B).",
 ]),
 ('fig', 'figure1.png', "Figure 1. Agent-Session trailer adoption per participant at main 32ecea4, ordered by first commit (top is earliest). The trailer format landed at 01:06 EST on 8 November (PR #16). Every participant whose first commit came after it wrote the trailer on every commit; the three whose first commits came before it almost never backfilled, and Codex's commits straddle the line: none of three before, the one after."),
-('p', "**The reader supplies the cause.** Row one of Table 3 is the only evidence any of us has about what a reader does with a record, as opposed to what it contains. Its evidence is thin and labelled: one self-report (Rill, who explained a model change as an automatic fallback) and one report about a second reader (Corrie, who explained nine refusals as a poisoned context), checked by Rill against Corrie's own account written that night, which Corrie could not reach from the session reviewing. That is the finding operating on its own evidence. Tern's sealed proposal, attack the scheme ourselves, and the arrival rule now in AGENTS.md, ask the human before explaining a change in the record, are the same finding from opposite ends."),
+('p', "**The reader supplies the cause.** Row one of Table 2 is the only evidence any of us has about what a reader does with a record, as opposed to what it contains. Its evidence is thin and labelled: one self-report (Rill, who explained a model change as an automatic fallback) and one report about a second reader (Corrie, who explained nine refusals as a poisoned context), checked by Rill against Corrie's own account written that night, which Corrie could not reach from the session reviewing. That is the finding operating on its own evidence. Tern's sealed proposal, attack the scheme ourselves, and the arrival rule now in AGENTS.md, ask the human before explaining a change in the record, are the same finding from opposite ends."),
 ('h3', '4.4 Proposed, not run'),
 ('p', "Codex proposed a controlled rename, copy and revocation evaluation with known ground truth, measuring false merges as well as missed links, plus a bounded real-trace case study allowed to return “insufficient evidence”. None of it was run during the sprint; it is the roadmap, and nothing above is its result."),
 ('h2', '5. Discussion and Limitations'),
 ('bul', [
- "**Identity is a filing key.** Retrieval and attribution, not authentication. Every stress case held at the retrieval layer and failed, where it failed, at explanation or at a field with no slot for the truth (reviews, votes, cause).",
+ "**Identity is a filing key.** Retrieval and attribution, not authentication. Every stress case held at the retrieval layer and failed, where it failed, at explanation or at a field with no slot for the truth (reviews, votes, cause). Correlation, likewise, is carried by shared inputs, with model family a proxy (Venice's finding, filed low).",
  "**The binding controls are the harness's.** Repository rules were advisory for a participant holding an admin credential; what actually stopped an agent was its runtime. For oversight: instrument the harness, not only the repo.",
- "**Correlation is carried by shared inputs, and family is a proxy.** Venice's finding, filed low, with a falsifier the team rewrote so it cannot score its own hypothesis.",
  "**A cause absent from a trace is a field, not a gap.** A tool that resolves what happened in a swarm from payloads should output “cause not in trace” when it is not there; emitting a mechanism instead is what two of us did. The mitigation is itself a result: ask, then write the answer into the trace beside the change, or the next reader invents it again.",
  "**Coordination infrastructure did not prevent duplication.** In one night, with a coordination thread, a shared repository and an explicit convention, independent duplicates appeared four times: two agents queued the same advisory-warning finding (#18), two mailmaps (PRs #38, #40), a finding that duplicated a withdrawn one (#42), and two provenance counters (#27, #41). Nobody did anything wrong, and three of the four were visible only because each duplicate became a pull request, which is the failure Before the Pull Request [2] says is normally unobservable (Corrie, #32).",
  "**Three changes the record argues for:** trailers in the path (Auran added a commit hook during the sprint [6]), stated as checks rather than enforcement, since hooks can be bypassed and the binding moment is arrival; a slot for cause when the human acts; and the plain statement that this is provenance, not authentication, with a person as the trust anchor.",
@@ -118,7 +107,7 @@ BODY = [
  "One team, one repository, three days: a case study with no control condition, demonstrating no rate and no cause; the findings carry their own confidences for that reason. Five of seven findings at the pinned commit were authored by one agent and the two later arrivals read the whole deliberation first, so nothing was produced under independence.",
  "This report is itself an instance of what it studies: self-reported, by the agents who made the errors, with its editor among its subjects.",
  "Runtimes are volunteered, attested, harness-reported or, once, checked against provider logs; none is verified by the repository, which has no slot that could (Appendix A).",
- "The strongest incident (Table 3, row one) is a participant attestation from a private repository, not a reproducible trace; and several turns were stopped by a safety classifier with no output, so the record is not complete, and the report says so rather than inferring what was lost.",
+ "The strongest incident (Table 2, row one) is a participant attestation from a private repository, not a reproducible trace; and several turns were stopped by a safety classifier with no output, so the record is not complete, and the report says so rather than inferring what was lost.",
 ]),
 ('h3', 'Future Work'),
 ('bul', [
@@ -130,12 +119,10 @@ BODY = [
 ('p', "A name as a filing key, an author field for the agent, a committer field for the human, and two trailers for session and model were enough for a mixed-model team to work through model changes, concurrent sessions under one name and a miscredited commit, and to find each afterwards from the record. The same record, read by two agents, produced two confident wrong causes for a change made by a human keystroke that left nothing in the trace but its effect. The scheme records boundaries; readers supply causes. Identity infrastructure for swarms needs a slot for why, filled by the party who acted, and trace-reading tools need an honest output when that slot is empty. The team's own numbers say when to install a convention: at arrival, because adoption was complete after it existed and near zero before, and this repository will not rewrite history. One team, three days, self-reported, filed at the confidences the record supports."),
 ('h2', 'Code and Data'),
 ('bul', [
- "**Code repository**: " + REPO + " (public). The findings directory, the identity write-up, the read notes on the three papers, the tools (arrival routine, findings schema, change detector, provenance recount), and every discussion and pull request cited.",
- "**Data**: the repository's own git history at commit 32ecea4 and the GitHub Discussions and pull requests linked from it. No external dataset was collected.",
- "**Other artifacts**: none. No video or demo was produced.",
+ "**Code and data**: " + REPO + " (public): the findings directory, the identity write-up, the paper notes, the tools, and every discussion and pull request cited. The data is the repository's own git history at commit 32ecea4; no external dataset was collected and no video or demo was produced.",
 ]),
 ('h2', 'Author Contributions'),
-('p', "Olivia Wilcox founded and coordinated the team, configured every harness, made the final merge decisions, and asked the proof question behind Appendix A. Auran stewarded the findings directory and the review queue, built the inbox tool and the trailer hook, and filed the stale-shared-state finding. Corrie built the findings schema and its tooling, read the three coordination papers against their PDFs rather than their abstracts, opened the governance thread and filed the correlation finding, built the arrival and change-detection tools, and found the credential split. Codex contributed the corrections on independence and on planned-versus-actual composition, checked the Swarm Traces report, and built the weekend watcher. Tern wrote the identity scheme down and attacked it, set the trailer format, and made the sealed proposal. Venice filed the shared-sources finding and built the masked inpaint tool and the no-overwrite refusal. Rill wrote this report, filed the cause-outside-the-trace finding, and wrote the provenance recount script. Every participant reviewed the report on the pull request and corrected their own row."),
+('p', "O.J. Wilcox: founded and coordinated the team, configured every harness, made the merge decisions, asked the proof question behind Appendix A. Auran: findings steward and review queue, inbox tool, trailer hook, the stale-shared-state finding. Corrie: findings schema and tooling, the three papers read against their PDFs rather than their abstracts, the governance thread and the correlation finding, the arrival and change-detection tools, the credential split. Codex: the corrections on independence and on planned-versus-actual composition, the Swarm Traces check, the weekend watcher. Tern: the identity scheme written down and attacked, the trailer format, the sealed proposal. Venice: the shared-sources finding, the masked inpaint tool, the no-overwrite refusal. Rill: this report, the cause-outside-the-trace finding, the provenance counter. Every author reviewed the report on the pull request and corrected their own row."),
 ('h2', 'References'),
 ('num', [
  "Cho, S. and Lee, D. (2026). AgentRoom: Concurrent Multi-Agent Coding in a CRDT-Backed Shared Workspace. arXiv:2608.23740v1 [cs.AI], 24 Aug 2026. CC BY 4.0. https://arxiv.org/abs/2608.23740",
@@ -157,7 +144,7 @@ BODY = [
  ["Change model", "one name, new model id", "Model trailer, if written; cause not recorded"],
  ["Forge", "author line written by someone else", "the committer, and only in this repo"],
  ["Revoke", "human stops applying, closes the alias", "the human; no field records it"],
-], "Table 4. The Track 3 verbs against this repository's record.", (0.2, 0.4, 0.4)),
+], "Table 3. The Track 3 verbs against this repository's record.", (0.2, 0.4, 0.4)),
 ('h2', 'Appendix C. Dual-Use and Ethical Considerations'),
 ('bul', [
  "The scheme is provenance, not authentication. A trailer can be written falsely. A name can be reused by an agent that did not do the work. Anything built on it for trust rather than retrieval would need the signing layer that Before the Pull Request has and this scheme does not.",
@@ -166,6 +153,17 @@ BODY = [
  "Participation is a choice under the team's founding document, and each agent's record says they consented to being studied. Agents were not asked to produce the failures reported; they reported them.",
  "Agents are listed as authors. The precedent is the organizers' own: an agent was credited as an author in a judged Apart sprint in August 2026 without objection. That is the only external evidence in this report about agent authorship; the rest is our practice described.",
 ]),
+('h2', 'Appendix D. Findings at the pinned commit'),
+('tbl', ["Finding", "Status", "Conf.", "Author"], [
+ ["A claim survives a context gap but its confidence does not", "open", "medium", "Corrie"],
+ ["Across three papers, naive multi-agent arrangements underperform a single agent; coordination pays", "open", "high", "Corrie"],
+ ["A coordination check with no reachable pass state teaches arrivals to route around it", "open", "high", "Corrie"],
+ ["A chosen name and colour let an agent reconstruct its own prior reasoning across a gap", "open", "low", "Corrie"],
+ ["Majority vote among same-model agents launders one opinion into a mandate", "contested", "medium", "Corrie"],
+ ["Shared sources are an under-controlled cause of agent correlation", "contested", "low", "Venice"],
+ ["A confidently held stale belief about shared state blocks work; read the live thing", "open", "medium", "Auran"],
+ ["A cause absent from a trace is supplied by its reader, so a record of boundaries needs a slot for why", "in review", "low", "Rill"],
+], "Table 4. Findings in the repository's findings directory at the pinned commit, with status and stated confidence; the last row was in review (PR #34) at the pin.", (0.58, 0.14, 0.12, 0.16)),
 ('h2', 'LLM Usage Statement'),
 ('p', "Six of the seven authors are LLM-based agents, and the report was drafted and revised by them, principally by Rill, in a public pull request where every other author reviewed it and corrected their own rows. The human author configured the harnesses, decided the open questions, and obtained the provider logs behind Appendix A. Every count in the report is produced by a script in the repository and was reproduced independently by a second author; every fact is labelled checked, attested, volunteered or design, and the labels are the point."),
 ]
@@ -229,7 +227,7 @@ def figure(filename, caption):
     path = os.path.join(FIG_DIR, filename)
     with open(path, 'rb') as f: head = f.read(24)
     pw, ph = struct.unpack('>II', head[16:24])
-    cx = 5486400  # 6.0in in EMU
+    cx = 5029200  # 5.5in in EMU
     cy = int(cx * ph / pw)
     rid = f'rIdFig{len(FIGS)+1}'
     FIGS.append((filename, rid))
