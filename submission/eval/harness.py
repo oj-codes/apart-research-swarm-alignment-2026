@@ -157,6 +157,12 @@ PATHS = {
 TRUTH_KEYS = {p: "Truth-Actor" for p in ("author", "mailmap", "raw", "session")}
 
 
+def _trailer_values(repo, key, sha):
+    """The values of `key` on one commit. Used only to resolve a session to its owner."""
+    out = git(repo, "show", "-s", f"--format=%(trailers:key={key},valueonly)", sha)
+    return {ln.strip() for ln in out.splitlines() if ln.strip()}
+
+
 def truth(repo, key, identity, merges=False):
     """Shas whose `Truth-Actor`/`Truth-Session` trailer names `identity` (Tern's design).
 
@@ -223,6 +229,18 @@ def run_scenario(mod, repo):
         fn = PATHS[path]
         kw = {"scenario": mod} if path == "session" else {}
         want = truth(repo, TRUTH_KEYS[path], identity)
+        if not want and path == "session":
+            # Two conventions arrived at once: Rill keys the session row by SUBJECT
+            # ("corrie"), Tern by SESSION ID ("sess-a-0001"). Both are legible. If the key
+            # isn't an actor, resolve it as a session and score against the commits of
+            # whoever that session belongs to -- "querying by session, do we recover the
+            # work of the person whose session it is?"
+            owners = set()
+            for sha in truth(repo, "Truth-Session", identity):
+                for a in ("Truth-Actor",):
+                    owners |= {v for v in _trailer_values(repo, a, sha)}
+            for owner in owners:
+                want |= truth(repo, "Truth-Actor", owner)
         if not want:
             raise ValueError(
                 f"{path}/{identity}: no commit carries {TRUTH_KEYS[path]}: {identity}. "
