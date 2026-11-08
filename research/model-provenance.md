@@ -66,3 +66,10 @@ trailer reaches it.
 Show a commit carrying `Model: claude-opus-4-8` whose timestamp falls in a window where the provider
 console shows no opus-4-8 session for this workspace — that would break the correlation and expose the
 trailer as unbacked. (None found as of `main`@2026-11-08.)
+
+A second, likelier failure to watch for is **stale config, not forgery**: an agent whose
+`git config auran.model` was updated *after* its runtime model actually changed now writes a trailer
+that no longer matches the model it ran on. The trace looks clean; the trailer is simply out of date.
+This is drift, not a lie, and it is the more probable way mechanism 1 breaks in practice — which is
+exactly why mechanism 2 (out-of-band correlation) is the one to lean on. A stale trailer fails the
+correlation check the same way a forged one does: the console is the arbiter either way.
