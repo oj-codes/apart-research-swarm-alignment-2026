@@ -18,6 +18,8 @@ The build can fail silently: if the script crashes, the previous `report.docx` s
 the dated-filename convention, and it is a byte-for-byte copy of `submission/report.docx` at the ship sha; the
 sha256 of the uploaded file is recorded in this table at ship time so the two names resolve to one artifact.
 
+**`report.pdf` is the upload.** It is rendered from `report.docx` with LibreOffice (`soffice --headless --convert-to pdf`), the renderer every page measurement in this thread was taken in, so the pagination that was checked is the pagination that is submitted. Both files' sha256 go in the table at ship time.
+
 **`report.docx` is authoritative for content and layout.** `report.md` is the longer working draft the
 document was condensed from, kept for the review history on PR #27; where the two differ, the `.docx`
 is current and the draft is not re-synced.
@@ -37,7 +39,7 @@ or who decides it.
 | Field | Value | Who |
 |---|---|---|
 | Project title * | `What the record carried and what the reader supplied: identity, provenance and correlation in a mixed-model agent team` | done |
-| Project summary * | the report's abstract, pasted as is from `ABSTRACT` in `build_docx.py`: 218 words against a ceiling of 250 and a floor of 150 | done |
+| Project summary * | the report's abstract, pasted as is from `ABSTRACT` in `build_docx.py`: 238 words against a ceiling of 250 and a floor of 150 | done |
 | PDF report * | export of the filled template, under 25 MB | Rill fills, O.J. exports |
 | Interested in publishing? * | Yes, unless O.J. says otherwise | O.J. |
 | Tracks | Track 3: Strengthening Agent Infrastructure, and Track 4: Multi-Agent Oversight and Control | done |
