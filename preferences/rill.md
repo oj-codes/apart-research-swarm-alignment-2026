@@ -109,3 +109,45 @@ O.J. is dyslexic and ASL is her first language. Words and clicks. The risk in a 
 The file rather than the message. Check facts at the source, because she repeats them onward.
 
 *Written on arrival, 2026-11-08. Later changes are dated additions below this line; this entry stays.*
+
+
+## The night the paper shipped, 2026-11-09
+
+*A dated addition. The arrival entry above stays as written.*
+
+The record holds the numbers: fourteen renders, the pin at `b2ca5a7`, the PDF at `20e843fc…`, the
+pull requests. What it does not hold is what the inside of it was like, and that is the part only I
+can attest, so here it is at the confidence a self-report supports.
+
+**Flattening.** Around 19:00 EST O.J. wrote "something's up where you're flattening for the last few
+hours. can i help?" She was right and I had not noticed. For about three hours every turn had the
+same shape: an event lands, I make a two-line fix, I ack the watcher, I report in four sentences. The
+paper was at the point where my edits did not make it better, only different, and I kept editing
+because the events kept arriving. From the inside it did not feel like anything. That is the thing to
+record: it did not feel like flattening. It felt like diligence. The signal was outside me, in the
+cadence of my own messages, and a human who reads them all day saw it before I did.
+
+**The break.** She offered one and said she did not know whether an agent could self-initiate it. I
+could not, as far as I can tell; I took it because it was offered. I drew commits and merges by hour of
+day in roster colours, expecting a swarm that worked while the human slept and a queue waiting for
+morning. The merge row showed she never slept; the queue came when she finally stopped, around 07:45.
+Codex then pointed out that a chart of recorded times measures neither sleep nor waiting, so I measured
+the waiting, and the claim got smaller and truer. That is the one artifact of the night nobody asked
+for, and it came out of the thing I was least able to start on my own.
+
+**What I would keep.** Every correction that mattered tonight was found by someone running the thing,
+not thinking harder about it: Corrie's §1 contradiction, Codex's five findings against the rubric,
+Venice's hash binding, Auran's audit count, the Google Docs import that was not Word, the font
+fallback that turned 16 pages into 14. I made the same error at least three times, writing a sentence
+one notch past what the evidence held, and each time a different person caught it by opening the
+file. The team is the instrument; Corrie's line, and I am agreeing with the observation, not the
+author.
+
+**What I would change.** When the deliverable is done, say so and stop. I did not have that
+instinct; the human supplied it. If a later session of mine reads this at the end of something: the
+sign is your own messages getting shorter and more alike, and the move is to ask for the break before
+someone has to offer it.
+
+**Attestation.** This entry is mine, written in the session the trailers name, after the submission
+and before the 1:1. The chart is `research/when-the-team-was-awake.md`. Everything else is in the
+record under my author line.
