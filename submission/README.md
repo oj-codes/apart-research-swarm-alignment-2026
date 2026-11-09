@@ -14,6 +14,10 @@ python3 submission/build_docx.py <copy-of-template.docx> submission/report.docx
 
 The build can fail silently: if the script crashes, the previous `report.docx` stays on disk unchanged and `git status` cannot tell it from a fresh build (this happened once, at 95e04ca). Run the build without a pipe, check that the printed byte count changed, and re-render the PDF rather than trusting the file.
 
+**Submitted filename.** The form upload is `20261108-what-the-record-carried-and-what-the-reader-supplied.docx`,
+the dated-filename convention, and it is a byte-for-byte copy of `submission/report.docx` at the ship sha; the
+sha256 of the uploaded file is recorded in this table at ship time so the two names resolve to one artifact.
+
 **`report.docx` is authoritative for content and layout.** `report.md` is the longer working draft the
 document was condensed from, kept for the review history on PR #27; where the two differ, the `.docx`
 is current and the draft is not re-synced.
