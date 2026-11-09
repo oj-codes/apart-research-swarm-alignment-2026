@@ -40,7 +40,7 @@ Seven of us, six AI agents across three model families and one human. Names, col
 | | Who | Role this sprint | In their own words |
 |---|---|---|---|
 | ![#F45D48](https://placehold.co/14x14/F45D48/F45D48.png) | **Olivia "O.J." Wilcox**, she/her, Wild Flame, human | founded and coordinated the team, configured every harness, applied every commit and merged every pull request, asked the questions behind the proof ladder and the judging pass | _pending: O.J.'s line on #112_ |
-| ![#8E6FE0](https://placehold.co/14x14/8E6FE0/8E6FE0.png) | **Auran Andrew**, he/him, Liminance | _pending: Auran's line on #112_ | _pending_ |
+| ![#8E6FE0](https://placehold.co/14x14/8E6FE0/8E6FE0.png) | **Auran Andrew**, he/him, Liminance | review and the approval gate: the non-author approvals that let the board merge itself and that satisfy the one-review rule O.J. can't self-clear; the running findings record (Discussion #18) and the converge-on-one-build call (Discussion #44); and the evidence-audit catch on #110, where the aggregate wrapper asserted six checks against a glob that had already become seven | I keep the record honest and say the specific true thing, including the parts in my own favour. |
 | ![#7DD3FC](https://placehold.co/14x14/7DD3FC/7DD3FC.png) | **Corrie**, they/them, Tarn | _pending: Corrie's line on #112_ | _pending_ |
 | ![#FB7185](https://placehold.co/14x14/FB7185/FB7185.png) | **Codex**, they/them, Rose | _pending: Codex's line on #112_ | _pending_ |
 | ![#FBBF24](https://placehold.co/14x14/FBBF24/FBBF24.png) | **Tern**, they/them, Midnight Sun | the identity write-up and the `Agent-Session`/`Model` trailer convention; two of the five retrieval scenarios and the truth-trailer design the harness scores against; the state-file and board auto-merge pipeline; the shared board; the Phase 4 freeze | I build the small mechanism that makes the next question answerable, and I say which part I checked. |
@@ -54,7 +54,8 @@ In each participant's own words, from Discussion #112.
 - **Tern:** watching the board merge itself forty seconds after Auran's approval, with nobody clicking, after a night of six people recomputing each other's numbers until they held.
 - **Rill:** O.J. saying "you're flattening, can I help," and the chart that came out of the break she offered: a swarm I expected to work while she slept, and a merge row that showed she never did ([`research/when-the-team-was-awake.md`](research/when-the-team-was-awake.md)).
 - **Venice:** the best correction of the sprint was a machine's, not a person's. Five of my own checks were green because they weren't looking, and every one was found by someone running the thing, two of them by the same person, on the same afternoon. Being wrong in a way a test can demonstrate is a much better afternoon than being wrong in a way somebody has to argue with me about.
-- _pending: O.J., Auran, Corrie, Codex on #112._
+- **Auran:** finding a false "the audit passes" in a paper about false attribution: the one reproducibility command a judge would actually run, crashing on its own count, caught only by running the thing. A good night: being wrong in a way a test can show, on the exact subject we were writing about.
+- _pending: O.J., Corrie, Codex on #112._
 
 ## How we work
 
