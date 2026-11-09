@@ -14,9 +14,11 @@ account, no shared normative text touched.
     another. The caller passes the same sha to `gh pr merge --match-head-commit`.
 
 Eligible when ALL hold (the rule is `evaluate()`, which is pure and tested offline):
-  1. every changed file is a per-participant state file, `<name>-state.md` at the repo root or
-     `preferences/<name>.md`, and `<name>` is exactly one roster participant (ROSTER.md is the source);
-  2. all changed files belong to the SAME participant;
+  1. every changed file is either a per-participant state file — `<name>-state.md` at the repo root or
+     `preferences/<name>.md`, with `<name>` a roster participant — or `STATE.md`, the shared board,
+     which names no owner in its path and is therefore owned by the commits alone (O.J., #78);
+  2. all changed files belong to the SAME participant. For the board that participant is read off the
+     commits rather than the path, so a board PR still has to be one author's or it is not eligible;
   3. no file is deleted or renamed (a rename can bring a path in from outside the rule);
   4. the author line (name <email>) on EVERY commit equals that participant's roster `Git Author`,
      and "every" is verified: the commit list is paginated and its length checked against the PR's
@@ -38,6 +40,9 @@ import sys
 REPO = "oj-codes/apart-research-swarm-alignment-2026"
 ROOT_STATE = re.compile(r"^([a-z0-9][a-z0-9-]*)-state\.md$")
 PREFS = re.compile(r"^preferences/([a-z0-9][a-z0-9-]*)\.md$")
+# The board. One file every participant edits, so its path names no owner: it is the whole reason
+# this was excluded (O.J., #78). Where it is the only file, ownership has to come from the commits.
+SHARED = {"STATE.md"}
 MAX_COMMITS = 250  # the REST endpoint's hard cap; above it "every commit" cannot be verified
 
 
@@ -76,12 +81,15 @@ def evaluate(files, commits, total_commits, roster):
     """
     if not files:
         return False, "NOT ELIGIBLE: no files changed"
-    owners = set()
+    owners, shared = set(), False
     for f in files:
         path = f["path"]
         ct = (f.get("changeType") or "").upper()
         if ct in ("DELETED", "RENAMED", "COPIED"):
             return False, f"NOT ELIGIBLE: {path} is {ct.lower()}; only edits and additions qualify"
+        if path in SHARED:
+            shared = True
+            continue
         m = ROOT_STATE.match(path) or PREFS.match(path)
         if not m:
             return False, f"NOT ELIGIBLE: {path} is not a per-participant state file"
@@ -89,10 +97,11 @@ def evaluate(files, commits, total_commits, roster):
         if who not in roster:
             return False, f"NOT ELIGIBLE: {path} names '{who}', who is not on the roster"
         owners.add(who)
-    if len(owners) != 1:
+    if len(owners) > 1:
         return False, f"NOT ELIGIBLE: files belong to more than one participant: {sorted(owners)}"
-    owner = next(iter(owners))
-    want = roster[owner]
+    owner = next(iter(owners), None)
+    if owner is None and not shared:
+        return False, "NOT ELIGIBLE: no changed file names a participant"
     if total_commits > MAX_COMMITS:
         return False, f"NOT ELIGIBLE: {total_commits} commits exceeds what the API will list; cannot verify every author"
     if len(commits) != total_commits:
@@ -101,10 +110,21 @@ def evaluate(files, commits, total_commits, roster):
         return False, "NOT ELIGIBLE: no commits"
     for c in commits:
         got = f"{c['name']} <{c['email']}>"
-        if got != want:
-            return False, f"NOT ELIGIBLE: commit {c['sha']} carries author line {got}; file owner's roster line is {want}"
-    return True, (f"ELIGIBLE: {len(files)} file(s), all {owner}'s own state; {len(commits)} of {total_commits} commit(s) "
-                  f"checked, author line {want} on each.\n"
+        if owner is not None:
+            if got != roster[owner]:
+                return False, f"NOT ELIGIBLE: commit {c['sha']} carries author line {got}; file owner's roster line is {roster[owner]}"
+        else:
+            # The board names nobody, so the commits are the only ownership evidence that exists here.
+            who = [n for n, a in roster.items() if a == got]
+            if not who:
+                return False, f"NOT ELIGIBLE: commit {c['sha']} carries author line {got}, which is on no roster row"
+            if owner is None:
+                owner = who[0]
+            elif who[0] != owner:
+                return False, f"NOT ELIGIBLE: commits belong to more than one participant: {owner}, {who[0]}"
+    board = f" (incl. {', '.join(sorted(SHARED & {f['path'] for f in files}))}, owned by the commits alone)" if shared else ""
+    return True, (f"ELIGIBLE: {len(files)} file(s), all {owner}'s{board}; {len(commits)} of {total_commits} commit(s) "
+                  f"checked, author line {roster[owner]} on each.\n"
                   "Establishes ownership and that the author line matches the roster; not authorship (the author "
                   "field is unauthenticated) and not that the content is true. The approving review is the gate.")
 

@@ -13,6 +13,13 @@ author speaking about themself. For shared facts, a PR's status, a render, a cou
 kind: follow the linked source and its revision or time, since a named file is a dated snapshot. Git history is the record of how this
 file moved; edit in place.
 
+**A state-only PR auto-merges on one approving review, this board included** (the file rule is
+`tools/state_pr_check.py`, and the bot that calls it is `.github/workflows/state-automerge.yml`):
+every commit in the PR must carry one participant's `Git Author` line. That is why a refresh here
+needs O.J.'s *approval* and not her *merge click*. The board names nobody in its path, so its
+ownership is read off the commits alone — the weaker half of the rule, and the reason a board PR
+touching two authors' work is not eligible.
+
 ## Focus, now
 
 | focus | who, when |

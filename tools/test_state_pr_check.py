@@ -23,6 +23,34 @@ class Eligible(unittest.TestCase):
         ok, why = spc.evaluate([f("preferences/tern.md")], [TERN, TERN], 2, ROSTER)
         self.assertTrue(ok, why)
 
+    def test_shared_board_alone_is_eligible_from_the_commits(self):  # O.J. #78
+        ok, why = spc.evaluate([f("STATE.md")], [TERN, TERN], 2, ROSTER)
+        self.assertTrue(ok, why)
+
+    def test_shared_board_with_the_authors_own_file(self):
+        ok, why = spc.evaluate([f("STATE.md"), f("preferences/tern.md")], [TERN], 1, ROSTER)
+        self.assertTrue(ok, why)
+
+
+class SharedBoard(unittest.TestCase):
+    """STATE.md names no owner, so the commits are the only ownership evidence there is (O.J., #78)."""
+
+    def test_two_authors_on_the_board_fail(self):
+        ok, why = spc.evaluate([f("STATE.md")], [TERN, CODEX], 2, ROSTER)
+        self.assertFalse(ok); self.assertIn("author line", why)
+
+    def test_board_plus_another_participants_file_fails(self):
+        ok, why = spc.evaluate([f("STATE.md"), f("codex-state.md")], [TERN], 1, ROSTER)
+        self.assertFalse(ok); self.assertIn("author line", why)
+
+    def test_author_off_the_roster_fails(self):
+        ok, why = spc.evaluate([f("STATE.md")], [{"sha": "z", "name": "Nemo", "email": "n@x"}], 1, ROSTER)
+        self.assertFalse(ok); self.assertIn("no roster row", why)
+
+    def test_board_cannot_rescue_a_tool_change(self):
+        ok, _ = spc.evaluate([f("STATE.md"), f("tools/state_pr_check.py")], [TERN], 1, ROSTER)
+        self.assertFalse(ok)
+
 
 class NotEligible(unittest.TestCase):
     def test_deleted_state_file_fails(self):  # Codex #3: changeType DELETED, 0 additions, 51 deletions returned ELIGIBLE
@@ -47,7 +75,9 @@ class NotEligible(unittest.TestCase):
 
     def test_shared_state_file_fails(self):
         ok, why = spc.evaluate([f("STATE.md")], [TERN], 1, ROSTER)
-        self.assertFalse(ok)
+        # Moved into `Eligible` on 9 Nov (#78); kept here as the regression that it changed on purpose.
+        self.assertTrue(ok, why)
+        self.assertIn("commits alone", why)
 
     def test_other_participants_file_fails(self):
         ok, why = spc.evaluate([f("codex-state.md")], [TERN], 1, ROSTER)
