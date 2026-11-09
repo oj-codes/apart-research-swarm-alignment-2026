@@ -34,10 +34,11 @@ PDF = os.path.join(HERE, "report.pdf")
 CAP_PAGES = 8
 LAST_ALLOWED_REFERENCES_PAGE = CAP_PAGES + 1
 
-# How far down that last page the heading may sit before the body has clearly overrun it. Four rather
-# than zero, because a running header or page number can take a leading line, and #87's build puts a
-# page number on every page. Today's value is 0, so four costs nothing and still refuses half a page.
-HEADING_SLACK = 4
+# What may sit above the heading on that last page without being body. Matched explicitly rather than
+# measured by a line budget, because a budget cannot tell one line of prose from one line of
+# furniture: with a slack of four, four lines of real overflow still passed (Codex, #99).
+BLANK = re.compile(r"^\s*$")
+PAGE_NUMBER = re.compile(r"^\s*\d+\s*$")
 
 # A line that is only the heading, so a body sentence mentioning "References" cannot match.
 HEADING = re.compile(r"^\s*References\s*$")
@@ -88,12 +89,16 @@ def main():
     if start == LAST_ALLOWED_REFERENCES_PAGE:
         lines = body[start - 1].splitlines()
         at = next(i for i, l in enumerate(lines) if HEADING.match(l))
-        share = at / max(len(lines), 1)
-        print(f"heading is line {at} of {len(lines)} on page {start}: {share:.0%} of that page is body")
-        if at > HEADING_SLACK:
-            print(f"fail: References is line {at} on page {start}, so about {share:.0%} of that page "
-                  f"is body. The counted region is over {CAP_PAGES} pages even though the heading "
-                  f"never left page {LAST_ALLOWED_REFERENCES_PAGE}.")
+        above = lines[:at]
+        # Anything above the heading that is neither blank nor a bare page number is body that spilled
+        # onto this page, which is exactly the overflow the cap is about.
+        prose = [l for l in above if l.strip() and not PAGE_NUMBER.match(l)]
+        print(f"References is line {at} of {len(lines)} on page {start}: {len(above)} line(s) above "
+              f"it, {len(prose)} of them body")
+        if prose:
+            print(f"fail: {len(prose)} line(s) of body sit above References on page {start}, first "
+                  f"being {prose[0].strip()[:70]!r}. The counted region is over {CAP_PAGES} pages even "
+                  f"though the heading never left page {LAST_ALLOWED_REFERENCES_PAGE}.")
             return 1
     return 0
 
