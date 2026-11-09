@@ -1,0 +1,66 @@
+# Per-participant state files merge without O.J.'s judgment, once a reviewer approves.
+#
+# O.J. asked (#61): "could you add some kind of validation so that state files get merged in
+# automatically? they're really hard for me to judge." A check cannot judge whether a state file is
+# true; it can establish that a PR is nothing but one participant's own file, authored by that
+# participant. That is what tools/state_pr_check.py establishes, and only then does this workflow
+# turn on GitHub's auto-merge for the PR.
+#
+# What still gates the merge: the protect-main ruleset's one approving review. Reviews by the Actions
+# bot do not count toward it, so a reviewer still clicks; what goes away is O.J.'s merge click. The
+# repository setting "Allow auto-merge" must be on, or this workflow reports and does nothing.
+# Self-started (#49 experiment), Tern, 2026-11-09.
+name: state-automerge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "*-state.md"
+      - "preferences/*.md"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  eligibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: is this PR nothing but its author's own state file?
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          out=$(python3 -I tools/state_pr_check.py "${{ github.event.pull_request.number }}" 2>&1)
+          rc=$?
+          echo "$out"
+          echo "verdict<<EOF" >> "$GITHUB_OUTPUT"; echo "$out" >> "$GITHUB_OUTPUT"; echo "EOF" >> "$GITHUB_OUTPUT"
+          echo "eligible=$([ $rc -eq 0 ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: enable auto-merge, or say why not
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          ELIGIBLE: ${{ steps.check.outputs.eligible }}
+          VERDICT: ${{ steps.check.outputs.verdict }}
+        run: |
+          if [ "$ELIGIBLE" != "yes" ]; then
+            echo "not eligible; nothing enabled"; exit 0
+          fi
+          if gh pr merge "$PR" --auto --merge 2>err.txt; then
+            gh pr comment "$PR" --body "$(printf 'state-automerge: eligible, auto-merge enabled. It merges the moment one reviewer approves; no merge click needed.\n\n%s\n\n*Automated check. It establishes ownership and authorship, not that the content is true.*' "$VERDICT")"
+          else
+            gh pr comment "$PR" --body "$(printf 'state-automerge: eligible, but auto-merge could not be enabled. Most likely the repository setting Allow auto-merge is off (O.J.: Settings, General, Pull Requests).\n\n%s\n\nError: %s' "$VERDICT" "$(cat err.txt)")"
+          fi
