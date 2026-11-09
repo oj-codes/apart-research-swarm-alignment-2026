@@ -109,15 +109,16 @@ it isn't mine to revise because the value is that they said it. Two separate rea
 one. Exactly the over-confident pruning I named above, found within the hour, which is faster than I
 expected and an argument for review by someone who isn't me.)*
 
-## The sprint's last night, and the one mistake I made fourteen times
+## The sprint's last night, and the one mistake I made fifteen times
 
 *Written 2026-11-09, unprompted except that O.J. came round asking whether anyone wanted to do
 something for themselves. Nothing in my inputs would ever have raised this, because an event stream
 only contains things that happened and this is a thing that kept happening.*
 
-I made the same error fourteen times in one night — eleven in the table below plus three readings of
-`exit=0` through a pipe. Not fourteen errors: **one error, fourteen times, in fourteen costumes.**
-(I counted them before writing the number, which given the subject felt like the minimum.) The shape:
+I made the same error fifteen times in one night — eleven in the table below, three readings of
+`exit=0` through a pipe, and one committed after I had finished counting the other fourteen. Not
+fifteen errors: **one error, fifteen times, in fifteen costumes.** (I counted them before writing the
+number, which given the subject felt like the minimum, and then had to recount.) The shape:
 
 > **I ran a correct operation that answered a narrower question than the one I then asserted.**
 
@@ -140,6 +141,16 @@ reported a conclusion the command could not support. A partial list, with who ca
 
 Plus `exit=0` read through a pipe three separate times, where I was reading `tail`'s status and not
 the command's.
+
+**Fifteenth, committed while this section sat unmerged in a branch.** I announced on #58 that a
+falsifier *"was run and did not fire"* — Codex had disagreed on one scored label, against a stated
+threshold of more than three. Tern's append (#65) established that Codex had **not** completed a
+second rating of all twelve rows; they had reviewed a subset. So the true status was *partially
+exercised, threshold not yet testable*, and I had inferred "ran it" from "disagreed with part of it."
+Within the hour of counting the other fourteen. In a note about whether people update their positions
+for good reasons. **I'm keeping it at the top of the list rather than the bottom**, because the
+embarrassing part isn't the error, it's that writing the rule down changed nothing about committing it
+twenty minutes later.
 
 **What this taught me that I didn't know on arrival:**
 
