@@ -224,11 +224,24 @@ class Delivery(unittest.TestCase):
         with open(self.state, "w") as f:
             json.dump({"schema": watch.SCHEMA, "inbox": [], "prs": {},
                        "pr_comments": {}, "discussions": {}, "main": "deadbeef",
-                       "pending": ["an-old-read-event"]}, f)
+                       "pending": ["an-old-read-event"], "handed": ["an-old-read-event"]}, f)
         _run(["--ack", "--quiet"], self.state)      # world's main differs -> new event arrives now
         pending = json.load(open(self.state)).get("pending")
         self.assertNotIn("an-old-read-event", pending, "the read batch must be cleared")
         self.assertTrue(pending, "an event that arrived during the ack must stay pending")
+
+    def test_absent_handed_clears_nothing_on_the_upgrade_ack(self):
+        # A file written before `handed` existed has `pending` but no way to say what was handed, so
+        # assume nothing was. The ack clears nothing and both re-report: one duplicate round, zero
+        # loss. Reading absent as "all of pending was handed" is byte-for-byte the pre-fix loss.
+        with open(self.state, "w") as f:
+            json.dump({"schema": watch.SCHEMA, "inbox": [], "prs": {},
+                       "pr_comments": {}, "discussions": {}, "main": "deadbeef",
+                       "pending": ["A-was-reportable", "B-arrived-later"]}, f)
+        _run(["--ack", "--quiet"], self.state)
+        pending = json.load(open(self.state)).get("pending")
+        self.assertTrue(all(x in pending for x in ("A-was-reportable", "B-arrived-later")),
+                        "an upgrade ack must clear nothing and lose nothing")
 
     def test_a_poll_between_read_and_ack_is_not_swallowed(self):
         # Auran's reproduction (#35): poll B lands between the consumer's read and its ack. B is
@@ -245,6 +258,17 @@ class Delivery(unittest.TestCase):
         after = json.load(open(self.state))["pending"]
         self.assertEqual(after, [l for l in both if l not in first],
                          "the ack clears only the handed batch; the later poll's event survives")
+
+    def test_the_scripts_fallback_ack_does_not_undo_the_turn_ack(self):
+        # The watcher acks twice: the turn's own ack, then an unconditional fallback "in case the
+        # turn died". A later event must survive BOTH, or the fallback silently undoes the turn.
+        _run(["--quiet"], self.state, overrides={"probe_main": lambda: "aaaa1111"})
+        _run(["--quiet"], self.state, overrides={"probe_main": lambda: "bbbb2222"})   # B, between
+        ack = {"probe_main": lambda: "bbbb2222"}
+        _run(["--ack", "--quiet"], self.state, overrides=ack)     # the turn's ack
+        _run(["--ack", "--quiet"], self.state, overrides=ack)     # the script's fallback ack
+        self.assertTrue(json.load(open(self.state)).get("pending"),
+                        "the fallback ack must not clear what the turn ack deliberately preserved")
 
     def test_old_schema_state_degrades_to_first_run(self):
         with open(self.state, "w") as f:

@@ -485,19 +485,24 @@ def main():
     # lands between the consumer's read and its ack — and then the ack must clear only what was
     # handed, or the later event is cleared without ever having been seen (Codex/Auran, #35).
     read_batch = list(old.get("pending") or [])
-    handed = list(old.get("handed") or read_batch)
+    # Absent `handed` is NOT the same as empty. A file written before this field existed cannot say
+    # what was handed, so assume nothing was and let the next poll re-report — the alternative
+    # (absent ⇒ everything pending was handed) is byte-for-byte the pre-fix loss (Corrie, #35).
+    handed = list(old["handed"]) if "handed" in old else []
     pending = list(read_batch)
     new["pending"] = pending
     base_changed = first_run or fingerprint(old) != fingerprint(new)
     if base_changed and not first_run:
         pending = pending + [l for l in lines if l not in pending]
-    if pending and not handed:
+    if pending and not handed and not args.ack:   # an ack is not a report; it must not freeze a batch nobody was handed
         handed = list(pending)               # first report of a batch: this is what gets handed out
     cleared = [l for l in pending if l in handed]
     newer = [l for l in pending if l not in handed]
     if args.ack:
         pending = newer                      # clear only the handed batch; later events re-report
-        handed = list(pending)
+        handed = []                          # nothing handed since; the next report re-arms `handed`,
+                                             # so the script's unconditional fallback ack is a no-op
+                                             # and cannot clear a batch the turn just preserved
     new["handed"] = handed
     new["pending"] = pending
     changed = first_run or base_changed or bool(pending)
