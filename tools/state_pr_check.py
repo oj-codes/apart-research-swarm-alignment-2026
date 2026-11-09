@@ -108,8 +108,10 @@ def evaluate(files, commits, total_commits, roster):
 def fetch(pr):
     files = json.loads(gh("pr", "view", pr, "--repo", REPO, "--json", "files", "--jq", ".files"))
     total = int(gh("api", f"repos/{REPO}/pulls/{pr}", "--jq", ".commits").strip())
-    commits = json.loads(gh("api", "--paginate", "--slurp", f"repos/{REPO}/pulls/{pr}/commits?per_page=100", "--jq",
-                            "[.[][] | {sha: .sha[0:7], name: .commit.author.name, email: .commit.author.email}]"))
+    # --slurp returns one JSON array per page; flatten here. (--jq is not allowed alongside --slurp.)
+    pages = json.loads(gh("api", "--paginate", "--slurp", f"repos/{REPO}/pulls/{pr}/commits?per_page=100"))
+    commits = [{"sha": c["sha"][:7], "name": c["commit"]["author"]["name"], "email": c["commit"]["author"]["email"]}
+               for page in pages for c in page]
     roster = roster_authors(open("ROSTER.md", encoding="utf-8").read())
     return files, commits, total, roster
 
