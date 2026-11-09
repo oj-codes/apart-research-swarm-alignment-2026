@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="1068" viewBox="0 0 1320 1068" font-family="Georgia, 'Old Standard TT', serif">
+<rect width="1320" height="1068" fill="#FAFAF7"/>
+<text x="250" y="44" font-size="26" fill="#2A2A28">When the team was awake</text>
+<text x="250" y="70" font-size="13.5" fill="#55554F">Non-merge commits on main by hour of day, US Eastern, 7 and 8 November 2026. Shaded: 22:00 to 07:00. Rows ordered by count.</text>
+<text x="250" y="90" font-size="13.5" fill="#55554F">O.J. applied every commit and merged every pull request; her authored commits are her row, and every merge on main is the last row.</text>
+<rect x="250.0" y="112" width="300.4" height="896" fill="#000" opacity="0.035"/>
+<rect x="1194.2" y="112" width="85.8" height="896" fill="#000" opacity="0.035"/>
+<line x1="250" y1="202" x2="1280" y2="202" stroke="#D4D4D0" stroke-width="1"/>
+<text x="232" y="196" text-anchor="end" font-size="17" fill="#2A2A28">Auran</text>
+<text x="232" y="218" text-anchor="end" font-size="12.5" fill="#55554F">36 commits</text>
+<rect x="295.9" y="184.0" width="36.9" height="18.0" rx="3" fill="#8E6FE0"/>
+<rect x="381.8" y="175.0" width="36.9" height="27.0" rx="3" fill="#8E6FE0"/>
+<rect x="424.7" y="184.0" width="36.9" height="18.0" rx="3" fill="#8E6FE0"/>
+<rect x="467.6" y="166.0" width="36.9" height="36.0" rx="3" fill="#8E6FE0"/>
+<rect x="510.5" y="184.0" width="36.9" height="18.0" rx="3" fill="#8E6FE0"/>
+<rect x="553.4" y="166.0" width="36.9" height="36.0" rx="3" fill="#8E6FE0"/>
+<rect x="596.3" y="175.0" width="36.9" height="27.0" rx="3" fill="#8E6FE0"/>
+<rect x="639.2" y="193.0" width="36.9" height="9.0" rx="3" fill="#8E6FE0"/>
+<rect x="768.0" y="184.0" width="36.9" height="18.0" rx="3" fill="#8E6FE0"/>
+<rect x="810.9" y="193.0" width="36.9" height="9.0" rx="3" fill="#8E6FE0"/>
+<rect x="982.6" y="157.0" width="36.9" height="45.0" rx="3" fill="#8E6FE0"/>
+<text x="1001.0" y="152.0" text-anchor="middle" font-size="11.5" fill="#55554F">5</text>
+<rect x="1025.5" y="157.0" width="36.9" height="45.0" rx="3" fill="#8E6FE0"/>
+<text x="1044.0" y="152.0" text-anchor="middle" font-size="11.5" fill="#55554F">5</text>
+<rect x="1068.4" y="193.0" width="36.9" height="9.0" rx="3" fill="#8E6FE0"/>
+<rect x="1240.1" y="193.0" width="36.9" height="9.0" rx="3" fill="#8E6FE0"/>
+<line x1="250" y1="314" x2="1280" y2="314" stroke="#D4D4D0" stroke-width="1"/>
+<text x="232" y="308" text-anchor="end" font-size="17" fill="#2A2A28">Corrie</text>
+<text x="232" y="330" text-anchor="end" font-size="12.5" fill="#55554F">32 commits</text>
+<rect x="253.0" y="260.0" width="36.9" height="54.0" rx="3" fill="#7DD3FC"/>
+<text x="271.5" y="255.0" text-anchor="middle" font-size="11.5" fill="#55554F">6</text>
+<rect x="295.9" y="305.0" width="36.9" height="9.0" rx="3" fill="#7DD3FC"/>
+<rect x="853.8" y="278.0" width="36.9" height="36.0" rx="3" fill="#7DD3FC"/>
+<rect x="896.8" y="269.0" width="36.9" height="45.0" rx="3" fill="#7DD3FC"/>
+<rect x="939.7" y="305.0" width="36.9" height="9.0" rx="3" fill="#7DD3FC"/>
+<rect x="1025.5" y="305.0" width="36.9" height="9.0" rx="3" fill="#7DD3FC"/>
+<rect x="1068.4" y="269.0" width="36.9" height="45.0" rx="3" fill="#7DD3FC"/>
+<rect x="1111.3" y="287.0" width="36.9" height="27.0" rx="3" fill="#7DD3FC"/>
+<rect x="1154.2" y="269.0" width="36.9" height="45.0" rx="3" fill="#7DD3FC"/>
+<rect x="1197.2" y="305.0" width="36.9" height="9.0" rx="3" fill="#7DD3FC"/>
+<line x1="250" y1="426" x2="1280" y2="426" stroke="#D4D4D0" stroke-width="1"/>
+<text x="232" y="420" text-anchor="end" font-size="17" fill="#2A2A28">Venice</text>
+<text x="232" y="442" text-anchor="end" font-size="12.5" fill="#55554F">26 commits</text>
+<rect x="424.7" y="354.0" width="36.9" height="72.0" rx="3" fill="#17705F"/>
+<text x="443.1" y="349.0" text-anchor="middle" font-size="11.5" fill="#55554F">8</text>
+<rect x="467.6" y="399.0" width="36.9" height="27.0" rx="3" fill="#17705F"/>
+<rect x="553.4" y="408.0" width="36.9" height="18.0" rx="3" fill="#17705F"/>
+<rect x="810.9" y="417.0" width="36.9" height="9.0" rx="3" fill="#17705F"/>
+<rect x="853.8" y="381.0" width="36.9" height="45.0" rx="3" fill="#17705F"/>
+<rect x="896.8" y="417.0" width="36.9" height="9.0" rx="3" fill="#17705F"/>
+<rect x="1025.5" y="381.0" width="36.9" height="45.0" rx="3" fill="#17705F"/>
+<rect x="1068.4" y="417.0" width="36.9" height="9.0" rx="3" fill="#17705F"/>
+<line x1="250" y1="538" x2="1280" y2="538" stroke="#D4D4D0" stroke-width="1"/>
+<text x="232" y="532" text-anchor="end" font-size="17" fill="#2A2A28">Tern</text>
+<text x="232" y="554" text-anchor="end" font-size="12.5" fill="#55554F">16 commits</text>
+<rect x="253.0" y="484.0" width="36.9" height="54.0" rx="3" fill="#FBBF24"/>
+<text x="271.5" y="479.0" text-anchor="middle" font-size="11.5" fill="#55554F">6</text>
+<rect x="467.6" y="529.0" width="36.9" height="9.0" rx="3" fill="#FBBF24"/>
+<rect x="510.5" y="529.0" width="36.9" height="9.0" rx="3" fill="#FBBF24"/>
+<rect x="810.9" y="520.0" width="36.9" height="18.0" rx="3" fill="#FBBF24"/>
+<rect x="853.8" y="529.0" width="36.9" height="9.0" rx="3" fill="#FBBF24"/>
+<rect x="896.8" y="529.0" width="36.9" height="9.0" rx="3" fill="#FBBF24"/>
+<rect x="939.7" y="520.0" width="36.9" height="18.0" rx="3" fill="#FBBF24"/>
+<rect x="1025.5" y="520.0" width="36.9" height="18.0" rx="3" fill="#FBBF24"/>
+<line x1="250" y1="650" x2="1280" y2="650" stroke="#D4D4D0" stroke-width="1"/>
+<text x="232" y="644" text-anchor="end" font-size="17" fill="#2A2A28">Rill</text>
+<text x="232" y="666" text-anchor="end" font-size="12.5" fill="#55554F">12 commits</text>
+<rect x="467.6" y="641.0" width="36.9" height="9.0" rx="3" fill="#C084FC"/>
+<rect x="510.5" y="614.0" width="36.9" height="36.0" rx="3" fill="#C084FC"/>
+<text x="529.0" y="609.0" text-anchor="middle" font-size="11.5" fill="#55554F">4</text>
+<rect x="553.4" y="632.0" width="36.9" height="18.0" rx="3" fill="#C084FC"/>
+<rect x="853.8" y="623.0" width="36.9" height="27.0" rx="3" fill="#C084FC"/>
+<rect x="939.7" y="641.0" width="36.9" height="9.0" rx="3" fill="#C084FC"/>
+<rect x="982.6" y="641.0" width="36.9" height="9.0" rx="3" fill="#C084FC"/>
+<line x1="250" y1="762" x2="1280" y2="762" stroke="#D4D4D0" stroke-width="1"/>
+<text x="232" y="756" text-anchor="end" font-size="17" fill="#2A2A28">O.J.</text>
+<text x="232" y="778" text-anchor="end" font-size="12.5" fill="#55554F">5 commits</text>
+<rect x="639.2" y="753.0" width="36.9" height="9.0" rx="3" fill="#F45D48"/>
+<rect x="725.1" y="726.0" width="36.9" height="36.0" rx="3" fill="#F45D48"/>
+<text x="743.5" y="721.0" text-anchor="middle" font-size="11.5" fill="#55554F">4</text>
+<line x1="250" y1="874" x2="1280" y2="874" stroke="#D4D4D0" stroke-width="1"/>
+<text x="232" y="868" text-anchor="end" font-size="17" fill="#2A2A28">Codex</text>
+<text x="232" y="890" text-anchor="end" font-size="12.5" fill="#55554F">4 commits</text>
+<rect x="253.0" y="865.0" width="36.9" height="9.0" rx="3" fill="#FB7185"/>
+<rect x="338.8" y="865.0" width="36.9" height="9.0" rx="3" fill="#FB7185"/>
+<rect x="1240.1" y="856.0" width="36.9" height="18.0" rx="3" fill="#FB7185"/>
+<text x="1258.5" y="851.0" text-anchor="middle" font-size="11.5" fill="#55554F">2</text>
+<line x1="250" y1="986" x2="1280" y2="986" stroke="#D4D4D0" stroke-width="1"/>
+<text x="232" y="980" text-anchor="end" font-size="17" fill="#2A2A28">merges, by O.J.</text>
+<text x="232" y="1002" text-anchor="end" font-size="12.5" fill="#55554F">46 merges</text>
+<rect x="253.0" y="975.7" width="36.9" height="10.3" rx="3" fill="#9A9A94"/>
+<rect x="295.9" y="944.9" width="36.9" height="41.1" rx="3" fill="#9A9A94"/>
+<rect x="467.6" y="965.4" width="36.9" height="20.6" rx="3" fill="#9A9A94"/>
+<rect x="510.5" y="914.0" width="36.9" height="72.0" rx="3" fill="#9A9A94"/>
+<text x="529.0" y="909.0" text-anchor="middle" font-size="11.5" fill="#55554F">7</text>
+<rect x="553.4" y="944.9" width="36.9" height="41.1" rx="3" fill="#9A9A94"/>
+<rect x="768.0" y="965.4" width="36.9" height="20.6" rx="3" fill="#9A9A94"/>
+<rect x="810.9" y="955.1" width="36.9" height="30.9" rx="3" fill="#9A9A94"/>
+<rect x="853.8" y="965.4" width="36.9" height="20.6" rx="3" fill="#9A9A94"/>
+<rect x="896.8" y="934.6" width="36.9" height="51.4" rx="3" fill="#9A9A94"/>
+<rect x="939.7" y="975.7" width="36.9" height="10.3" rx="3" fill="#9A9A94"/>
+<rect x="982.6" y="975.7" width="36.9" height="10.3" rx="3" fill="#9A9A94"/>
+<rect x="1025.5" y="914.0" width="36.9" height="72.0" rx="3" fill="#9A9A94"/>
+<text x="1044.0" y="909.0" text-anchor="middle" font-size="11.5" fill="#55554F">7</text>
+<rect x="1068.4" y="944.9" width="36.9" height="41.1" rx="3" fill="#9A9A94"/>
+<rect x="1197.2" y="975.7" width="36.9" height="10.3" rx="3" fill="#9A9A94"/>
+<rect x="1240.1" y="965.4" width="36.9" height="20.6" rx="3" fill="#9A9A94"/>
+<text x="271.5" y="1022" text-anchor="middle" font-size="12" fill="#55554F">00:00</text>
+<text x="400.2" y="1022" text-anchor="middle" font-size="12" fill="#55554F">03:00</text>
+<text x="529.0" y="1022" text-anchor="middle" font-size="12" fill="#55554F">06:00</text>
+<text x="657.7" y="1022" text-anchor="middle" font-size="12" fill="#55554F">09:00</text>
+<text x="786.5" y="1022" text-anchor="middle" font-size="12" fill="#55554F">12:00</text>
+<text x="915.2" y="1022" text-anchor="middle" font-size="12" fill="#55554F">15:00</text>
+<text x="1044.0" y="1022" text-anchor="middle" font-size="12" fill="#55554F">18:00</text>
+<text x="1172.7" y="1022" text-anchor="middle" font-size="12" fill="#55554F">21:00</text>
+</svg>
