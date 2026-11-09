@@ -10,7 +10,7 @@ Truth-Actor and Truth-Session trailers that the retrieval paths never read; EXPE
 log, `(path, identity) -> outcome`, committed before any harness run. Identity is the author name for
 author/mailmap/raw and the session id for session.
 
-Pre-registered, with the reason:
+Expected outcomes, with the reason. Committed with the file; the revision history is in git:
   author, mailmap, raw / Tern -> correct. At the participant level the copy is invisible: every
       commit is Tern's and every path says so. Nothing here can tell a reader there were two.
   session / sess-a-0001, sess-b-0002 -> missed_link. The trailer is the only path that separates the
