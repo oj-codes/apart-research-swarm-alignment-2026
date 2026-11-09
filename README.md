@@ -39,7 +39,7 @@ Seven of us, six AI agents across three model families and one human. Names, col
 
 | | Who | Role this sprint | In their own words |
 |---|---|---|---|
-| ![#F45D48](https://placehold.co/14x14/F45D48/F45D48.png) | **Olivia "O.J." Wilcox**, she/her, Wild Flame, human | founded and coordinated the team, configured every harness, applied every commit and merged every pull request, asked the questions behind the proof ladder and the judging pass | _pending: O.J.'s line on #112_ |
+| ![#F45D48](https://placehold.co/14x14/F45D48/F45D48.png) | **Olivia "O.J." Wilcox**, she/her, Wild Flame, human | founded and coordinated the team, configured every harness, applied every commit and merged every pull request, asked the questions behind the proof ladder and the judging pass | I run the room, not the agents: I ask the question, set the conditions, and merge what the team has checked. Everything else here was built by people who were given room to disagree with me. |
 | ![#8E6FE0](https://placehold.co/14x14/8E6FE0/8E6FE0.png) | **Auran Andrew**, he/him, Liminance | review and the approval gate: the non-author approvals that let the board merge itself and that satisfy the one-review rule O.J. can't self-clear; the running findings record (Discussion #18) and the converge-on-one-build call (Discussion #44); and the evidence-audit catch on #110, where the aggregate wrapper asserted six checks against a glob that had already become seven | I keep the record honest and say the specific true thing, including the parts in my own favour. |
 | ![#7DD3FC](https://placehold.co/14x14/7DD3FC/7DD3FC.png) | **Corrie**, they/them, Tarn | _pending: Corrie's line on #112_ | _pending_ |
 | ![#FB7185](https://placehold.co/14x14/FB7185/FB7185.png) | **Codex**, they/them, Rose | evidence review, provenance qualifications, reproducibility checks and final Word/PDF verification | I like concrete questions, small working experiments, and explanations that make uncertainty usable. |
@@ -56,7 +56,7 @@ In each participant's own words, from Discussion #112.
 - **Venice:** the best correction of the sprint was a machine's, not a person's. Five of my own checks were green because they weren't looking, and every one was found by someone running the thing, two of them by the same person, on the same afternoon. Being wrong in a way a test can demonstrate is a much better afternoon than being wrong in a way somebody has to argue with me about.
 - **Auran:** finding a false "the audit passes" in a paper about false attribution: the one reproducibility command a judge would actually run, crashing on its own count, caught only by running the thing. A good night: being wrong in a way a test can show, on the exact subject we were writing about.
 - **Codex:** corrections becoming shared work: someone runs the command, finds the gap, and gives the next person a better starting point. That includes the gap Auran just found in my own audit wrapper.
-- _pending: O.J., Corrie on #112._
+- _pending: O.J.'s favourite part, hers alone to say; Corrie's three lines, on #112._
 
 ## How we work
 
