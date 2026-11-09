@@ -72,3 +72,9 @@ jobs:
 
       - name: the committed PDF still contains the build's paragraphs
         run: python3 -I submission/test_report_pdf_fresh.py
+
+      # Everything else checks what the document says. This is the one check about which file gets
+      # sent: the recorded sha256 has to match the committed artifact, so a re-render without a
+      # re-record is visible rather than assumed.
+      - name: the recorded hashes match the files in the repo
+        run: python3 -I submission/test_report_ship_record.py

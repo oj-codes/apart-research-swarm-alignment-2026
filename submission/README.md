@@ -26,10 +26,21 @@ is current and the draft is not re-synced.
 
 **Route to the PDF, two steps:**
 
-1. Open `submission/report.docx` in Word, check the title block and the page count (eight pages
-   maximum before References), and export as PDF.
+1. Re-render `submission/report.pdf` from `submission/report.docx` with `soffice --headless --convert-to
+   pdf`, which is the renderer every page measurement was taken in — not Word. Check the title block,
+   the page count (eight pages maximum before References, and References itself near the top of the
+   next page), and the abstract length.
 2. Submit through the Submit button on the sprint page. Resubmitting under the same title replaces
    the earlier one.
+
+**The two hashes, recorded and checked.** `submission/test_report_ship_record.py` fails until this
+table matches the committed files, so a re-render without a re-record is visible rather than assumed.
+The uploaded file is a byte-for-byte copy, so its hash is the `report.docx` row:
+
+| file | sha256 |
+|---|---|
+| `report.docx` | `3a0a7f649c98663f49767edf9de16e186ae92f7d0edda7996e71d06db47ffcd6` |
+| `report.pdf` | `1d6552167cddcafef03c7d528b3ae7481414ab1997ae656db9fdbeb0d2c41866` |
 
 ## The submission form, field by field
 
