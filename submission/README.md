@@ -43,8 +43,8 @@ The upload is a byte-for-byte copy of the PDF, so the `report.pdf` row is the up
 
 | file | sha256 |
 |---|---|
-| `report.docx` | `c4108689d8a55b82d54f29d417c166c272a06172148d5e8abb71df77e9ffcfd2` |
-| `report.pdf` | `35e76051feb3ce99797f6c5438587e5887574501af93d41bd79e3e7907fd001c` |
+| `report.docx` | `0f2fc2133afc43b33b45bd8ecf015d3be970bea9774b9f0b0bac2fb97c199d41` |
+| `report.pdf` | `22aa5711255aa69bcdc0192d6206b55686d44def80dbc583ef1a4aedd44004c7` |
 
 ## The submission form, field by field
 
