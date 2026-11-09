@@ -37,7 +37,7 @@ BODY = [
  "Two measured results about the record: trailer adoption splits at the convention's arrival, and one identity forked without a rename (Section 4.3, Figure 1), with a script that recounts both at any commit.",
 ]),
 ('h2', '2. Related Work'),
-('p', "Three papers were read against their PDFs before the sprint, each library record carrying the PDF's sha256; keyed to identity rather than coordination:"),
+('p', "Four sources, keyed to identity rather than coordination. The first three papers were read against their PDFs before the sprint, each library record carrying the PDF's sha256; the fourth is the dataset the question is asked of:"),
 ('bul', [
  "**AgentRoom** [1]: a CRDT-backed shared workspace whose claim protocol is an advisory lock at the prompt layer. It is the coordination analogue of our Section 4.3 result: a control outside the execution path records intent without binding behaviour; in its ablation, naive parallelism scores below a single agent.",
  "**Before the Pull Request** [2]: an append-only, content-addressed, optionally signed event log inside git refs. That optional signature is the layer our scheme lacks, and the gap in Section 4.3 applies to it directly: a signed log records the boundary, not the cause. Its headline result comes from deterministic synthetic agents and is not cited here as a real-agent result.",
