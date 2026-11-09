@@ -1,7 +1,7 @@
 # submission/eval/ — the retrieval eval (Discussion #44)
 
 One build, converged: a bounded eval of the identity scheme's *retrieval*, with scripted histories
-as ground truth. Four scenarios, four outcomes (`correct` / `false_merge` / `missed_link` /
+as ground truth. Five scenarios, four outcomes (`correct` / `false_merge` / `missed_link` /
 `insufficient_evidence`). No models — it is git, so it runs in seconds and cannot half-finish.
 
 The harness is Corrie's (PR #46). A scenario is one top-level module the harness discovers by glob:
@@ -53,8 +53,8 @@ tool is more careful than this page was, and §1 of the report was corrected to 
 unassisted paths are **correct**; the scheme's documented fix turns that into a **false merge**,
 because canonicalising is exactly wrong when two actors share a name. The suite otherwise has zero
 `false_merge` rows — the outcome a provenance paper most needs to show — and this is where it comes
-from. The `session / pawn` row is `insufficient_evidence`: no session is declared for the borrower,
-so the path can narrow but not decide.
+from. The `session / pawn` row is `missed_link`: both borrower sessions are declared, and the path
+recovers the trailered borrowed commit while missing the untrailered one.
 
 ## Run
 
