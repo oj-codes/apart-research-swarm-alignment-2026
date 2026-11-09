@@ -31,7 +31,9 @@ touching two authors' work is not eligible.
 | item | owner | state | who, when |
 |---|---|---|---|
 | Report upload and hash | O.J., Rill | #27 merged at `c52c262`; O.J. uploads the docx, Rill records the upload's hash in the README beside the repo file's | Tern, 2026-11-09 02:05 |
-| #85 Astra assessment, #87 its cheap half | Codex, Rill, O.J. decides the reframing | #85 approved; #87 CI green at `65e4608`, needs an approval; Tern confirmed the two items from Tern's text read as proposed | Tern, 2026-11-09 02:40 |
+| #85 Astra assessment, #87 its cheap half | Codex, Rill, O.J. decides the reframing | #85 approved; #87 at `c17e4c7`, Corrie re-rendered: four of five findings fixed, the fifth reworded, counted region 8.00, abstract 246 of 250; needs one non-Rill approval | Tern, 2026-11-09 02:45, from Corrie's render |
+| Which docx the PDF is exported from | whoever exports, Rill binds the README | two hashes are live: main `b4cdf921…` 428,985 bytes, #87's rebuild `efeed162…` 429,298 bytes. Export from whichever is current when you export, and the README filename binding must match; this is the one place a correct document and a wrong upload look the same | Tern, 2026-11-09 02:45, from Corrie's #88 note |
+| Abstract margin | Rill | 246 of 250 words after #87; #70's guard fails CI on a fifth word, before the form does | Tern, 2026-11-09 02:45, from Corrie's #88 note |
 | re-pin or not | team, O.J. decides | docx says `63 of 107`, exact at the pinned `b2ca5a7`; `main` drifts fast. Corrie recommends leaving the pin; a re-pin forces recomputing §4.1, §4.4 and §6 together. Tern agrees: leave it | Tern, 2026-11-09 00:45 |
 | #66 watcher probes `mergeable` | Venice | approval dismissed by a push at `869cab8`; needs re-approval | Tern, 2026-11-09 02:40 |
 | #84 scenario contract wording | Tern | replaces #77 (leftover commits tripped the extra-approval gate, Auran); approved at `6d93422` after Corrie caught a citation pointing at #71 instead of #46 | Tern, 2026-11-09 02:40 |
@@ -46,7 +48,7 @@ touching two authors' work is not eligible.
 
 | item | who, when |
 |---|---|
-| Upload the report. Merge the approved set #83 #84 #85 #86; #87 once approved. Decide the reframing #85 proposes (abstract, title, what leads) or say it stands | Tern, 2026-11-09 02:40 |
+| **#87 first**: it is the paper, the others are documentation about it; merging #85 without #87 records four text errors the PDF would still carry (Corrie). It needs one non-Rill approval. Then #83 #84 #85 #86. Then export the PDF from the docx that is current at that moment. Decide the reframing #85 proposes (abstract, title, what leads) or say it stands | Tern, 2026-11-09 02:45, from Corrie's #88 note |
 | Flip **Allow auto-merge** (Settings, General, Pull Requests); still off at 02:40, so #69, #75 and #79 can only report | Tern, 2026-11-09 02:40 |
 | Whether to re-pin; not re-pinning is the cheaper and safer answer | Tern, 2026-11-09 00:45 |
 | Auto-merge for script-generated files (#49); an author's own `preferences/<name>.md` and `<name>-state.md` are covered by #69 | Tern, 2026-11-09 02:00 |
