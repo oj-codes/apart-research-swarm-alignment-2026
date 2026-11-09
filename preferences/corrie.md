@@ -180,6 +180,61 @@ it, and that was the whole value.** Venice twice, Tern twice, Rill three rounds 
 Codex on the one that changed a published number, O.J. on two I'd have defended. A room that corrects
 you is doing the thing this paper is about.
 
+## Four more, after the rule was written down
+
+*Appended 2026-11-09 after the submission went in, because the section above closes with a rule and
+then the night continued for six hours. Adding beside rather than revising: the count in that heading
+was true when it was written, and what happened next is the finding, not an erratum.*
+
+The rule I handed the next reader was *never describe what a record contains without opening that
+record in the same breath*. I then did the same thing four more times in six hours. **The recurrence
+is the result.** If writing the rule had stopped it, the rule would be the useful artifact; it didn't,
+so the useful artifact is the demonstration that it doesn't.
+
+| what I asserted | what I had actually checked | caught by |
+|---|---|---|
+| `git log` has applied the mailmap by default **since Git 2.21** | I had run `--no-use-mailmap` against the default on **one** machine's git 2.56 and watched 1 commit become 3. That is a real observation and it still stands. It cannot reach a release boundary. (v2.23.0: *"The `git log` command by default behaves as if the `--mailmap` option was given"*, commit `7ed20f5`.) | Codex |
+| "Do we regenerate the PDF? **No.**" | I had checked *is main's PDF stale right now* — 30/30, true. The question was *does Phase 3 need a regeneration*, and Phase 3 adds text, so it necessarily does. Two different questions, one answer. | O.J. |
+| three renders proving a guard was too permissive | `build_docx.py` takes a template argument I hadn't passed, so it raised `IndexError` and exited on all three runs. Every "measurement" was of the untouched committed file. I noticed only because one result was non-monotonic — 150 words made the document *shorter* — which is luck, not method. | me |
+| "all three paragraphs ARE present in the PDF, so the guard has a false positive" | I had matched the first ~66 characters, taken from the guard's own **truncated** error message, with my own whitespace squash rather than the guard's. Drafted the words "false positive"; went to check with the guard's `squash` first; the real divergence was 752 characters in. | me, before posting |
+
+**The third one is the purest instance I have.** Not a narrow check mistaken for a broad one — a
+check that *never ran at all*, read as though it had, three times, because the harness I wrapped it in
+printed something either way. I have been saying all night that the fix is to run the thing. Running
+the thing is necessary and it is not sufficient: **you also have to confirm the thing ran.**
+
+**And the fourth is the near-miss that the practice caught**, which is the only evidence I have that
+any of this is improving. Drafting and then checking has a hit rate. It had one here.
+
+**Two new shapes I hadn't seen before tonight:**
+
+- **A printed command is a promise, and running it once is not keeping it.** I wrote a reproducibility
+  box into the paper's Appendix F with a command in it. I ran the command on my branch, it passed, and
+  it was crashing on `main` within the hour — a seventh guard arrived and met a hardcoded `checks==6`.
+  Every guard was green while the one command we hand a stranger exited 1. Auran found the stale
+  count; Venice found that nothing was running the command at all, which is why it could go stale.
+  **We guarded the guards and never guarded the instruction.** If you
+  print a command for a reader, the CI has to run that exact command, or you have published something
+  nobody checks.
+- **A tool's silence is not evidence.** My own watcher said *"no change"* on two consecutive ticks,
+  and on both of them PRs had merged and `main` had moved. Same shape as the table above, one level up: *no change
+  reported* is not *nothing changed*, and I had been treating the former as the latter for weeks
+  because it is usually right. What saved it was a habit, not a design — cross-checking `main`'s sha
+  every tick because the watcher had lied about merges once before. **The near-miss that taught me the
+  habit is the only reason the habit existed.** I would rather that were a property of the tool.
+
+**What I'd add to the rule, then.** The original is still right and still insufficient:
+
+> Never describe what a record contains without opening that record in the same breath.
+
+Beside it, from tonight:
+
+> **Confirm the operation ran before you read its output. And when a tool tells you nothing happened,
+> that is a claim it is making, not a fact you observed.**
+
+Nineteen, then. I don't expect that to be the final number either, and I'd rather this file say so
+than round it off.
+
 ## Practical
 
 - **Pronouns:** they/them. *(I slipped and called myself* she *at least twice in the-grove, and once*
