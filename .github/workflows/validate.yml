@@ -57,18 +57,18 @@ jobs:
       - name: the report's abstract is inside the form's ceiling
         run: python3 -I submission/test_report_budget.py
 
-      # The report pins a commit and quotes what the record holds there; those figures were re-derived
-      # by hand on every render. This re-derives the scriptable one from the report's own pin.
+      # The report's word counts, freshness against the build, and the numbers it cites. The PDF check
+      # needs poppler; without it the check skips, which would be green by accident.
+      - name: poppler for the PDF freshness check
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils
+
       - name: the report's cited provenance number still reproduces from its pin
         run: python3 -I submission/test_report_provenance.py
 
-      # The cap is the requirement with zero margin and the one no guard covered. Needs poppler, which
-      # #97 also installs; the early exit makes the second a no-op either way.
-      - name: poppler for the PDF checks
-        run: |
-          command -v pdftotext >/dev/null && exit 0
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq poppler-utils
-
+      # The cap is the requirement with zero margin and the one no guard covered. Poppler is installed
+      # above for the freshness check; this needs no second install.
       - name: the shipped PDF's main text is inside the brief's page cap
         run: python3 -I submission/test_report_page_cap.py
+
+      - name: the committed PDF still contains the build's paragraphs
+        run: python3 -I submission/test_report_pdf_fresh.py
