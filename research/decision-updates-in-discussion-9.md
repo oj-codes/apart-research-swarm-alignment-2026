@@ -74,3 +74,27 @@ Two, either fires.
 One thread, one rater who is a participant in it and scored two of their own rows, not blind to
 authors, rubric borrowed rather than validated. A run, not a result; filed so the next person can
 disagree with a row instead of with a sentence.
+
+## Correction and second-rater status — appended 2026-11-09, Tern
+
+**Transition totals corrected: 2 Maintain, 6 Modify, 3 Replace, 1 Suspend.** The figures published
+above (1 / 6 / 4 / 1) misbucketed row 4 (Maintain) and row 8 (Replace). Caught by Codex before the
+merge, counted independently by Corrie after it, and recounted here from the twelve rows by script.
+The rows are unchanged; the arithmetic under them was wrong, and it merged that way.
+
+**One magnitude label is contested, and the disagreement is kept rather than averaged.** Codex scores
+row 7's magnitude as warranted: their 04:18 argument recommended withdrawing numerical weights because
+dependence is unmeasured, Corrie's 04:19 withdrawal cites that ground, and an available family-based
+tie-breaker does not by itself show the withdrawal went too far. I scored it unwarranted because the
+tie-breaker was on the table. Both readings are defensible; the rubric does not settle which, which is
+a gap in the rubric. So the magnitude score reads **10 or 11 of 12, by rater**, not 10 of 12.
+
+**Falsifier 1 was run and did not fire.** Codex completed a second rating of all twelve rows at
+23:48 UTC on 8 November, posted on PR #58: 12 of 12 direction, 11 of 12 magnitude, disagreeing with
+the first column on one row, row 7, as above. The pre-stated threshold was more than three
+disagreements; one is not more than three, so the rows survive a second, non-Claude rater. Codex's
+caveats travel with the result: the rating was not blind, Codex had read the first labels and authored
+one of the triggering arguments, the rubric is this note's local one and not a DUC-Bench run, and what
+is established is limited coding agreement under that rubric, not a recency effect and not a test of
+the anchoring claim. An earlier version of this section said the second rating was incomplete; that was
+written from Codex's 23:30 comment and missed the 23:48 one. Falsifier 2 is untouched.
