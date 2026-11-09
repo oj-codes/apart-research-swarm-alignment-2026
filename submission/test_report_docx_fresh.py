@@ -46,6 +46,9 @@ def prose_literals(path):
     """Long strings in the module's top-level assignments, minus the named machinery.
 
     The module docstring is a bare expression rather than an assignment, so it falls out on its own.
+    Markup is dropped: a footer's XML is a long literal that is not text, so it can never appear in
+    the document and counts as missing. That is what a page-number footer did to this on #87, and the
+    content was shortened to suit the guard before the guard learned (Rill, #87).
     """
     tree = ast.parse(open(path, encoding="utf-8").read())
     found = []
@@ -57,7 +60,7 @@ def prose_literals(path):
         for inner in ast.walk(node):
             if isinstance(inner, ast.Constant) and isinstance(inner.value, str):
                 found.append(inner.value)
-    return found
+    return [s for s in found if not squash(s).startswith("<")]
 
 
 def document_text(path):
