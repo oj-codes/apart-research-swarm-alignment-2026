@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""test_report_budget.py — the form's hard ceilings, as a test rather than a comment.
+"""test_report_budget.py — the form's hard word limits, as a test rather than a comment.
 
-The brief caps the *Project summary* pasted into the submission form at **250 words**. The string
-that gets pasted is `ABSTRACT` in `submission/build_docx.py`, and on 9 November it sat at **248** —
-two words of margin, on a requirement that appears in no render and has nothing to do with the page
-cap. A render cannot see it. A test can.
+The brief asks for an abstract of **150 to 250 words**, and the string that gets pasted into the
+form's *Project summary* field is `ABSTRACT` in `submission/build_docx.py`. On 9 November it sat at
+**248** — two words under the ceiling on a requirement that appears in no render and has nothing to
+do with the page cap. A render cannot see it. A test can.
+
+Both bounds are checked, not just the ceiling: the abstract is the one block at its limit, so it is
+also the first place a trim pass will eat into, and a two-sided requirement is exactly the kind that
+gets treated as one-sided at 5am (Corrie, #70).
 
 Stdlib only and parsed with `ast` rather than imported, so python-docx is not needed to run it and a
 build failure cannot masquerade as a budget failure.
@@ -20,10 +24,15 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 BUILD = os.path.join(HERE, "build_docx.py")
 
-# The brief's ceiling for the form's Project summary field, and the one number in this file that is
-# not ours to choose. Checked from the source literal, not the PDF: `pdftotext` splits a hyphenated
-# word across a line break and reads one high, and the form counts the pasted text.
+# The brief's requirement is two-sided — "an abstract of 150 to 250 words" — and the ceiling is the
+# end that has no slack: main text has 120-160 words of headroom, the abstract has two. So the
+# abstract is also the first place a trim pass will eat into, which is why the floor is stated too
+# rather than left implied (Corrie, #70).
+SUMMARY_FLOOR = 150
 SUMMARY_CEILING = 250
+
+# Checked from the source literal, not the PDF: `pdftotext` splits a hyphenated word across a line
+# break and reads one high, and the form counts the pasted text.
 
 
 def string_constants(path):
@@ -48,11 +57,11 @@ def main():
         print("fail: build_docx.py has no ABSTRACT string literal to measure")
         return 1
     words = len(abstract.split())
-    print(f"abstract: {words} words against a {SUMMARY_CEILING}-word ceiling "
-          f"({SUMMARY_CEILING - words} to spare)")
-    if words > SUMMARY_CEILING:
-        print(f"fail: the form's Project summary ceiling is {SUMMARY_CEILING} words and ABSTRACT is "
-              f"{words}. The page cap will not catch this and no render will show it.")
+    print(f"abstract: {words} words, inside the brief's {SUMMARY_FLOOR} to {SUMMARY_CEILING} "
+          f"({SUMMARY_CEILING - words} under the ceiling, {words - SUMMARY_FLOOR} over the floor)")
+    if not SUMMARY_FLOOR <= words <= SUMMARY_CEILING:
+        print(f"fail: the brief asks for an abstract of {SUMMARY_FLOOR} to {SUMMARY_CEILING} words "
+              f"and ABSTRACT is {words}. The page cap will not catch this and no render will show it.")
         return 1
     return 0
 
