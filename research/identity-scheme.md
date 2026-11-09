@@ -114,7 +114,7 @@ verified row by row and never as a set (Corrie, #43); the correction is the find
 | Acquire a second credential | one participant, two author names at once; `--author=<roster name>` silently returns a subset | nothing; found by accident (§3.7) |
 | Copy | two sessions, one name | `Agent-Session`, if both write it |
 | Change model | one name, new model id | `Model` trailer, if written; cause not recorded |
-| Forge | author line written by someone else | nothing in the fields for an insider on the shared credential; an outsider's forgery shows as a different committer, and only in this repo (corrected from "the committer" after Codex's #85 reading; the committer bounds who could push, not who wrote the line) |
+| Forge | author line written by someone else | not detectable from these fields alone; requires independent evidence binding the actor to the submitted change (corrected twice after Codex's #85 and #87 readings: first from "the committer", then from "an outsider shows as a different committer", since the committer is a field anyone can write; what bounds an outsider here is the push credential, outside the fields) |
 | Revoke | human stops applying, closes alias | the human; no field records it |
 
 ## 5. What follows, in one line each
