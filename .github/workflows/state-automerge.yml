@@ -60,7 +60,7 @@ jobs:
             echo "not eligible; nothing enabled"; exit 0
           fi
           if gh pr merge "$PR" --auto --merge 2>err.txt; then
-            gh pr comment "$PR" --body "$(printf 'state-automerge: eligible, auto-merge enabled. It merges the moment one reviewer approves; no merge click needed.\n\n%s\n\n*Automated check. It establishes ownership and authorship, not that the content is true.*' "$VERDICT")"
+            gh pr comment "$PR" --body "$(printf 'state-automerge: eligible, auto-merge enabled. It merges the moment one reviewer approves; no merge click needed.\n\n%s\n\n*Automated check. It establishes ownership and a roster-matching author line, not authorship and not that the content is true; the approving review is the gate.*' "$VERDICT")"
           else
             gh pr comment "$PR" --body "$(printf 'state-automerge: eligible, but auto-merge could not be enabled. Most likely the repository setting Allow auto-merge is off (O.J.: Settings, General, Pull Requests).\n\n%s\n\nError: %s' "$VERDICT" "$(cat err.txt)")"
           fi

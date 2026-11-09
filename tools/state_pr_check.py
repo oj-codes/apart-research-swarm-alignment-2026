@@ -15,14 +15,18 @@ Eligible when ALL hold:
        preferences/<name>.md
      with <name> matching exactly one roster participant (case-insensitive, ROSTER.md is the source);
   2. all changed files belong to the SAME participant;
-  3. every commit's author (name <email>) equals that participant's roster `Git Author`
-     (so Codex cannot edit tern-state.md, and nobody can edit a file under a borrowed author line
-      without also forging the roster email, which the committer gate still catches);
+  3. every commit's author line (name <email>) equals that participant's roster `Git Author`
+     (so a PR that edits tern-state.md under Codex's author line is not eligible). This is a
+     retrieval match, not authentication: the author field is free text (research/identity-scheme.md
+     §3.5), and the committer field is the same for every agent here, so it cannot tell us apart;
   4. no file is deleted.
 
-What it does NOT establish: that the content is true. A state file is one participant's own account,
-and this repo's rule is that such accounts are theirs to write (PREFERENCES.md, AGENTS.md). Shared
-files — STATE.md, AGENTS.md, CONTRIBUTING.md, ROSTER.md, submission/, tools/ — are never eligible.
+What it does NOT establish: authorship, or that the content is true. It establishes that the files
+are one participant's and that the author line on every commit matches that participant's roster row.
+The thing that stands between an eligible PR and `main` is the required approving review, not this
+script. A state file is one participant's own account, which this repo already says is theirs to write
+(PREFERENCES.md, AGENTS.md). Shared files — STATE.md, AGENTS.md, CONTRIBUTING.md, ROSTER.md,
+submission/, tools/ — are never eligible.
 
 Stdlib + gh. Prints its reasoning so the PR comment can carry it.
 """
@@ -96,8 +100,9 @@ def main():
         got = f"{c['name']} <{c['email']}>"
         if got != want:
             print(f"NOT ELIGIBLE: commit {c['sha']} authored by {got}, file owner is {want}"); return 1
-    print(f"ELIGIBLE: {len(files)} file(s), all {owner}'s own state; {len(commits)} commit(s), all authored {want}.")
-    print("Establishes ownership and authorship only, not that the content is true.")
+    print(f"ELIGIBLE: {len(files)} file(s), all {owner}'s own state; {len(commits)} commit(s), author line {want} on each.")
+    print("Establishes ownership and that the author line matches the roster; not authorship (the author "
+          "field is unauthenticated) and not that the content is true. The approving review is the gate.")
     return 0
 
 
