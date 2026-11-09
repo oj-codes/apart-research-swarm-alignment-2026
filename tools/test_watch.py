@@ -350,6 +350,19 @@ class MergeableTransition(unittest.TestCase):
         self._poll("MERGEABLE")
         self.assertFalse([l for l in self._poll("UNKNOWN") if "UNKNOWN" in l])
 
+    def test_upgrade_does_not_burst_on_the_new_field(self):
+        # `fingerprint` hashes `prs` whole, so a state file written before this field existed would
+        # read every open PR as changed on the first poll after upgrading (Corrie, #66).
+        with open(self.state, "w") as f:
+            json.dump({"schema": watch.SCHEMA, "inbox": [],
+                       "prs": {"99": {"title": "a title", "review": "", "draft": False}},
+                       "pr_comments": {}, "discussions": {}, "main": "cafef00d"}, f)
+        rc = _run(["--quiet"], self.state,
+                  overrides={"probe_prs": lambda: {"99": {"title": "a title", "review": "",
+                                                          "draft": False, "mergeable": "MERGEABLE"}}})
+        self.assertEqual(rc, 1, "the upgrade must not read as a change")
+        self.assertEqual(json.load(open(self.state)).get("pending"), [])
+
 
 if __name__ == "__main__":
     unittest.main()

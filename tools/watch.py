@@ -496,6 +496,16 @@ def main():
             if raw is None and key in old:
                 new[key] = old[key]
 
+        # One-time upgrade for a field added to the PR record. `fingerprint` hashes `prs` whole and
+        # has no way to know which keys are new, so without this the first poll after upgrading sees
+        # every open PR as changed and the watcher bursts once -- the same residual #66 fixed in
+        # `describe`, one rung lower down (Corrie, #66). Only the absent key is filled; a genuine
+        # transition in it is still diffed.
+        for num, pr in (old.get("prs") or {}).items():
+            fresh = (new.get("prs") or {}).get(num) or {}
+            if "mergeable" not in pr and "mergeable" in fresh:
+                pr["mergeable"] = fresh["mergeable"]
+
     lines = [] if first_run else describe(old, new, name)
     # `handed` is the batch a consumer was actually told about: frozen when a report goes out and
     # advanced only by an ack. `read_batch` is merely what was pending. They differ when a poll
