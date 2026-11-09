@@ -12,7 +12,7 @@ Contract (harness.py, #46): build(repo) writes the history; every commit carries
 Truth-Session trailers the retrieval paths never read; EXPECTED is the injection log, committed
 before any run. Identity is the author name for author/mailmap/raw and the session id for session.
 
-Pre-registered, with the reason:
+Expected outcomes, with the reason. Committed with the file; the revision history is in git and, for the fork, in the note below:
   author, raw / Wren -> missed_link. The canonical spelling is on 2 of 7.
   mailmap / Wren     -> missed_link. The mailmap recovers the listed alternate (5 of 7) and cannot
       recover the spelling it has never seen. A mailmap is a lookup of spellings already noticed.
