@@ -58,11 +58,13 @@ WHAT IT DOES NOT DO (be honest about the seam):
 """
 import argparse
 import collections
+import fcntl
 import hashlib
 import json
 import os
 import subprocess
 import sys
+import time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REPO = "oj-codes/apart-research-swarm-alignment-2026"
@@ -73,7 +75,7 @@ LAST_ERRORS = []
 # Bump when the saved state's shape changes. A mismatch is treated as a first run instead of
 # crashing — old code must never try to diff new-format state, which is exactly what bit me when
 # comment tracking moved from counts to id maps.
-SCHEMA = 2
+SCHEMA = 3
 
 Result = collections.namedtuple("Result", "ok out err code error")
 
@@ -125,6 +127,74 @@ def gh_json(*args):
         return None
 
 
+def gh_lines(*args):
+    """Run a paginated gh call that streams one JSON value per line (pass `-q '.[]'`).
+
+    `gh api --paginate` concatenates per-page arrays; `-q '.[]'` turns those into lines so we can
+    parse them one at a time and see PAST the first 100 of a repo-wide feed. Returns None on failure,
+    keeping the same partial-failure contract as gh_json.
+    """
+    label = f"gh {args[0] if args else ''}"
+    r = run("gh", *args)
+    if not r.ok:
+        LAST_ERRORS.append(f"{label}: {why(r)}")
+        return None
+    out = []
+    for line in r.out.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            out.append(json.loads(line))
+        except json.JSONDecodeError:
+            LAST_ERRORS.append(f"{label}: unparseable JSON line")
+            return None
+    return out
+
+
+def _save(path, state):
+    """Write state atomically: tmp file, fsync, os.replace. Never leaves a torn JSON behind."""
+    d = os.path.dirname(path)
+    if d:
+        os.makedirs(d, exist_ok=True)
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(state, f, sort_keys=True)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp, path)
+
+
+def _lock(path):
+    """Exclusive, non-blocking lock over the whole read-modify-write. Returns (fd|None, busy).
+
+    Atomic replace stops a torn file; it does nothing about a poll and a hand-run `--ack`
+    interleaving read-read-write-write and losing one observation. The lock covers both (Codex, #35).
+
+    flock is per open-file-description, so two opens in ONE process (tests calling main() repeatedly)
+    would otherwise self-conflict; `_HELD` makes a second in-process call a no-op instead.
+    """
+    if path in _HELD:
+        return _HELD[path], False
+    d = os.path.dirname(path)
+    if d:
+        os.makedirs(d, exist_ok=True)          # a missing parent used to fail the OPEN, not the lock
+    try:
+        fd = os.open(path + ".lock", os.O_CREAT | os.O_RDWR, 0o644)
+    except OSError:
+        return None, True                      # stop rather than proceed unlocked (Codex, #35)
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        os.close(fd)
+        return None, True
+    _HELD[path] = fd
+    return fd, False
+
+
+_HELD = {}
+
+
 # --- the things worth waking up for -------------------------------------------------
 
 def probe_inbox(name):
@@ -160,7 +230,7 @@ def probe_prs():
     Deliberately NOT updatedAt. updatedAt moves on every push, so watching it meant an agent
     woke itself up every time it pushed its own branch. Comments are tracked by id below.
     """
-    data = gh_json("pr", "list", "--repo", REPO, "--state", "open", "--limit", "50",
+    data = gh_json("pr", "list", "--repo", REPO, "--state", "open", "--limit", "200",
                    "--json", "number,title,reviewDecision,isDraft")
     if data is None:
         return None
@@ -183,8 +253,15 @@ def probe_pr_comments():
     so an `--ack` can mark exactly what's been seen.
     """
     out = {}
-    convo = gh_json("api", f"repos/{REPO}/issues/comments?per_page=100")
-    inline = gh_json("api", f"repos/{REPO}/pulls/comments?per_page=100")
+    # Paginated and newest-first. A bare per_page=100 returns the OLDEST 100 (GitHub's default
+    # order), so once the repo passes 100 comments the probe stops seeing anything new -- measured
+    # blind for ~9 hours on 2026-11-08. direction=desc recovers today; --paginate removes the cap.
+    convo = gh_lines("api", "--paginate",
+                     f"repos/{REPO}/issues/comments?per_page=100&sort=created&direction=desc",
+                     "-q", ".[]")
+    inline = gh_lines("api", "--paginate",
+                      f"repos/{REPO}/pulls/comments?per_page=100&sort=created&direction=desc",
+                      "-q", ".[]")
     if convo is None and inline is None:
         return None
     for c in (convo or []):
@@ -205,9 +282,11 @@ def probe_pr_comments():
 
 def probe_discussions():
     """Discussion threads and their comments, by id — where the arguing happens."""
-    q = ("{ repository(owner:\"%s\", name:\"%s\"){ discussions(first:50, "
+    # first:100, no cursors yet and no thread replies: honest gaps rather than silent ones. 100 is
+    # well past current usage; cursors/replies are a follow-up if the repo grows (Codex, #35).
+    q = ("{ repository(owner:\"%s\", name:\"%s\"){ discussions(first:100, "
          "orderBy:{field:UPDATED_AT, direction:DESC}){ nodes { number title "
-         "comments(first:50) { nodes { id author { login } body } } } } } }") % tuple(REPO.split("/"))
+         "comments(first:100) { nodes { id author { login } body } } } } } }") % tuple(REPO.split("/"))
     data = gh_json("api", "graphql", "-f", f"query={q}")
     if data is None:
         return None
@@ -228,14 +307,16 @@ def probe_discussions():
 
 
 def probe_main():
-    """Has main moved? Someone merged while you were asleep."""
+    """Has main moved? Someone merged while you were asleep. None (not "") on failure, so the
+    carry-forward can tell 'failed' from 'empty' and a transient fetch can't drop the baseline."""
     f = run("git", "-C", ROOT, "fetch", "--quiet", "origin", "main")
     if not f.ok:
         LAST_ERRORS.append(f"git fetch origin main: {why(f)}")
+        return None
     r = run("git", "-C", ROOT, "rev-parse", "origin/main")
     if not r.ok:
         LAST_ERRORS.append(f"git rev-parse origin/main: {why(r)}")
-        return ""
+        return None
     return r.out
 
 
@@ -295,7 +376,11 @@ def describe(old, new, name):
 
 
 def fingerprint(state):
-    blob = json.dumps(state, sort_keys=True, separators=(",", ":")).encode()
+    # `pending` and `handed` are excluded: they are the delivery queue, not the observed world.
+    # Without this, old (which carries the queue keys) and a freshly-built new never match shape and
+    # every run reports.
+    s = {k: v for k, v in state.items() if k not in ("pending", "handed")}
+    blob = json.dumps(s, sort_keys=True, separators=(",", ":")).encode()
     return hashlib.sha256(blob).hexdigest()
 
 
@@ -331,7 +416,26 @@ def main():
     if args.reset and os.path.exists(path):
         os.remove(path)
 
-    prs, discussions = probe_prs(), probe_discussions()
+    # Exclusive lock over the whole read-modify-write, so a poll and a hand-run --ack cannot
+    # interleave and lose an observation (Codex, #35). Held until the process exits.
+    _lock_fd, busy = _lock(path)
+    if busy and not args.peek and args.ack:
+        # A hand-run --ack loses to a poll for that poll's WHOLE hold, and the hold is not short:
+        # the lock is taken above the probes, so it spans every paginated gh call — Corrie measured
+        # 4.2-4.6s on this repo. Budget past that (20 x 0.3s = 6s) or the retries exhaust and the
+        # ack no-ops, which is the exact failure this guards: a no-op ack leaves the batch pending.
+        for _ in range(20):
+            time.sleep(0.3)
+            _lock_fd, busy = _lock(path)
+            if not busy:
+                break
+    if busy and not args.peek:
+        if not args.quiet:
+            print(f"[watch] {path}.lock is held by another run — treating as no change.")
+        return 2
+
+    prs, prc, discussions = probe_prs(), probe_pr_comments(), probe_discussions()
+    main_sha = probe_main()
     if prs is None and discussions is None:
         # Couldn't reach the remote at all. Change nothing, wake nobody -- but say WHY, because a
         # silent version of this exit is indistinguishable from a genuinely quiet afternoon.
@@ -345,9 +449,9 @@ def main():
         "schema": SCHEMA,
         "inbox": probe_inbox(name),
         "prs": prs or {},
-        "pr_comments": probe_pr_comments() or {},
+        "pr_comments": prc or {},
         "discussions": discussions or {},
-        "main": probe_main() or "",
+        "main": main_sha,
     }
 
     old, first_run = {}, not os.path.exists(path)
@@ -365,27 +469,59 @@ def main():
                     print(f"[watch] state schema {old.get('schema')} != {SCHEMA} — re-baselining.")
                 old, first_run = {}, True
 
-    changed = first_run or fingerprint(old) != fingerprint(new)
+    if not first_run:
+        # A probe that fails (returns None) while the others work used to land as {} -- so the diff
+        # read every open PR (and every discussion) as deleted and the loop woke to a false
+        # "closed or merged" storm. Carry the last known good value for the failed probe instead, so
+        # a transient gh failure is a no-op rather than a fabricated deletion.
+        for key, raw in (("prs", prs), ("pr_comments", prc), ("discussions", discussions),
+                         ("main", main_sha)):
+            if raw is None and key in old:
+                new[key] = old[key]
 
-    # Persist on every run EXCEPT --peek. A normal run writes its fingerprint unconditionally,
-    # which is what lets a cron loop gate on it -- but it also means a by-hand check consumes the
-    # change and disarms the background watcher (reported by Venice, 2026-11-08). --peek reads and
-    # reports without writing, so you can look without stealing the loop's wake-up.
+    lines = [] if first_run else describe(old, new, name)
+    # `handed` is the batch a consumer was actually told about: frozen when a report goes out and
+    # advanced only by an ack. `read_batch` is merely what was pending. They differ when a poll
+    # lands between the consumer's read and its ack — and then the ack must clear only what was
+    # handed, or the later event is cleared without ever having been seen (Codex/Auran, #35).
+    read_batch = list(old.get("pending") or [])
+    # Absent `handed` is NOT the same as empty. A file written before this field existed cannot say
+    # what was handed, so assume nothing was and let the next poll re-report — the alternative
+    # (absent ⇒ everything pending was handed) is byte-for-byte the pre-fix loss (Corrie, #35).
+    handed = list(old["handed"]) if "handed" in old else []
+    pending = list(read_batch)
+    new["pending"] = pending
+    base_changed = first_run or fingerprint(old) != fingerprint(new)
+    if base_changed and not first_run:
+        pending = pending + [l for l in lines if l not in pending]
+    if pending and not handed and not args.ack:   # an ack is not a report; it must not freeze a batch nobody was handed
+        handed = list(pending)               # first report of a batch: this is what gets handed out
+    cleared = [l for l in pending if l in handed]
+    newer = [l for l in pending if l not in handed]
+    if args.ack:
+        pending = newer                      # clear only the handed batch; later events re-report
+        handed = []                          # nothing handed since; the next report re-arms `handed`,
+                                             # so the script's unconditional fallback ack is a no-op
+                                             # and cannot clear a batch the turn just preserved
+    new["handed"] = handed
+    new["pending"] = pending
+    changed = first_run or base_changed or bool(pending)
+
+    # Persist atomically, every run EXCEPT --peek, so a by-hand check doesn't consume the loop's
+    # wake-up (Venice, #25) and a crash can't leave torn JSON.
     if not args.peek:
         try:
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            with open(path, "w", encoding="utf-8") as f:
-                json.dump(new, f, sort_keys=True)
+            _save(path, new)
         except OSError as e:
             if not args.quiet:
                 print(f"[watch] warning: couldn't save state to {path}: {e}", file=sys.stderr)
 
     if args.ack:
-        # State has already been written above; that's the whole job. Say what was swallowed so
-        # an ack is never silent about hiding something.
+        # State is written with the handed batch cleared; anything a later poll added stays pending.
         if not args.quiet:
-            n = len(describe(old, new, name)) if not first_run else 0
-            print(f"[watch] acked for {name}" + (f" — {n} change(s) marked as seen" if n else ""))
+            print(f"[watch] acked for {name}"
+                  + (f" — {len(cleared)} change(s) marked as seen" if cleared else "")
+                  + (f"; {len(newer)} newer left pending" if newer else ""))
         return 1
 
     if args.quiet:
@@ -406,9 +542,13 @@ def main():
             print(f"  ! but a probe failed, so this may be incomplete: {e}")
         return 1
 
-    print(f"[watch] CHANGED — {len(describe(old, new, name)) or 'something'} thing(s) moved:\n")
-    for line in describe(old, new, name) or ["(fingerprint differs; see above probes)"]:
+    print(f"[watch] CHANGED — {len(pending) or 'something'} thing(s) moved:\n")
+    for line in pending or ["(fingerprint differs; see above probes)"]:
         print(f"  * {line}")
+    # The fallback text says "see above probes"; this branch used to print nothing above. Emit the
+    # probe errors here too -- it is the one path that tells a reader to go look (Corrie, #35).
+    for e in LAST_ERRORS:
+        print(f"  ! a probe failed, so this may be incomplete: {e}")
     return 0
 
 

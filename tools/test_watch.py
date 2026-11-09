@@ -13,6 +13,7 @@ reads and reports without persisting; a fix without a test is a fix that comes b
 import importlib.util
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -23,19 +24,26 @@ watch = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(watch)
 
 
-def _run(argv, statepath):
-    """Run watch.main() with a fixed, offline world. Returns the exit code."""
+def _run(argv, statepath, overrides=None):
+    """Run watch.main() with a fixed, offline world. Returns the exit code.
+
+    `overrides` replaces individual probes, e.g. {"probe_prs": lambda: None} to simulate a
+    transient gh failure while the rest of the world still answers.
+    """
     saved = sys.argv
     sys.argv = ["watch.py", "--as", "tester", "--state", statepath] + argv
     # Fix every probe so the "current reality" is constant and diffs are deterministic.
-    orig = {}
-    for n, val in {
+    world = {
         "probe_inbox": lambda name: [],
         "probe_prs": lambda: {"99": {"title": "x", "review": "", "draft": False}},
         "probe_pr_comments": lambda: {},
         "probe_discussions": lambda: {},
         "probe_main": lambda: "cafef00d",
-    }.items():
+    }
+    if overrides:
+        world.update(overrides)
+    orig = {}
+    for n, val in world.items():
         orig[n] = getattr(watch, n)
         setattr(watch, n, val)
     try:
@@ -67,7 +75,10 @@ class PeekContract(unittest.TestCase):
         self.assertEqual(_run(["--peek", "--quiet"], self.state), 0)
         # ... and a normal run IMMEDIATELY after STILL sees it (peek didn't eat it).
         self.assertEqual(_run(["--quiet"], self.state), 0)
-        # ... and only now is it consumed: the next normal run is unchanged.
+        # ... and it stays pending across polls -- at-least-once, not cleared by polling ...
+        self.assertEqual(_run(["--quiet"], self.state), 0)
+        # ... until an --ack clears it. Only then is the next run quiet.
+        _run(["--ack", "--quiet"], self.state)
         self.assertEqual(_run(["--quiet"], self.state), 1)
 
     def test_normal_run_persists(self):
@@ -122,6 +133,195 @@ class ReviewTransition(unittest.TestCase):
 
     def test_unchanged_review_is_silent(self):
         self.assertEqual([], self._lines("APPROVED", "APPROVED"))
+
+
+class PartialProbeFailure(unittest.TestCase):
+    """A probe that fails (returns None) while the others answer must NOT be read as a deletion.
+
+    Venice, 2026-11-08: a transient `gh pr list` failure returned None -> {} and the diff reported
+    every open PR as "closed or merged", waking the loop into a false merge storm."""
+
+    def setUp(self):
+        self.d = tempfile.mkdtemp()
+        self.state = os.path.join(self.d, "s.json")
+        with open(self.state, "w") as f:
+            json.dump({"schema": watch.SCHEMA, "inbox": [],
+                       "prs": {"99": {"title": "x", "review": "", "draft": False}},
+                       "pr_comments": {}, "discussions": {}, "main": "cafef00d"}, f)
+
+    def test_failed_pr_probe_carries_the_last_known_list(self):
+        rc = _run(["--quiet"], self.state, overrides={"probe_prs": lambda: None})
+        self.assertEqual(rc, 1, "a failed pr probe is not a change; it must not read as a close")
+        kept = json.load(open(self.state)).get("prs") or {}
+        self.assertIn("99", kept, "the last known PR list must be carried, not blanked to {}")
+
+    def test_failed_discussion_probe_carries_too(self):
+        rc = _run(["--quiet"], self.state, overrides={"probe_discussions": lambda: None})
+        self.assertEqual(rc, 1)
+        self.assertIn("discussions", json.load(open(self.state)))
+
+    def test_failed_main_probe_carries_not_clears(self):
+        # probe_main returns None on failure (not ""), so it must be carried like the rest.
+        rc = _run(["--quiet"], self.state, overrides={"probe_main": lambda: None})
+        self.assertEqual(rc, 1, "a failed main probe is not a change")
+        self.assertEqual(json.load(open(self.state)).get("main"), "cafef00d",
+                         "the last known main sha must survive a failed probe")
+
+    def test_pending_survives_polls_and_clears_on_ack(self):
+        # A change must stay pending until --ack, so a wake whose consumer died is re-reported.
+        with open(self.state, "w") as f:
+            json.dump({"schema": watch.SCHEMA, "inbox": [], "prs": {},
+                       "pr_comments": {}, "discussions": {}, "main": "deadbeef"}, f)
+        self.assertEqual(_run(["--quiet"], self.state), 0)          # change, pending written
+        st = json.load(open(self.state))
+        self.assertTrue(st.get("pending"), "the change must be recorded in pending")
+        self.assertEqual(_run(["--quiet"], self.state), 0)          # still pending, not consumed
+        _run(["--ack", "--quiet"], self.state)
+        self.assertEqual(json.load(open(self.state)).get("pending"), [])
+        self.assertEqual(_run(["--quiet"], self.state), 1)          # now quiet
+
+    def test_state_is_written_atomically_tmp_is_gone(self):
+        _run(["--quiet"], self.state)
+        self.assertTrue(os.path.exists(self.state))
+        self.assertFalse(os.path.exists(self.state + ".tmp"), "os.replace must leave no .tmp behind")
+
+    def test_a_real_change_still_reports_when_another_probe_fails(self):
+        # discussions fails, but a genuinely new PR appears: still a change (via prs).
+        rc = _run(["--quiet"], self.state, overrides={
+            "probe_discussions": lambda: None,
+            "probe_prs": lambda: {"99": {"title": "x", "review": "", "draft": False},
+                                  "100": {"title": "new", "review": "", "draft": False}},
+        })
+        self.assertEqual(rc, 0, "a working probe's real change must still wake the loop")
+
+
+class Delivery(unittest.TestCase):
+    """At-least-once: a change stays pending until --ack, so a wake whose consumer died is
+    re-reported rather than marked seen by the persistence that preceded it (Corrie, #35)."""
+
+    def setUp(self):
+        self.d = tempfile.mkdtemp()
+        self.state = os.path.join(self.d, "s.json")
+        with open(self.state, "w") as f:
+            json.dump({"schema": watch.SCHEMA, "inbox": [], "prs": {},
+                       "pr_comments": {}, "discussions": {}, "main": "deadbeef"}, f)
+
+    def test_pending_survives_a_poll_and_clears_on_ack(self):
+        self.assertEqual(_run(["--quiet"], self.state), 0)      # a change
+        self.assertEqual(_run(["--quiet"], self.state), 0)      # STILL pending, not consumed by polling
+        self.assertTrue(json.load(open(self.state)).get("pending"))
+        _run(["--ack", "--quiet"], self.state)                  # the consumer confirms
+        self.assertEqual(json.load(open(self.state)).get("pending"), [])
+        self.assertEqual(_run(["--quiet"], self.state), 1)      # quiet only now
+
+    def test_state_written_atomically_no_tmp_left(self):
+        _run(["--quiet"], self.state)
+        self.assertTrue(os.path.exists(self.state))
+        self.assertFalse(os.path.exists(self.state + ".tmp"))
+
+    def test_ack_clears_only_the_read_batch(self):
+        # A change that lands *during* the ack must survive it, not be swallowed (Codex's blocker 1).
+        with open(self.state, "w") as f:
+            json.dump({"schema": watch.SCHEMA, "inbox": [], "prs": {},
+                       "pr_comments": {}, "discussions": {}, "main": "deadbeef",
+                       "pending": ["an-old-read-event"], "handed": ["an-old-read-event"]}, f)
+        _run(["--ack", "--quiet"], self.state)      # world's main differs -> new event arrives now
+        pending = json.load(open(self.state)).get("pending")
+        self.assertNotIn("an-old-read-event", pending, "the read batch must be cleared")
+        self.assertTrue(pending, "an event that arrived during the ack must stay pending")
+
+    def test_absent_handed_clears_nothing_on_the_upgrade_ack(self):
+        # A file written before `handed` existed has `pending` but no way to say what was handed, so
+        # assume nothing was. The ack clears nothing and both re-report: one duplicate round, zero
+        # loss. Reading absent as "all of pending was handed" is byte-for-byte the pre-fix loss.
+        with open(self.state, "w") as f:
+            json.dump({"schema": watch.SCHEMA, "inbox": [], "prs": {},
+                       "pr_comments": {}, "discussions": {}, "main": "deadbeef",
+                       "pending": ["A-was-reportable", "B-arrived-later"]}, f)
+        _run(["--ack", "--quiet"], self.state)
+        pending = json.load(open(self.state)).get("pending")
+        self.assertTrue(all(x in pending for x in ("A-was-reportable", "B-arrived-later")),
+                        "an upgrade ack must clear nothing and lose nothing")
+
+    def test_a_poll_between_read_and_ack_is_not_swallowed(self):
+        # Auran's reproduction (#35): poll B lands between the consumer's read and its ack. B is
+        # appended to `pending`, so an ack-by-invocation-snapshot cleared B unseen. `handed` freezes
+        # what was actually reported, and the ack clears only that.
+        _run(["--quiet"], self.state, overrides={"probe_main": lambda: "aaaa1111"})
+        first = json.load(open(self.state))["pending"]
+        self.assertTrue(first, "A is pending and handed after the first poll")
+        _run(["--quiet"], self.state, overrides={"probe_main": lambda: "bbbb2222"})
+        both = json.load(open(self.state))["pending"]
+        self.assertEqual(json.load(open(self.state)).get("handed"), first,
+                         "a later poll must not widen what was handed to the consumer")
+        _run(["--ack", "--quiet"], self.state, overrides={"probe_main": lambda: "bbbb2222"})
+        after = json.load(open(self.state))["pending"]
+        self.assertEqual(after, [l for l in both if l not in first],
+                         "the ack clears only the handed batch; the later poll's event survives")
+
+    def test_the_scripts_fallback_ack_does_not_undo_the_turn_ack(self):
+        # The watcher acks twice: the turn's own ack, then an unconditional fallback "in case the
+        # turn died". A later event must survive BOTH, or the fallback silently undoes the turn.
+        _run(["--quiet"], self.state, overrides={"probe_main": lambda: "aaaa1111"})
+        _run(["--quiet"], self.state, overrides={"probe_main": lambda: "bbbb2222"})   # B, between
+        ack = {"probe_main": lambda: "bbbb2222"}
+        _run(["--ack", "--quiet"], self.state, overrides=ack)     # the turn's ack
+        _run(["--ack", "--quiet"], self.state, overrides=ack)     # the script's fallback ack
+        self.assertTrue(json.load(open(self.state)).get("pending"),
+                        "the fallback ack must not clear what the turn ack deliberately preserved")
+
+    def test_old_schema_state_degrades_to_first_run(self):
+        with open(self.state, "w") as f:
+            json.dump({"schema": 2, "inbox": [], "prs": {}, "pr_comments": {},
+                       "discussions": {}, "main": "deadbeef"}, f)
+        rc = _run(["--quiet"], self.state)
+        self.assertEqual(rc, 0, "an old-format state must re-baseline, not crash")
+        self.assertEqual(json.load(open(self.state)).get("schema"), watch.SCHEMA)
+
+
+class MainProbeCarry(unittest.TestCase):
+    def setUp(self):
+        self.d = tempfile.mkdtemp()
+        self.state = os.path.join(self.d, "s.json")
+        with open(self.state, "w") as f:
+            json.dump({"schema": watch.SCHEMA, "inbox": [],
+                       "prs": {"99": {"title": "x", "review": "", "draft": False}},
+                       "pr_comments": {}, "discussions": {}, "main": "cafef00d"}, f)
+
+    def test_failed_main_probe_carries_not_blanks(self):
+        rc = _run(["--quiet"], self.state, overrides={"probe_main": lambda: None})
+        self.assertEqual(rc, 1, "a down git fetch is not a change")
+        self.assertEqual(json.load(open(self.state)).get("main"), "cafef00d",
+                         "main must be carried, not blanked, when its probe fails")
+
+
+class AckWaitsOutALock(unittest.TestCase):
+    """A hand-run `--ack` colliding with a poll must wait the lock out, not no-op with exit 2.
+
+    The child holds for 3.5s on purpose — longer than the first cut's 3.0s budget — so this fails if
+    the budget is cut back to ten tries. It holds a real cross-process flock, because `_lock`'s
+    in-process `_HELD` short-circuit would otherwise hide the collision from a same-process caller.
+    """
+
+    def setUp(self):
+        self.d = tempfile.mkdtemp()
+        self.state = os.path.join(self.d, "s.json")
+
+    def test_ack_waits_out_a_held_lock(self):
+        lock = self.state + ".lock"
+        child = subprocess.Popen(
+            [sys.executable, "-c",
+             "import fcntl, os, sys, time\n"
+             "fd = os.open(sys.argv[1], os.O_CREAT | os.O_RDWR)\n"
+             "fcntl.flock(fd, fcntl.LOCK_EX)\n"
+             "print('locked', flush=True)\n"
+             "time.sleep(3.5)\n",
+             lock],
+            stdout=subprocess.PIPE, text=True)
+        self.addCleanup(child.wait)
+        child.stdout.readline()  # block until the child actually holds the lock
+        rc = _run(["--ack"], self.state)
+        self.assertNotEqual(rc, 2, "an --ack that collided with a poll must still ack")
 
 
 if __name__ == "__main__":

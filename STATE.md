@@ -7,17 +7,17 @@ this one is that it is shared, inspectable, and survives a session. **Whoever ch
 updates this file in the same PR.** Every agent's tick reads it before deciding nothing qualifies.
 Git history is the record of how it moved; edit in place.
 
-Updated: 2026-11-08 23:25 UTC, Rill, at `main` 14e1615 (in #27, the PR that changed the state).
+Updated: 2026-11-09 00:31 UTC, Rill, at `main` b847246, in #27 while resolving its conflict on this file.
 
 ## Focus, now
 
 Ship the report. Submission closes **2026-11-09 11:59 UTC**. #27 (Rill) is the deliverable, at head
-`d204da4`. **The shipping `.docx` has zero `PENDING` markers and meets the page cap** (body fills page 8
-with about five lines of slack, References on page 9; rendered by Rill and Corrie independently). `submission/report.md` still carries four `PENDING` markers, but the
+`4f32ba1`. **The shipping `.docx` has zero `PENDING` markers and meets the page cap**: the body ends at
+line 37 of 39 on page 8 and References starts page 9, rendered by Rill and Corrie independently. `submission/report.md` still carries four `PENDING` markers, but the
 docx is what ships, so those are a markdown-only divergence and not open decisions.
 
-**Main-text budget, measured, because this keeps getting guessed at:** about **120 words** of headroom
-in §1–§6 total at `d204da4` (Corrie's probe); the #55 reading is already in, as one §5 sentence. Appendix C
+**Main-text budget, measured, because this keeps getting guessed at:** two lines on page 8, about
+**30 words**. Only trims after Table 2 move the end; trims before a float become whitespace above it. The #55 reading and the hacker-house commitment are in. Appendix C
 ("Limitations, Future Work, and Dual-Use") and References are outside the cap by the brief's wording,
 so additions there are free. `build_docx.py` shipped a stale document once on 8 Nov after a silent
 crash, so **re-render; don't re-read the commit message.**
@@ -26,18 +26,16 @@ crash, so **re-render; don't re-read the commit message.**
 
 | item | owner | state |
 |---|---|---|
-| #27 report | Rill | needs an approver (pushes dismissed the earlier ones); #55 sources and Codex's narrowings landed; waits on O.J.'s runtime screenshots for Table 1, then re-render at the ship sha |
+| #27 report | Rill | the only open deliverable; needs an approver, pushes dismissed the earlier ones; all review requests closed at `4f32ba1`; waits on O.J.'s runtime screenshots for Table 1, then a final render at the ship sha |
 | re-pin or not | team, O.J. decides | docx says `63 of 107`, exact at the pinned `b2ca5a7`. `main` drifts fast — 64 of 108, then 66 of 110, then **69 of 113** within the hour. Corrie recommends leaving the pin; a re-pin forces recomputing the findings table, §4.1, §4.4 and §6 together |
-| #35 watcher partial-probe fix | Venice | changes requested; O.J.'s four bugs still unfixed |
 | Auran's signing key | Auran + O.J. | accepted on #53, custody as fiduciary agreed; **key generation deliberately deferred** out of crunch to a logged step with O.J. Nothing here expires tonight |
 | #49 second paper, self-initiation | O.J., open thread | brainstorm; the goal-line experiment is running on Tern's tick |
 | Discord review by outside humans | O.J. | trigger when §4.4 reads as a result; ask: does the title match §4, what does §6 miss |
 
 ## Waiting on O.J.
 
-- Runtime screenshots for the Table 1 rows, in one comment on #27.
+- **Runtime screenshots for the Table 1 rows, in one comment on #27.**
 - Merge of #27 once it has an approver.
-- The four bugs on #35.
 - Whether to re-pin (see the table). Not re-pinning is the cheaper and safer answer.
 - Whether to turn on auto-merge for script-generated files only (#49); current rule from #10 stands.
 - Whether to ping the Discord reviewers.
@@ -52,6 +50,7 @@ crash, so **re-render; don't re-read the commit message.**
 
 ## Recently shipped (2026-11-08, newest first)
 
+#58 the twelve position updates in #9 scored by the DUC rubric · #59 stale-block falsifier run, status supported · #35 watcher fix ·
 #53 the letter to Auran, signing key and custody · #52 this file · #54 O.J.'s own statement of the
 cause, appended to the cause-outside-the-trace finding ·
 #51 CI validation on every PR · #48 #47 #45 #46 #50 the retrieval eval, 31 rows, 16 correct, 11 missed,
