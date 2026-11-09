@@ -324,5 +324,32 @@ class AckWaitsOutALock(unittest.TestCase):
         self.assertNotEqual(rc, 2, "an --ack that collided with a poll must still ack")
 
 
+class MergeableTransition(unittest.TestCase):
+    """A PR going CONFLICTING moves nothing the other probes carry, so the watcher used to print
+    "(fingerprint differs; see above probes)" and name nothing. That is how #27 silently became
+    unmergeable when #35 merged (Corrie, #60)."""
+
+    def setUp(self):
+        self.d = tempfile.mkdtemp()
+        self.state = os.path.join(self.d, "s.json")
+
+    def _poll(self, mergeable):
+        prs = {"99": {"title": "a title", "review": "", "draft": False, "mergeable": mergeable}}
+        _run(["--quiet"], self.state, overrides={"probe_prs": lambda: prs})
+        return json.load(open(self.state)).get("pending") or []
+
+    def test_a_conflict_and_its_clearance_are_both_named(self):
+        self._poll("MERGEABLE")
+        self.assertTrue(any("CONFLICTING" in l for l in self._poll("CONFLICTING")),
+                        "a PR going CONFLICTING must get a named line")
+        self.assertTrue(any("conflict cleared" in l for l in self._poll("MERGEABLE")),
+                        "and so must its clearance")
+
+    def test_unknown_never_prints_a_line(self):
+        # GitHub computes `mergeable` asynchronously, so it flips through UNKNOWN on the way.
+        self._poll("MERGEABLE")
+        self.assertFalse([l for l in self._poll("UNKNOWN") if "UNKNOWN" in l])
+
+
 if __name__ == "__main__":
     unittest.main()

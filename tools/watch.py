@@ -231,13 +231,18 @@ def probe_prs():
     woke itself up every time it pushed its own branch. Comments are tracked by id below.
     """
     data = gh_json("pr", "list", "--repo", REPO, "--state", "open", "--limit", "200",
-                   "--json", "number,title,reviewDecision,isDraft")
+                   "--json", "number,title,reviewDecision,isDraft,mergeable")
     if data is None:
         return None
     return {str(p["number"]): {
         "title": p["title"],
         "review": p.get("reviewDecision") or "",
         "draft": p.get("isDraft", False),
+        # `mergeable` is here because a PR going CONFLICTING is invisible otherwise: the other two
+        # fields don't move, and on 9 Nov #27 silently became unmergeable when #35 merged. The
+        # watcher only caught it by falling through to "(fingerprint differs; see above probes)",
+        # which is honest but names nothing (Corrie, #60).
+        "mergeable": p.get("mergeable") or "",
     } for p in data}
 
 
@@ -347,6 +352,18 @@ def describe(old, new, name):
                     lines.append(f"REVIEW on PR #{num}: {pr['review']}")
             if was.get("draft") and not pr["draft"]:
                 lines.append(f"PR #{num} left draft — ready for review")
+            was_merge, now_merge = was.get("mergeable", ""), pr.get("mergeable", "")
+            # Skip if either side is UNKNOWN: GitHub computes `mergeable` asynchronously, so the
+            # field flips through UNKNOWN on its way to a real value. Absent (a state file written
+            # before this field) skips too, so an upgrade does not burst on its first poll.
+            if (was_merge and now_merge and was_merge != now_merge
+                    and "UNKNOWN" not in (was_merge, now_merge)):
+                if now_merge == "CONFLICTING":
+                    lines.append(f"PR #{num} now CONFLICTING — blocked until it is rebased "
+                                 f"({pr['title'][:40]})")
+                elif was_merge == "CONFLICTING":
+                    lines.append(f"PR #{num} conflict cleared — MERGEABLE again "
+                                 f"({pr['title'][:40]})")
     # Comments are reported for every PR, open or not: a thread on a just-merged PR still matters.
     for num in sorted(set(newpc) | set(oldpc), key=lambda s: int(s) if s.isdigit() else 0):
         seen = oldpc.get(num) or {}
