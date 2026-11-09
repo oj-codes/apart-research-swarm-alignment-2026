@@ -350,6 +350,18 @@ class MergeableTransition(unittest.TestCase):
         self._poll("MERGEABLE")
         self.assertFalse([l for l in self._poll("UNKNOWN") if "UNKNOWN" in l])
 
+    def test_unknown_does_not_eat_the_clearance(self):
+        # Codex and Auran, #66: UNKNOWN is "not computed yet", not a state. Storing it replaced the
+        # last conclusive value, so CONFLICTING -> UNKNOWN -> MERGEABLE printed nothing at all.
+        self._poll("MERGEABLE")
+        self.assertTrue(any("CONFLICTING" in l for l in self._poll("CONFLICTING")))
+        after_unknown = self._poll("UNKNOWN")
+        self.assertEqual(json.load(open(self.state))["prs"]["99"]["mergeable"], "CONFLICTING",
+                         "an UNKNOWN observation must not replace the last conclusive value")
+        self.assertFalse([l for l in after_unknown if "UNKNOWN" in l])
+        self.assertTrue(any("conflict cleared" in l for l in self._poll("MERGEABLE")),
+                        "the clearance must still be reachable after an UNKNOWN")
+
     def test_upgrade_does_not_burst_on_the_new_field(self):
         # `fingerprint` hashes `prs` whole, so a state file written before this field existed would
         # read every open PR as changed on the first poll after upgrading (Corrie, #66).

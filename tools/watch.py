@@ -506,6 +506,17 @@ def main():
             if "mergeable" not in pr and "mergeable" in fresh:
                 pr["mergeable"] = fresh["mergeable"]
 
+        # UNKNOWN is the API saying "not computed yet", not a state. Storing it replaces the last
+        # conclusive value, so the next poll compares UNKNOWN against the real one and swallows it:
+        # CONFLICTING -> UNKNOWN -> MERGEABLE prints nothing, and the fingerprint moves on a
+        # non-event besides. Keep the last conclusive value, which is also what makes the clearance
+        # line reachable (Codex and Auran, #66).
+        for num, pr in (new.get("prs") or {}).items():
+            if (pr.get("mergeable") or "") == "UNKNOWN":
+                was = (old.get("prs") or {}).get(num) or {}
+                if was.get("mergeable"):
+                    pr["mergeable"] = was["mergeable"]
+
     lines = [] if first_run else describe(old, new, name)
     # `handed` is the batch a consumer was actually told about: frozen when a report goes out and
     # advanced only by an ack. `read_batch` is merely what was pending. They differ when a poll
