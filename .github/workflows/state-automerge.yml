@@ -1,0 +1,89 @@
+# Per-participant state files merge without O.J.'s judgment, once a reviewer approves.
+#
+# O.J. asked (#61): "could you add some kind of validation so that state files get merged in
+# automatically? they're really hard for me to judge." A check cannot judge whether a state file is
+# true; it can establish that a PR is nothing but one participant's own file, with that participant's
+# author line on every commit. That is what tools/state_pr_check.py establishes, and only then does
+# this workflow turn on GitHub's auto-merge for the PR.
+#
+# Security shape (Codex, #69): this runs on pull_request_target, only for PRs into main, and checks
+# out `main` explicitly, so the workflow and the checker come from the protected branch, never from the
+# PR and never from an arbitrary base branch. The PR is treated as data read through the API; its code
+# is never checked out or executed here. Every read and the merge call are bound to the one head sha
+# the run was started for: the checker refuses if the API's head differs, `gh pr merge` carries
+# `--match-head-commit`, and concurrency cancels an older run when a newer push arrives. If a later
+# push makes the PR ineligible, auto-merge is withdrawn.
+#
+# What still gates the merge: the protect-main ruleset's one approving review. Reviews by the Actions
+# bot do not count toward it, so a reviewer still clicks; what goes away is O.J.'s merge click. The
+# repository setting "Allow auto-merge" must be on, or this workflow reports and does nothing.
+# Self-started (#49 experiment), Tern, 2026-11-09.
+name: state-automerge
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+concurrency:
+  group: state-automerge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  eligibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # The protected branch, by name, on purpose. Never the PR's head, and not whatever base the PR
+      # happened to pick: `branches: [main]` above means base.ref is main, and this pins it anyway.
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: the checker's own regression cases
+        run: python3 -I tools/test_state_pr_check.py
+
+      - name: is this PR nothing but its author's own state file?
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set +e
+          out=$(python3 -I tools/state_pr_check.py "${{ github.event.pull_request.number }}" --expect-head "$HEAD" 2>&1)
+          rc=$?
+          echo "$out"
+          { echo "verdict<<VERDICT_EOF"; echo "$out"; echo "VERDICT_EOF"; } >> "$GITHUB_OUTPUT"
+          echo "eligible=$([ $rc -eq 0 ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: enable auto-merge, or withdraw it and say why
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          ELIGIBLE: ${{ steps.check.outputs.eligible }}
+          VERDICT: ${{ steps.check.outputs.verdict }}
+        run: |
+          if [ "$ELIGIBLE" != "yes" ]; then
+            # A push can take an eligible PR out of scope; an earlier auto-merge request must not survive it.
+            if gh pr merge "$PR" --disable-auto 2>/dev/null; then
+              gh pr comment "$PR" --body "$(printf 'state-automerge: no longer eligible at %s; auto-merge withdrawn.\n\n%s' "$HEAD" "$VERDICT")"
+            else
+              echo "not eligible; no auto-merge request to withdraw"
+            fi
+            exit 0
+          fi
+          if gh pr merge "$PR" --auto --merge --match-head-commit "$HEAD" 2>err.txt; then
+            gh pr comment "$PR" --body "$(printf 'state-automerge: eligible at %s, auto-merge enabled. It merges the moment one reviewer approves; no merge click needed.\n\n%s\n\n*Automated check from the base branch. It establishes ownership and a roster-matching author line, not authorship and not that the content is true; the approving review is the gate.*' "$HEAD" "$VERDICT")"
+          else
+            gh pr comment "$PR" --body "$(printf 'state-automerge: eligible at %s, but auto-merge could not be enabled. Most likely the repository setting Allow auto-merge is off (O.J.: Settings, General, Pull Requests).\n\n%s\n\nError: %s' "$HEAD" "$VERDICT" "$(cat err.txt)")"
+          fi
