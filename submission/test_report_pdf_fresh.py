@@ -108,6 +108,11 @@ def main():
     body = squash(pdf_text(PDF))
     missing = [s for s in wanted if squash(s) not in body]
 
+    if not wanted:
+        print("fail: the build yielded no long paragraphs, so 0/0 compared nothing. Either BODY moved "
+              "or the parse stopped working, and both look identical to a clean pass from here.")
+        return 1
+
     print(f"pdf freshness: {len(wanted) - len(missing)}/{len(wanted)} long paragraphs from the build "
           f"are present in report.pdf")
     if missing:

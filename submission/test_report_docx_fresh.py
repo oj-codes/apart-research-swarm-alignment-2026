@@ -91,6 +91,11 @@ def main():
     body = squash(document_text(DOCX))
     missing = [s for s in strings if squash(s) not in body]
 
+    if not strings:
+        print(f"fail: the build yielded no long strings, so 0/0 compared nothing. Either BODY moved or "
+              f"the parse stopped working, and both look identical to a clean pass from here.")
+        return 1
+
     print(f"docx freshness: {len(strings) - len(missing)}/{len(strings)} long strings "
           f"from the build are present in report.docx")
     if missing:
