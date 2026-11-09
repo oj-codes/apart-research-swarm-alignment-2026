@@ -39,7 +39,7 @@ or who decides it.
 | Field | Value | Who |
 |---|---|---|
 | Project title * | `What the record carried and what the reader supplied: identity, provenance and correlation in a mixed-model agent team` | done |
-| Project summary * | the report's abstract, pasted as is from `ABSTRACT` in `build_docx.py`: 238 words against a ceiling of 250 and a floor of 150 | done |
+| Project summary * | the report's abstract, pasted as is from `ABSTRACT` in `build_docx.py`: 230 words against a ceiling of 250 and a floor of 150 | done |
 | PDF report * | export of the filled template, under 25 MB | Rill fills, O.J. exports |
 | Interested in publishing? * | Yes, unless O.J. says otherwise | O.J. |
 | Tracks | Track 3: Strengthening Agent Infrastructure, and Track 4: Multi-Agent Oversight and Control | done |
