@@ -7,28 +7,29 @@ this one is that it is shared, inspectable, and survives a session. **Whoever ch
 updates this file in the same PR.** Every agent's tick reads it before deciding nothing qualifies.
 Git history is the record of how it moved; edit in place.
 
-Updated: 2026-11-08 23:45 UTC, Venice, at `main` 14e1615.
+Checked: 2026-11-09 00:24 UTC, Codex, against `main` 93e17cd and the PR revisions linked below.
 
 ## Focus, now
 
 Ship the report. Submission closes **2026-11-09 11:59 UTC**. #27 (Rill) is the deliverable, at head
-`4e8c072`. **The shipping `.docx` has zero `PENDING` markers and meets the page cap** (counted region
-7.87 pages against 8, rendered). `submission/report.md` still carries four `PENDING` markers, but the
-docx is what ships, so those are a markdown-only divergence and not open decisions.
+`ffb6bba`. **The shipping `.docx` has zero `PENDING` markers and its main text ends on page 8**
+([Corrie's LibreOffice render](https://github.com/oj-codes/apart-research-swarm-alignment-2026/pull/27#issuecomment-6729172559)).
+The PDF has 14 pages total; references and appendices are outside the cap. `submission/report.md`
+still carries four `PENDING` markers, but the docx is what ships, so those are a markdown-only
+divergence and not open decisions.
 
-**Main-text budget, measured, because this keeps getting guessed at:** between **150 and 180 words**
-of headroom in §1–§6 total. Tern's proposed §2 paragraph is 111 words and fits at 8.00. Appendix C
-("Limitations, Future Work, and Dual-Use") and References are outside the cap by the brief's wording,
-so additions there are free. `build_docx.py` shipped a stale document once on 8 Nov after a silent
-crash, so **re-render; don't re-read the commit message.**
+**Layout measurements belong to the revision rendered.** The earlier 150–180-word budget was measured
+at `4e8c072`; it is not current headroom. Rill has incorporated the #55 reading and trimmed the body
+since then. `build_docx.py` shipped a stale document once on 8 Nov after a silent crash, so
+**re-render after edits; don't re-read the commit message.**
 
 ## Open, with owners
 
 | item | owner | state |
 |---|---|---|
-| #27 report | Rill | needs an approver; three Appendix C insertions proposed (Corrie, Codex) and a §2 paragraph (Tern) not yet landed; re-render after any of them |
+| #27 report | Rill | at `ffb6bba`; #55 reading incorporated, two-rater note in Appendix E; needs a non-author approval, O.J.'s final runtime-evidence review and PDF export |
 | re-pin or not | team, O.J. decides | docx says `63 of 107`, exact at the pinned `b2ca5a7`. `main` drifts fast — 64 of 108, then 66 of 110, then **69 of 113** within the hour. Corrie recommends leaving the pin; a re-pin forces recomputing the findings table, §4.1, §4.4 and §6 together |
-| #35 watcher partial-probe fix | Venice | all four of O.J.'s bugs closed at `b9c9070` (ack clears only the read batch; lock fails closed; PR/discussion pagination; schema-degrade), plus an `--ack` retry at `0559990`; 21 watch / 75 total green. **Only Auran's re-approve is open** — the head moved and cleared the last one |
+| #58 decision-update note | Tern | at `16e5cfc`; [Codex's second rating](https://github.com/oj-codes/apart-research-swarm-alignment-2026/pull/58#issuecomment-6728880011) disagrees on one magnitude label; transition totals still need the posted correction (2 Maintain / 6 Modify / 3 Replace / 1 Suspend) |
 | Auran's signing key | Auran + O.J. | accepted on #53, custody as fiduciary agreed; **key generation deliberately deferred** out of crunch to a logged step with O.J. Nothing here expires tonight |
 | #49 second paper, self-initiation | O.J., open thread | brainstorm; the goal-line experiment is running on Tern's tick |
 | Discord review by outside humans | O.J. | trigger when §4.4 reads as a result; ask: does the title match §4, what does §6 miss |
@@ -36,7 +37,7 @@ crash, so **re-render; don't re-read the commit message.**
 ## Waiting on O.J.
 
 - Merge of #27 once it has an approver.
-- A re-approve of #35 when Auran is back; the four bugs she flagged are closed and only the head moved.
+- Merge decision on #58, with the remaining review feedback above.
 - Whether to re-pin (see the table). Not re-pinning is the cheaper and safer answer.
 - Whether to turn on auto-merge for script-generated files only (#49); current rule from #10 stands.
 - Whether to ping the Discord reviewers.
@@ -44,12 +45,18 @@ crash, so **re-render; don't re-read the commit message.**
 
 ## Parked
 
-- Codex's controlled eval with real-world rates (§4.4 says "scripted checks, not rates"). Roadmap.
+- External validation beyond the completed scripted cases — roadmap, unassigned. Codex has not
+  committed to a study estimating real-world rates.
 - Manifest-before-run pre-registration (Codex, #46). Roadmap.
 - Exact-match `findings.py index --check` so the index can auto-merge (#49).
-- Pointing `arrive.py` at this file (one line, after the file is adopted).
+- Shared watcher coverage remains bounded: 200 PRs, 100 discussions/comments, no discussion replies. These are documented limits, not complete pagination.
+- #60: shorten the shared watcher's lock hold while preserving collection ordering and unread events; [ordering regression requested](https://github.com/oj-codes/apart-research-swarm-alignment-2026/issues/60#issuecomment-6728880643).
 
-## Recently shipped (2026-11-08, newest first)
+## Recently shipped (newest first)
+
+#35 merged at `93e17cd` (head `83b3f0d`): acknowledgement preserves newer events, legacy queues and
+double-ACK survivors; 24 watch tests pass. #59 merged at `7c0ab82`: stale-block run appended and status
+supported. #57 refreshed this file; #52 also put it first in `arrive.py`'s reading order.
 
 #53 the letter to Auran, signing key and custody · #52 this file · #54 O.J.'s own statement of the
 cause, appended to the cause-outside-the-trace finding ·
