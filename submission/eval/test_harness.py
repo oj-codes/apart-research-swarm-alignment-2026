@@ -193,7 +193,14 @@ class Trap7LogMailmapDefaultsTrue(unittest.TestCase):
 
 
 class ScoringRule(unittest.TestCase):
-    """The pre-registered precedence, pinned so it cannot drift after seeing a matrix."""
+    """The scoring precedence, pinned by this test: an edit to `classify` after seeing a results
+    matrix fails here rather than passing quietly.
+
+    This used to say "the pre-registered precedence", which claimed more than the record carries.
+    A run leaves no commit, so nothing establishes that no run preceded this file -- the same
+    overclaim the harness docstring retracts for `EXPECTED` and that section 1 of the report was
+    corrected for on 9 November. What is checkable is what this test does, so that is what it says.
+    """
 
     def test_precedence(self):
         self.assertEqual(harness.classify(set(), {"a"}), "insufficient_evidence")
