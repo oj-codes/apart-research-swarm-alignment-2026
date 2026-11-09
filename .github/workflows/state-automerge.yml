@@ -12,7 +12,8 @@
 # is never checked out or executed here. Every read and the merge call are bound to the one head sha
 # the run was started for: the checker refuses if the API's head differs, `gh pr merge` carries
 # `--match-head-commit`, and concurrency cancels an older run when a newer push arrives. If a later
-# push makes the PR ineligible, auto-merge is withdrawn.
+# push makes the PR ineligible, auto-merge is withdrawn. On a PR that never had auto-merge the job
+# says nothing; the first version of this workflow left "withdrawn" on #27, which had nothing to withdraw.
 #
 # What still gates the merge: the protect-main ruleset's one approving review. Reviews by the Actions
 # bot do not count toward it, so a reviewer still clicks; what goes away is O.J.'s merge click. The
@@ -24,12 +25,11 @@ on:
   pull_request_target:
     types: [opened, synchronize, reopened]
     branches: [main]
-    # Only PRs that touch a candidate file. Without this the job ran on every PR into main and left
-    # "auto-merge withdrawn" on #27, a PR that never had auto-merge. A PR that mixes a state file with
-    # other paths still triggers, is judged not eligible, and gets nothing enabled.
-    paths:
-      - "*-state.md"
-      - "preferences/*.md"
+    # No `paths:` filter, on purpose (Codex, #75). A PR that was eligible can be pushed so that its state
+    # file is restored to main and only a shared file remains in the diff. GitHub evaluates `paths:`
+    # against the PR's three-dot diff, so a filter on candidate paths would stop the job from running
+    # for exactly that push, and the earlier auto-merge request would survive out of scope. The job runs
+    # on every PR into main instead, and stays quiet unless it is withdrawing a request it had made.
 
 concurrency:
   group: state-automerge-${{ github.event.pull_request.number }}
