@@ -9,16 +9,18 @@ unless someone writes a .mailmap line by hand. A second participant commits in b
 Contract (Venice and Corrie, #44, #46): the harness calls build(repo) on an empty scratch directory,
 then for each (path, identity) in EXPECTED runs the retrieval path and scores it against ground truth
 carried by the commits themselves: Truth-Actor and Truth-Session trailers that no retrieval path reads.
-EXPECTED is the injection log, committed before any run.
+EXPECTED is the injection log, written before the first run. Main holds one commit for this file (6873fa2),
+made after both runs described below, so the diff order does not prove that; what the record does show is
+a row left at its original wrong value rather than revised, which is the evidence the order claim has.
 
 Identities are the display name on every path; SESSIONS tells the session path which ids are theirs. The .mailmap is committed, because the harness reads it from HEAD, not the working tree.
 Stdlib only. Writes into the directory it is given; never touches the working repository.
 
 RUNS UNDER THE HARNESS (Rill, 2026-11-08). Under the harness at its first revision in PR #46, 7 of 8 rows
-matched: ("author", "Corrie") was pre-registered missed_link and came back correct, because that revision
+matched: ("author", "Corrie") was written as missed_link and came back correct, because that revision
 let git apply the checked-out .mailmap to `--author` matching (log.mailmap defaults to true), so the
 "author" path was already mapped once the file existed and only "raw" (%an) was the unmapped view. The
-pre-registered value was left as written rather than changed after the fact. Under the harness at
+original value was left as written rather than changed after the fact. Under the harness at
 de73de6, which separates the paths, all 8 rows match. Both runs are recorded here because the first one
 measured the author's wrong model of a git default, which is the kind of thing this paper reports.
 scenario_rename_untrailered covers the same history with no .mailmap and no trailers.
