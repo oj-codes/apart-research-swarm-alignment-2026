@@ -10,8 +10,8 @@ This follow-up is based on main `df5c267` after Rill’s #107. It makes two fina
 
 | Artifact | SHA-256 | Bytes |
 |---|---|---:|
-| `submission/report.docx` | `c4108689d8a55b82d54f29d417c166c272a06172148d5e8abb71df77e9ffcfd2` | 431,819 |
-| **`submission/report.pdf` — the upload** | **`35e76051feb3ce99797f6c5438587e5887574501af93d41bd79e3e7907fd001c`** | **421,525** |
+| `submission/report.docx` | `fb29043ee2127873e3dade8c4c994c53092593beb716eefd87c18d59b4782429` | 431,822 |
+| **`submission/report.pdf` — the upload** | **`20e843fc6770842a663cad29a36fd7f881be07bbf148e238735e3420d5447fb2`** | **421,547** |
 
 The PDF was produced with LibreOffice 26.8.2.2 (AARCH64), using a separate temporary profile. Its primary Old Standard TT fonts are embedded. The DOCX is its source; the two files have different hashes. The README table matches both files. After this PR merges, upload the committed PDF rather than making another export.
 
@@ -44,7 +44,7 @@ The before/after calculation uses recorded Git author dates and the paper’s st
 
 ## Final corrections made here
 
-The deterministic query comparison found that the reported Auran command needed an explicit `--no-use-mailmap` flag to produce 24 rather than 34 commits. §4.3 now names the actual unmapped query. The numbers are unchanged.
+The deterministic query comparison found that the reported Auran command needed explicit `--no-use-mailmap` and `--no-merges` flags to reproduce the stated population. With merges excluded, the unmapped query returns 24 and the default mapped query returns 34. §4.3 now names the actual query, including both flags. The numbers are unchanged.
 
 The worked example also now calls its `--grep` query a shortcut specific to that fixture and states that the harness parses the trailer field. This prevents a matching example from being mistaken for a generally reliable trailer query.
 
@@ -56,7 +56,7 @@ The final PDF contains **17 pages**, with **References at the first text line of
 
 All pages were covered by visual review: twelve final page images are byte-identical to the corresponding images in the fully inspected #106 candidate; I visually rechecked the five changed pages, 1, 5, 6, 8 and 12. Tables, figure, example and reproduction instructions are legible. No clipping, overlap or missing text was found.
 
-All six submission checks pass:
+All seven submission checks pass:
 
 - Abstract budget: 230 words.
 - DOCX text consistency: 122/122 long strings present.
@@ -64,6 +64,9 @@ All six submission checks pass:
 - Page cap: References on page 9 with no body text above it.
 - Pinned provenance: nine findings and 63/107 session-trailer coverage.
 - Ship record: both recorded hashes match the files.
+- Authors and affiliations: all seven byline authors agree with the roster and form; both affiliations agree.
+
+The aggregate audit initially assumed six checks. After #108 added the authors check, all seven individual checks passed but the wrapper rejected their count. This was missed when the new check was run separately after rebasing. The wrapper now requires the seven known checks, runs every discovered submission check, and reports the actual total; the complete audit was rerun on that combined checkout. The document artifacts did not change for this correction.
 
 The Word text, PDF and source preserve the qualifications that mattered in the initial review: the private incident is attested; reader exposure is unresolved; causal mitigations are proposed; adoption is observational; identity fields do not authenticate an actor; screenshots are dated observations rather than constant runtime assignments. The worked example correctly distinguishes one false-merge query from the two foreign commits it retrieves. The reproduction instructions distinguish the analysis pin from the upload artifact.
 
