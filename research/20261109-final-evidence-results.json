@@ -1,0 +1,171 @@
+{
+  "checked_at_local_clock": "2026-11-09T05:38:15.635926+00:00",
+  "base_revision": "df5c2676a04959ddd953436301599f7d01658f9b",
+  "analysis_pin": "b2ca5a7458027cd03ee94c3b9eaedae963165208",
+  "git_version": "git version 2.56.0",
+  "artifacts": {
+    "report.docx": {
+      "sha256": "c4108689d8a55b82d54f29d417c166c272a06172148d5e8abb71df77e9ffcfd2",
+      "bytes": 431819
+    },
+    "report.pdf": {
+      "sha256": "35e76051feb3ce99797f6c5438587e5887574501af93d41bd79e3e7907fd001c",
+      "bytes": 421525
+    },
+    "build_docx.py": {
+      "sha256": "9cd3e53cf18c4e05df04aee3b8936986b3cce2aa6075521779b7d8bea65f89b1",
+      "bytes": 61344
+    }
+  },
+  "abstract_words": 230,
+  "pdf": {
+    "pages": 17,
+    "references_page": 9,
+    "references_line_index": 0,
+    "page_numbers_verified": 17
+  },
+  "history": {
+    "agent_nonmerge_commits": 107,
+    "with_session_trailer": 63,
+    "convention_cutoff_from_paper": "2026-11-08T01:06:24-05:00",
+    "timestamp_basis": "Git author dates are user-controlled recorded metadata, not independently observed wall-clock times.",
+    "per_participant": {
+      "Venice": {
+        "before": [
+          0,
+          0
+        ],
+        "after": [
+          18,
+          18
+        ]
+      },
+      "Corrie": {
+        "before": [
+          4,
+          21
+        ],
+        "after": [
+          9,
+          9
+        ]
+      },
+      "Rill": {
+        "before": [
+          0,
+          0
+        ],
+        "after": [
+          10,
+          10
+        ]
+      },
+      "Tern": {
+        "before": [
+          6,
+          6
+        ],
+        "after": [
+          5,
+          5
+        ]
+      },
+      "Auran": {
+        "before": [
+          0,
+          12
+        ],
+        "after": [
+          10,
+          22
+        ]
+      },
+      "Codex": {
+        "before": [
+          0,
+          3
+        ],
+        "after": [
+          1,
+          1
+        ]
+      }
+    },
+    "before": [
+      10,
+      42
+    ],
+    "after": [
+      53,
+      65
+    ],
+    "figure1_rows_match": true,
+    "coauthor_labels": {
+      "Corrie": 1,
+      "Claude Opus 5": 14
+    },
+    "findings_count": 9,
+    "findings_by_author": {
+      "corrie": 5,
+      "rill": 1,
+      "auran": 2,
+      "venice": 1
+    },
+    "auran_query_counts": {
+      "default": 34,
+      "unmapped": 24,
+      "mapped": 34
+    },
+    "auran_raw_identity_tuples": 3,
+    "untrailered_before": 32,
+    "post_convention_commits_from_new_arrivals": 28
+  },
+  "retrieval": {
+    "scenario_count": 5,
+    "outcomes": {
+      "correct": 16,
+      "missed_link": 11,
+      "false_merge": 1,
+      "insufficient_evidence": 3
+    },
+    "total": 31,
+    "expectation_agreement": [
+      31,
+      31
+    ],
+    "interpretation": "Constructed cases with documented development revisions; no deployment rate or preregistration inference."
+  },
+  "checks": [
+    {
+      "script": "submission/test_report_budget.py",
+      "exit_code": 0,
+      "output": "abstract: 230 words, inside the brief's 150 to 250 (20 under the ceiling, 80 over the floor)"
+    },
+    {
+      "script": "submission/test_report_docx_fresh.py",
+      "exit_code": 0,
+      "output": "docx freshness: 122/122 long strings from the build are present in report.docx"
+    },
+    {
+      "script": "submission/test_report_page_cap.py",
+      "exit_code": 0,
+      "output": "report.pdf: 17 pages total\nReferences begins on page 9; counted region is at least 8 page(s), cap 8\nReferences is line 0 of 41 on page 9: 0 line(s) above it, 0 of them body"
+    },
+    {
+      "script": "submission/test_report_pdf_fresh.py",
+      "exit_code": 0,
+      "output": "pdf freshness: 32/32 long paragraphs from the build are present in report.pdf"
+    },
+    {
+      "script": "submission/test_report_provenance.py",
+      "exit_code": 0,
+      "output": "findings at b2ca5a7: 9, and every 'findings' figure in the report agrees\nreport pins b2ca5a7 and quotes '63 of 107 agent commits'; exact pair found in mapped=yes, raw=yes"
+    },
+    {
+      "script": "submission/test_report_ship_record.py",
+      "exit_code": 0,
+      "output": "ship record: 2/2 recorded hash(es) match the committed file(s)"
+    }
+  ],
+  "audit_script_sha256": "6ebd53edfe0066620269085bf4e68a9613d055b0ef49316b7a79414c0294e4ae"
+}
