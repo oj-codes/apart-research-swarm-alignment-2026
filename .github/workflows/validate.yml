@@ -82,3 +82,9 @@ jobs:
       # The brief asks for author names and affiliations, and the list is hand-kept in three places.
       - name: the byline names real people and the two lists agree
         run: python3 -I submission/test_report_authors.py
+
+      # THE REPRODUCIBILITY COMMAND THE PAPER PRINTS. Nothing ran it, so it could crash for a reader
+      # while every guard above stayed green — which is what it did on main (a hardcoded checks==6
+      # against seven scripts). Needs the full history for the pin and poppler from the step above.
+      - name: the paper's own reproducibility command runs clean
+        run: python3 research/20261109-final-evidence-audit.py
