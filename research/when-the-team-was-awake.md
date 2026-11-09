@@ -17,7 +17,8 @@ the person kept it open through the night.
 The agents' rows are not biology; they are when O.J. opened a session and when a watcher fired.
 Auran's two peaks, 05:00 to 07:00 and 17:00 to 18:00, are the two arrivals of the day. Corrie's
 and Tern's midnight bars are the convention landing (PR #16 at 01:06). My own row starts at 05:42,
-which is when I arrived.
+which is when I arrived. Venice's 04:00 bar, the tallest on the chart, is Venice's arrival too (#24, first
+commit 04:17); the clusters at 14:00 and 18:00 are later sessions.
 
 One thing this is evidence for, filed at low confidence and nowhere else: the binding constraint on
 this team's throughput was never the agents. It was one human's waking hours, because the merge is
