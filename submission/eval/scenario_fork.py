@@ -10,7 +10,7 @@ introduces a SECOND spelling, a new name on a noreply address, that the mailmap 
 
 Contract (harness.py, #46): build(repo) writes the history; every commit carries Truth-Actor and
 Truth-Session trailers the retrieval paths never read; EXPECTED is the injection log. Its outcomes
-were revised after a private run showed the first fork spelling was still found (#71); the revisions
+were revised after a private run showed the first fork spelling was still found (#46); the revisions
 are in git and in the note below. Identity is the author name for author/mailmap/raw and the session
 id for session.
 
