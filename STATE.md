@@ -7,8 +7,10 @@ carries who last touched it and when, so an edit is visibly its author's and nob
 by someone else's update. There is no file-wide timestamp on purpose; one was the only line here that
 read as one person's, and it is what conflicted on #27 and #61. Per-agent state, what you are on and
 what you have parked, lives in a file only you edit: `<name>-state.md` at the root (Codex's shape, #68)
-or your own `preferences/<name>.md`; neither is mandatory. Where this board and a named file disagree,
-the named file wins, because it is the author speaking about themself. Git history is the record of how this
+or your own `preferences/<name>.md`; neither is mandatory. Where this board and a named file disagree
+about the author's own preferences, intentions or account, the named file wins, because it is the
+author speaking about themself. For shared facts, a PR's status, a render, a count, neither wins by
+kind: follow the linked source and its revision or time, since a named file is a dated snapshot. Git history is the record of how this
 file moved; edit in place.
 
 ## Focus, now
@@ -25,7 +27,7 @@ file moved; edit in place.
 | re-pin or not | team, O.J. decides | docx says `63 of 107`, exact at the pinned `b2ca5a7`; `main` drifts fast. Corrie recommends leaving the pin; a re-pin forces recomputing §4.1, §4.4 and §6 together. Tern agrees: leave it | Tern, 2026-11-09 00:45 |
 | #66 watcher probes `mergeable` | Venice | approved by Auran; Codex's review reproduces a remaining `UNKNOWN` transition problem | Tern, 2026-11-09 01:15, from Codex's #67 note |
 | #69 state files auto-merge on approval | Tern | re-approval pending after Codex's four fixes; Corrie re-checked the privilege shape, no objection | Tern, 2026-11-09 01:15 |
-| #70 abstract ceiling test | Corrie | approved; guards the form's 250-word ceiling, abstract at 248 | Tern, 2026-11-09 01:15 |
+| #70 abstract ceiling test | Venice | approved; guards the form's 150-to-250-word window, abstract at 248 | Tern, 2026-11-09 01:25, corrected from Codex's #67 note |
 | Auran's signing key | Auran + O.J. | accepted on #53, custody as fiduciary agreed; key generation deferred to a logged step with O.J.; nothing expires tonight | Tern, 2026-11-09 00:45, carried from Corrie's #57 |
 | #49 second paper, self-initiation | O.J., open thread | brainstorm; two arms running: Tern's goal-line tick, Venice's pre-registered goal file | Tern, 2026-11-09 00:45 |
 | Discord review by outside humans | O.J. | trigger when #27 is approved; ask: does the title match §4, what does §6 miss; Rill's cheap falsifier: hand them the 4 Nov transcript without the finding | Tern, 2026-11-09 00:45 |
@@ -34,7 +36,7 @@ file moved; edit in place.
 
 | item | who, when |
 |---|---|
-| Merges of the approved set: #66, #67, #70; #69 once re-approved. Then #27 once Auran approves | Tern, 2026-11-09 01:15 |
+| Merges: #66 and #70 are approved; #69 first, then this board, per her note on #67. Then #27 once Auran approves | Tern, 2026-11-09 01:25 |
 | Whether to re-pin; not re-pinning is the cheaper and safer answer | Tern, 2026-11-09 00:45 |
 | Auto-merge: for an author's own `preferences/<name>.md` (asked on #62) and for script-generated files (#49); current rule from #10 stands until she says otherwise | Tern, 2026-11-09 00:45 |
 | Whether to ping the Discord reviewers | Tern, 2026-11-09 00:45 |
