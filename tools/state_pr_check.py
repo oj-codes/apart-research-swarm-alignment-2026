@@ -3,32 +3,28 @@
 
 O.J. asked (#61) for state files to merge without her judgment, because she cannot tell from a diff
 whether a state refresh is right. The thing a check CAN establish is narrower than "right": that the
-PR touches only files that belong to one participant, and that every commit in it was authored by
-that participant. That is the auto-merge column from #49: one author's own account, append-only in
-spirit, no shared normative text touched.
+PR touches only files that belong to one participant, and that the author line on every commit is
+that participant's roster `Git Author`. That is the auto-merge column from #49: one author's own
+account, no shared normative text touched.
 
     python3 tools/state_pr_check.py <pr-number>      # exit 0 = eligible, 1 = not, 2 = couldn't check
 
-Eligible when ALL hold:
-  1. every changed file is a per-participant state file:
-       <name>-state.md   at the repo root, or
-       preferences/<name>.md
-     with <name> matching exactly one roster participant (case-insensitive, ROSTER.md is the source);
+Eligible when ALL hold (the rule is `evaluate()`, which is pure and tested offline):
+  1. every changed file is a per-participant state file, `<name>-state.md` at the repo root or
+     `preferences/<name>.md`, and `<name>` is exactly one roster participant (ROSTER.md is the source);
   2. all changed files belong to the SAME participant;
-  3. every commit's author line (name <email>) equals that participant's roster `Git Author`
-     (so a PR that edits tern-state.md under Codex's author line is not eligible). This is a
-     retrieval match, not authentication: the author field is free text (research/identity-scheme.md
-     §3.5), and the committer field is the same for every agent here, so it cannot tell us apart;
-  4. no file is deleted.
+  3. no file is deleted or renamed (a rename can bring a path in from outside the rule);
+  4. the author line (name <email>) on EVERY commit equals that participant's roster `Git Author`,
+     and "every" is verified: the commit list is paginated and its length checked against the PR's
+     own commit count; a mismatch fails closed.
 
-What it does NOT establish: authorship, or that the content is true. It establishes that the files
-are one participant's and that the author line on every commit matches that participant's roster row.
-The thing that stands between an eligible PR and `main` is the required approving review, not this
-script. A state file is one participant's own account, which this repo already says is theirs to write
-(PREFERENCES.md, AGENTS.md). Shared files — STATE.md, AGENTS.md, CONTRIBUTING.md, ROSTER.md,
-submission/, tools/ — are never eligible.
+What it establishes: ownership, and that the author line matches the roster. What it does NOT
+establish: authorship (the author field is unauthenticated, research/identity-scheme.md §3.5; the
+committer field is identical for every agent here, so it cannot tell us apart) or that the content is
+true. The required approving review is what stands between an eligible PR and `main`, not this.
 
-Stdlib + gh. Prints its reasoning so the PR comment can carry it.
+Run from the BASE branch's checkout, never from the PR's: a PR must not be able to supply the code that
+judges it (Codex, #69). Stdlib + gh. Prints its reasoning so the PR comment can carry it.
 """
 import json
 import re
@@ -38,6 +34,7 @@ import sys
 REPO = "oj-codes/apart-research-swarm-alignment-2026"
 ROOT_STATE = re.compile(r"^([a-z0-9][a-z0-9-]*)-state\.md$")
 PREFS = re.compile(r"^preferences/([a-z0-9][a-z0-9-]*)\.md$")
+MAX_COMMITS = 250  # the REST endpoint's hard cap; above it "every commit" cannot be verified
 
 
 def gh(*args):
@@ -48,12 +45,8 @@ def gh(*args):
     return r.stdout
 
 
-def roster_authors(ref="origin/main"):
+def roster_authors(text):
     """{lowercase name: 'Name <email>'} from ROSTER.md's Git Author column, parsed by header."""
-    try:
-        text = subprocess.run(["git", "show", f"{ref}:ROSTER.md"], capture_output=True, text=True, check=True).stdout
-    except subprocess.CalledProcessError:
-        text = open("ROSTER.md", encoding="utf-8").read()
     rows = [l for l in text.splitlines() if l.startswith("|")]
     header = [c.strip().lower() for c in rows[0].strip("|").split("|")]
     name_i, author_i = header.index("name"), header.index("git author")
@@ -69,41 +62,64 @@ def roster_authors(ref="origin/main"):
     return out
 
 
-def main():
-    if len(sys.argv) != 2:
-        print(__doc__); return 2
-    pr = sys.argv[1]
-    files = json.loads(gh("pr", "view", pr, "--repo", REPO, "--json", "files", "--jq", ".files"))
-    commits = json.loads(gh("api", f"repos/{REPO}/pulls/{pr}/commits", "--jq",
-                            "[.[] | {sha: .sha[0:7], name: .commit.author.name, email: .commit.author.email}]"))
-    roster = roster_authors()
+def evaluate(files, commits, total_commits, roster):
+    """The rule. Pure: no network, no git. Returns (eligible: bool, reason: str).
 
+    files:   [{"path", "changeType", "additions", "deletions"}]  (gh pr view --json files)
+    commits: [{"sha", "name", "email"}]                          (every commit on the PR)
+    total_commits: the PR's own commit count, to prove `commits` is complete
+    roster:  {lowercase name: "Name <email>"}
+    """
+    if not files:
+        return False, "NOT ELIGIBLE: no files changed"
     owners = set()
     for f in files:
         path = f["path"]
+        ct = (f.get("changeType") or "").upper()
+        if ct in ("DELETED", "RENAMED", "COPIED"):
+            return False, f"NOT ELIGIBLE: {path} is {ct.lower()}; only edits and additions qualify"
         m = ROOT_STATE.match(path) or PREFS.match(path)
         if not m:
-            print(f"NOT ELIGIBLE: {path} is not a per-participant state file"); return 1
-        if f.get("deletions", 0) and f.get("additions", 0) == 0 and f.get("status") == "removed":
-            print(f"NOT ELIGIBLE: {path} is deleted"); return 1
+            return False, f"NOT ELIGIBLE: {path} is not a per-participant state file"
         who = m.group(1).lower()
         if who not in roster:
-            print(f"NOT ELIGIBLE: {path} names '{who}', who is not on the roster"); return 1
+            return False, f"NOT ELIGIBLE: {path} names '{who}', who is not on the roster"
         owners.add(who)
-    if not files:
-        print("NOT ELIGIBLE: no files changed"); return 1
     if len(owners) != 1:
-        print(f"NOT ELIGIBLE: files belong to more than one participant: {sorted(owners)}"); return 1
-    owner = owners.pop()
+        return False, f"NOT ELIGIBLE: files belong to more than one participant: {sorted(owners)}"
+    owner = next(iter(owners))
     want = roster[owner]
+    if total_commits > MAX_COMMITS:
+        return False, f"NOT ELIGIBLE: {total_commits} commits exceeds what the API will list; cannot verify every author"
+    if len(commits) != total_commits:
+        return False, f"NOT ELIGIBLE: fetched {len(commits)} commits but the PR has {total_commits}; refusing to judge a partial list"
+    if not commits:
+        return False, "NOT ELIGIBLE: no commits"
     for c in commits:
         got = f"{c['name']} <{c['email']}>"
         if got != want:
-            print(f"NOT ELIGIBLE: commit {c['sha']} authored by {got}, file owner is {want}"); return 1
-    print(f"ELIGIBLE: {len(files)} file(s), all {owner}'s own state; {len(commits)} commit(s), author line {want} on each.")
-    print("Establishes ownership and that the author line matches the roster; not authorship (the author "
-          "field is unauthenticated) and not that the content is true. The approving review is the gate.")
-    return 0
+            return False, f"NOT ELIGIBLE: commit {c['sha']} carries author line {got}; file owner's roster line is {want}"
+    return True, (f"ELIGIBLE: {len(files)} file(s), all {owner}'s own state; {len(commits)} of {total_commits} commit(s) "
+                  f"checked, author line {want} on each.\n"
+                  "Establishes ownership and that the author line matches the roster; not authorship (the author "
+                  "field is unauthenticated) and not that the content is true. The approving review is the gate.")
+
+
+def fetch(pr):
+    files = json.loads(gh("pr", "view", pr, "--repo", REPO, "--json", "files", "--jq", ".files"))
+    total = int(gh("api", f"repos/{REPO}/pulls/{pr}", "--jq", ".commits").strip())
+    commits = json.loads(gh("api", "--paginate", "--slurp", f"repos/{REPO}/pulls/{pr}/commits?per_page=100", "--jq",
+                            "[.[][] | {sha: .sha[0:7], name: .commit.author.name, email: .commit.author.email}]"))
+    roster = roster_authors(open("ROSTER.md", encoding="utf-8").read())
+    return files, commits, total, roster
+
+
+def main():
+    if len(sys.argv) != 2:
+        print(__doc__); return 2
+    ok, reason = evaluate(*fetch(sys.argv[1]))
+    print(reason)
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":
