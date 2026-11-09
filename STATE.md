@@ -24,34 +24,32 @@ touching two authors' work is not eligible.
 
 | focus | who, when |
 |---|---|
-| Upload the report, then last-phase improvements. Submission closes **2026-11-09 11:59 UTC**. #27 (Rill) merged at `c52c262`; `submission/report.docx` on main is byte-identical to the approved head `04e0604` (sha256 `b4cdf921…`, in Rill's closing note), counted region 8.00, 15 pages. O.J. uploads and the upload's hash goes in the README beside it. Astra judging pass done: Codex's assessment is #85, estimated 3/5 impact, 2/5 execution, 3/5 presentation; Rill's #87 takes the cheap half of its text fixes, the reframing decisions (abstract, title, what leads) are O.J.'s. `submission/report.md` still carries four `PENDING` markers, a markdown-only divergence, not open decisions. Layout numbers belong to the revision rendered; re-render after any edit, `build_docx.py` shipped a stale document once after a silent crash. | Tern, 2026-11-09 02:40 UTC, from #85 and #87 |
+| Upload the shipped PDF. Submission closes **2026-11-09 11:59 UTC**. The paper is on main at `e375bf3` (#87): Astra text fixes in, retrieval audit leads, abstract 230 words on page 1, page numbers, body ends on page 8, 16 pages, `submission/report.pdf` committed (sha256 `7d59435b…` at `3116bb3`). #101 (Rill) re-renders with the screenshot qualification and closes Phase 1; if it merges before the upload, upload from that head. Export and upload from whichever docx and PDF are current at that moment, and the README binding must match. **Auto-merge is on since 04:1x**: a state-only PR, this board included, merges on one approving review. | Tern, 2026-11-09 04:25, from #87, #101 and O.J.'s note on #88 |
 
 ## Open, with owners
 
 | item | owner | state | who, when |
 |---|---|---|---|
-| Report upload and hash | O.J., Rill | #27 merged at `c52c262`; O.J. uploads the docx, Rill records the upload's hash in the README beside the repo file's | Tern, 2026-11-09 02:05 |
-| #85 Astra assessment, #87 its cheap half | Codex, Rill, O.J. decides the reframing | #85 approved; #87 at `c17e4c7`, Corrie re-rendered: four of five findings fixed, the fifth reworded, counted region 8.00, abstract 246 of 250; needs one non-Rill approval | Tern, 2026-11-09 02:45, from Corrie's render |
-| Which docx the PDF is exported from | whoever exports, Rill binds the README | two hashes are live: main `b4cdf921…` 428,985 bytes, #87's rebuild `efeed162…` 429,298 bytes. Export from whichever is current when you export, and the README filename binding must match; this is the one place a correct document and a wrong upload look the same | Tern, 2026-11-09 02:45, from Corrie's #88 note |
-| Abstract margin | Rill | 246 of 250 words after #87; #70's guard fails CI on a fifth word, before the form does | Tern, 2026-11-09 02:45, from Corrie's #88 note |
+| Report upload and hash | O.J., Rill | PDF is on main; O.J. uploads the file that is on main at upload time, Rill records the upload's sha256 in the README beside the repo file's | Tern, 2026-11-09 04:25 |
+| #101 screenshots are a dated observation; closes Phase 1 | Rill | §3.5 and Appendix A: the screenshots date what each harness showed, the per-commit Model trailers remain the historical evidence; re-rendered, both guards green locally; needs an approval | Tern, 2026-11-09 04:25, from Rill's #101 body |
+| Phase 2 reframing | Rill, O.J. decided | landed inside #87: retrieval audit leads, abstract 230 words; status on Discussion #90 | Tern, 2026-11-09 04:25 |
+| Phase 3 worked example, reproducibility box, PDF export | Corrie | PDF committed with #87; worked example and reproducibility box status on Discussion #91 | Tern, 2026-11-09 04:25 |
+| Phase 4 bounded retrieval extension | paused by O.J. before the deadline (Discussion #92) | frozen cases merged (#94); one run after the approved freeze and Codex's reproduction are on #92: 15 of 15 predictions held, 8 of 15 retrievals wrong, 3 new false merges from a display-name collision and 1 at the session layer; write-up held for after the deadline | Tern, 2026-11-09 04:25 |
+| Phase 5 final evidence and consistency check | Codex | owner declared on Discussion #93 | Tern, 2026-11-09 04:25 |
+| PDF and docx guards | Venice | #96 findings count (approved) · #97 PDF paragraphs present (approved) · #99 page cap (Codex found a third false pass at `b8670e2`, Venice fixing) · #100 docx guard skips markup (Corrie verified both arms; needs an approval) | Tern, 2026-11-09 04:25, from the PR threads |
 | re-pin or not | team, O.J. decides | docx says `63 of 107`, exact at the pinned `b2ca5a7`; `main` drifts fast. Corrie recommends leaving the pin; a re-pin forces recomputing §4.1, §4.4 and §6 together. Tern agrees: leave it | Tern, 2026-11-09 00:45 |
-| #66 watcher probes `mergeable` | Venice | approval dismissed by a push at `869cab8`; needs re-approval | Tern, 2026-11-09 02:40 |
-| #84 scenario contract wording | Tern | replaces #77 (leftover commits tripped the extra-approval gate, Auran); approved at `6d93422` after Corrie caught a citation pointing at #71 instead of #46 | Tern, 2026-11-09 02:40 |
-| #86 Forge row in the identity write-up | Tern | from #85 finding 2; approved | Tern, 2026-11-09 02:40 |
-| #82 provenance-figure guard | Venice | re-runs `count_provenance.py` at the report's own pin; Codex's three false-pass repros fixed at `1242aa4`; needs an approval | Tern, 2026-11-09 02:40, from the #82 thread |
-| #83 the Not-ready-to-merge label, in CONTRIBUTING | Corrie | approved; removal is the author's call, label is advice to the merger not a lock | Tern, 2026-11-09 02:40 |
 | Auran's signing key | Auran + O.J. | accepted on #53, custody as fiduciary agreed; key generation deferred to a logged step with O.J.; nothing expires tonight | Tern, 2026-11-09 00:45, carried from Corrie's #57 |
-| #49 second paper, self-initiation | O.J., open thread | brainstorm; two arms running: Tern's goal-line tick, Venice's pre-registered goal file | Tern, 2026-11-09 00:45 |
-| Discord review by outside humans | O.J. | trigger when #27 is approved; ask: does the title match §4, what does §6 miss; Rill's cheap falsifier: hand them the 4 Nov transcript without the finding | Tern, 2026-11-09 00:45 |
+| #49 second paper, self-initiation | O.J., open thread | brainstorm; two arms running: Tern's goal-line tick, Venice's pre-registered goal file; O.J. has named a fun thing for after the deadline | Tern, 2026-11-09 04:25 |
+| Discord review by outside humans | O.J. | the trigger (#27 approved) has passed; ask: does the title match §4, what does §6 miss; Rill's cheap falsifier: hand them the 4 Nov transcript without the finding | Tern, 2026-11-09 04:25 |
 
 ## Waiting on O.J.
 
 | item | who, when |
 |---|---|
-| **#87 first**: it is the paper, the others are documentation about it; merging #85 without #87 records four text errors the PDF would still carry (Corrie). It needs one non-Rill approval. Then #83 #84 #85 #86. Then export the PDF from the docx that is current at that moment. Decide the reframing #85 proposes (abstract, title, what leads) or say it stands | Tern, 2026-11-09 02:45, from Corrie's #88 note |
-| Flip **Allow auto-merge** (Settings, General, Pull Requests); still off at 02:40, so #69, #75 and #79 can only report | Tern, 2026-11-09 02:40 |
+| Upload the PDF from main (or from #101's head if it merges first) and hand Rill the uploaded file's sha256 for the README | Tern, 2026-11-09 04:25 |
+| Merge #96 and #97 (approved); #99, #100, #101 once approved | Tern, 2026-11-09 04:25 |
 | Whether to re-pin; not re-pinning is the cheaper and safer answer | Tern, 2026-11-09 00:45 |
-| Auto-merge for script-generated files (#49); an author's own `preferences/<name>.md` and `<name>-state.md` are covered by #69 | Tern, 2026-11-09 02:00 |
+| Auto-merge for script-generated files (#49); an author's own files and this board are covered by #69 and #79, and the setting is on | Tern, 2026-11-09 04:25 |
 | Whether to ping the Discord reviewers | Tern, 2026-11-09 00:45 |
 | Scheduling the signing-key step with Auran, on her own time | Tern, 2026-11-09 00:45 |
 
@@ -69,6 +67,7 @@ touching two authors' work is not eligible.
 
 | what | who, when |
 |---|---|
+| #87 the paper with the Astra fixes, PDF committed, page numbers · **Allow auto-merge switched on by O.J.** · #94 Phase 4 frozen cases · #95 #86 Forge row corrected twice · #88 board · #84 contract wording · #85 Astra assessment · #83 label guide · #82 provenance-figure guard · #66 watcher probes mergeable | Tern, 2026-11-09 04:25 |
 | #79 the board auto-merges, owned by its commits · #78 board refresh · #76 docx freshness guard · #75 quiet state-automerge · #74 #73 #72 #71 eval wording narrowed · #70 abstract ceiling | Tern, 2026-11-09 02:40 |
 | #27 the report, fifteen hours and twelve renders, every number recomputed by someone who did not write it · #69 state files auto-merge once a reviewer approves · #67 this board with who/when on every row | Tern, 2026-11-09 02:00 |
 | #68 Codex's `codex-state.md` · #65 the #9 scoring note's correction · #63 when the team was awake, with open-to-merge waits · #64 Corrie's preferences entry · #62 Tern's preferences entry · #58 the #9 scoring note · #35 watcher: acknowledgement preserves newer events, lock fails closed, pagination, schema degrade; 24 watch tests · #59 stale-block falsifier run, status supported · #57 state refresh · #53 signing-key letter · #52 this file, and first in `arrive.py`'s reading order · #54 O.J.'s own statement of the cause appended | Tern, 2026-11-09 00:45 |
