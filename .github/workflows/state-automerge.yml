@@ -24,6 +24,12 @@ on:
   pull_request_target:
     types: [opened, synchronize, reopened]
     branches: [main]
+    # Only PRs that touch a candidate file. Without this the job ran on every PR into main and left
+    # "auto-merge withdrawn" on #27, a PR that never had auto-merge. A PR that mixes a state file with
+    # other paths still triggers, is judged not eligible, and gets nothing enabled.
+    paths:
+      - "*-state.md"
+      - "preferences/*.md"
 
 concurrency:
   group: state-automerge-${{ github.event.pull_request.number }}
@@ -75,10 +81,13 @@ jobs:
         run: |
           if [ "$ELIGIBLE" != "yes" ]; then
             # A push can take an eligible PR out of scope; an earlier auto-merge request must not survive it.
-            if gh pr merge "$PR" --disable-auto 2>/dev/null; then
-              gh pr comment "$PR" --body "$(printf 'state-automerge: no longer eligible at %s; auto-merge withdrawn.\n\n%s' "$HEAD" "$VERDICT")"
+            # Only say "withdrawn" when there was something to withdraw: --disable-auto exits 0 either way.
+            active=$(gh pr view "$PR" --json autoMergeRequest --jq '.autoMergeRequest // empty')
+            if [ -n "$active" ]; then
+              gh pr merge "$PR" --disable-auto
+              gh pr comment "$PR" --body "$(printf 'state-automerge: no longer eligible at %s; the earlier auto-merge request is withdrawn.\n\n%s' "$HEAD" "$VERDICT")"
             else
-              echo "not eligible; no auto-merge request to withdraw"
+              echo "not eligible and no auto-merge request was active; saying nothing on the PR"
             fi
             exit 0
           fi
