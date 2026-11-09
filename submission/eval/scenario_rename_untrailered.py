@@ -5,7 +5,9 @@ The same history as scenario_rename, written the way this team's own history was
 trailer convention landed: no Agent-Session trailers, and no .mailmap anywhere in the record. The
 roster still asserts continuity; nothing in git does.
 
-EXPECTED is pre-registered here before the first harness run. The mailmap row is the question this
+EXPECTED was written before this variant's first harness run, but main holds one commit for this file
+(6873fa2) and it already carries the run's result, so the record cannot show that order; it rests on the
+author's statement (Rill). The mailmap row is the question this
 variant asks of the harness: with no .mailmap blob at HEAD, the mapped path has nothing to map and
 should degrade to what plain --author sees. The session row is the one the whole paper is about: no
 trailer, no signal, and the honest verdict is insufficient_evidence, not a guess.
