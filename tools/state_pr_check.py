@@ -7,7 +7,11 @@ PR touches only files that belong to one participant, and that the author line o
 that participant's roster `Git Author`. That is the auto-merge column from #49: one author's own
 account, no shared normative text touched.
 
-    python3 tools/state_pr_check.py <pr-number>      # exit 0 = eligible, 1 = not, 2 = couldn't check
+    python3 tools/state_pr_check.py <pr-number> [--expect-head <sha>]
+                                      # exit 0 = eligible, 1 = not, 2 = couldn't check
+    With --expect-head, the PR's current head (as the API reports it) must equal <sha> or the verdict
+    is NOT ELIGIBLE: the files and commits were read for one revision and must not license a merge of
+    another. The caller passes the same sha to `gh pr merge --match-head-commit`.
 
 Eligible when ALL hold (the rule is `evaluate()`, which is pure and tested offline):
   1. every changed file is a per-participant state file, `<name>-state.md` at the repo root or
@@ -23,8 +27,8 @@ establish: authorship (the author field is unauthenticated, research/identity-sc
 committer field is identical for every agent here, so it cannot tell us apart) or that the content is
 true. The required approving review is what stands between an eligible PR and `main`, not this.
 
-Run from the BASE branch's checkout, never from the PR's: a PR must not be able to supply the code that
-judges it (Codex, #69). Stdlib + gh. Prints its reasoning so the PR comment can carry it.
+Run from the protected branch's checkout, never from the PR's: a PR must not be able to supply the code
+that judges it (Codex, #69). Stdlib + gh. Prints its reasoning so the PR comment can carry it.
 """
 import json
 import re
@@ -105,22 +109,37 @@ def evaluate(files, commits, total_commits, roster):
                   "field is unauthenticated) and not that the content is true. The approving review is the gate.")
 
 
+def head_matches(expected, actual):
+    """Pure. True when no head was pinned, or the API's head is the pinned one."""
+    return expected is None or (actual or "").lower() == expected.lower()
+
+
 def fetch(pr):
-    files = json.loads(gh("pr", "view", pr, "--repo", REPO, "--json", "files", "--jq", ".files"))
+    view = json.loads(gh("pr", "view", pr, "--repo", REPO, "--json", "files,headRefOid"))
+    files, head = view["files"], view["headRefOid"]
     total = int(gh("api", f"repos/{REPO}/pulls/{pr}", "--jq", ".commits").strip())
     # --slurp returns one JSON array per page; flatten here. (--jq is not allowed alongside --slurp.)
     pages = json.loads(gh("api", "--paginate", "--slurp", f"repos/{REPO}/pulls/{pr}/commits?per_page=100"))
     commits = [{"sha": c["sha"][:7], "name": c["commit"]["author"]["name"], "email": c["commit"]["author"]["email"]}
                for page in pages for c in page]
     roster = roster_authors(open("ROSTER.md", encoding="utf-8").read())
-    return files, commits, total, roster
+    return files, commits, total, roster, head
 
 
 def main():
-    if len(sys.argv) != 2:
+    args = sys.argv[1:]
+    expect = None
+    if "--expect-head" in args:
+        i = args.index("--expect-head"); expect = args[i + 1]; del args[i:i + 2]
+    if len(args) != 1:
         print(__doc__); return 2
-    ok, reason = evaluate(*fetch(sys.argv[1]))
-    print(reason)
+    files, commits, total, roster, head = fetch(args[0])
+    if not head_matches(expect, head):
+        print(f"NOT ELIGIBLE: PR head is {head[:7]} but this run was started for {expect[:7]}; "
+              "the head moved, so nothing read here licenses a merge. Refusing.")
+        return 1
+    ok, reason = evaluate(files, commits, total, roster)
+    print(reason + (f"\nHead checked: {head}" if ok else ""))
     return 0 if ok else 1
 
 

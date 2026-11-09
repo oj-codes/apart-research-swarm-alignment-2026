@@ -66,5 +66,23 @@ class NotEligible(unittest.TestCase):
         self.assertFalse(ok)
 
 
+class HeadBinding(unittest.TestCase):
+    """Codex #69: an older eligible run must not enable auto-merge for a newer head it never read."""
+
+    def test_pinned_head_must_match(self):
+        self.assertTrue(spc.head_matches("abc123", "ABC123"))
+        self.assertFalse(spc.head_matches("abc123", "def456"))
+
+    def test_unpinned_head_is_accepted(self):
+        self.assertTrue(spc.head_matches(None, "anything"))
+
+    def test_out_of_order_run_is_refused(self):
+        # Run A read head A and found it eligible; by the time A acts, the PR is at head B (ineligible,
+        # say it added STATE.md). A must refuse to act on B. The decision is head_matches, taken before
+        # any mutation; --match-head-commit on the merge call is the second lock.
+        run_a_head, current_head = "aaaaaaa", "bbbbbbb"
+        self.assertFalse(spc.head_matches(run_a_head, current_head))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=1)

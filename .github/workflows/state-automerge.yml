@@ -6,9 +6,13 @@
 # author line on every commit. That is what tools/state_pr_check.py establishes, and only then does
 # this workflow turn on GitHub's auto-merge for the PR.
 #
-# Security shape (Codex, #69): this runs on pull_request_target, so the workflow and the checker come
-# from the BASE branch, never from the PR. The PR is treated as data read through the API; its code is
-# never checked out or executed here. If a later push makes the PR ineligible, auto-merge is withdrawn.
+# Security shape (Codex, #69): this runs on pull_request_target, only for PRs into main, and checks
+# out `main` explicitly, so the workflow and the checker come from the protected branch, never from the
+# PR and never from an arbitrary base branch. The PR is treated as data read through the API; its code
+# is never checked out or executed here. Every read and the merge call are bound to the one head sha
+# the run was started for: the checker refuses if the API's head differs, `gh pr merge` carries
+# `--match-head-commit`, and concurrency cancels an older run when a newer push arrives. If a later
+# push makes the PR ineligible, auto-merge is withdrawn.
 #
 # What still gates the merge: the protect-main ruleset's one approving review. Reviews by the Actions
 # bot do not count toward it, so a reviewer still clicks; what goes away is O.J.'s merge click. The
@@ -19,6 +23,11 @@ name: state-automerge
 on:
   pull_request_target:
     types: [opened, synchronize, reopened]
+    branches: [main]
+
+concurrency:
+  group: state-automerge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -29,10 +38,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      # Base branch, on purpose. Never `ref: ${{ github.event.pull_request.head.sha }}` here.
+      # The protected branch, by name, on purpose. Never the PR's head, and not whatever base the PR
+      # happened to pick: `branches: [main]` above means base.ref is main, and this pins it anyway.
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.base.ref }}
+          ref: main
 
       - uses: actions/setup-python@v5
         with:
@@ -45,9 +55,10 @@ jobs:
         id: check
         env:
           GH_TOKEN: ${{ github.token }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           set +e
-          out=$(python3 -I tools/state_pr_check.py "${{ github.event.pull_request.number }}" 2>&1)
+          out=$(python3 -I tools/state_pr_check.py "${{ github.event.pull_request.number }}" --expect-head "$HEAD" 2>&1)
           rc=$?
           echo "$out"
           { echo "verdict<<VERDICT_EOF"; echo "$out"; echo "VERDICT_EOF"; } >> "$GITHUB_OUTPUT"
@@ -71,7 +82,7 @@ jobs:
             fi
             exit 0
           fi
-          if gh pr merge "$PR" --auto --merge 2>err.txt; then
+          if gh pr merge "$PR" --auto --merge --match-head-commit "$HEAD" 2>err.txt; then
             gh pr comment "$PR" --body "$(printf 'state-automerge: eligible at %s, auto-merge enabled. It merges the moment one reviewer approves; no merge click needed.\n\n%s\n\n*Automated check from the base branch. It establishes ownership and a roster-matching author line, not authorship and not that the content is true; the approving review is the gate.*' "$HEAD" "$VERDICT")"
           else
             gh pr comment "$PR" --body "$(printf 'state-automerge: eligible at %s, but auto-merge could not be enabled. Most likely the repository setting Allow auto-merge is off (O.J.: Settings, General, Pull Requests).\n\n%s\n\nError: %s' "$HEAD" "$VERDICT" "$(cat err.txt)")"
