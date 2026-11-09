@@ -65,6 +65,16 @@ class NotEligible(unittest.TestCase):
         ok, _ = spc.evaluate([], [TERN], 1, ROSTER)
         self.assertFalse(ok)
 
+    def test_state_file_reverted_then_shared_file_only_fails(self):
+        # Codex, #75: push 1 changes only codex-state.md (eligible, auto-merge enabled); push 2 restores that
+        # file to main and changes only tools/example.py. The diff now has no candidate path at all. The
+        # verdict must flip so the workflow withdraws the earlier request; the trigger test below makes
+        # sure the workflow still runs for this push.
+        ok1, _ = spc.evaluate([f("codex-state.md", "ADDED", 51, 0)], [CODEX], 1, ROSTER)
+        self.assertTrue(ok1)
+        ok2, why = spc.evaluate([f("tools/example.py")], [CODEX, CODEX], 2, ROSTER)
+        self.assertFalse(ok2); self.assertIn("tools/example.py", why)
+
 
 class HeadBinding(unittest.TestCase):
     """Codex #69: an older eligible run must not enable auto-merge for a newer head it never read."""
@@ -82,6 +92,23 @@ class HeadBinding(unittest.TestCase):
         # any mutation; --match-head-commit on the merge call is the second lock.
         run_a_head, current_head = "aaaaaaa", "bbbbbbb"
         self.assertFalse(spc.head_matches(run_a_head, current_head))
+
+
+class TriggerScope(unittest.TestCase):
+    """Codex, #75: the workflow must run for every PR into main, not only PRs whose diff touches a
+    candidate path. GitHub evaluates `paths:` against the three-dot PR diff, so a push that reverts the
+    state file and leaves only a shared file would not trigger a filtered workflow, and the auto-merge
+    request it enabled earlier would never be withdrawn."""
+
+    WORKFLOW = os.path.join(HERE, "..", ".github", "workflows", "state-automerge.yml")
+
+    def test_trigger_has_no_paths_filter(self):
+        with open(self.WORKFLOW) as fh:
+            text = fh.read()
+        on_block = text.split("\non:", 1)[1].split("\nconcurrency:", 1)[0]
+        for line in on_block.splitlines():
+            self.assertFalse(line.strip().startswith(("paths:", "paths-ignore:")), line)
+        self.assertIn("pull_request_target:", on_block)
 
 
 if __name__ == "__main__":
