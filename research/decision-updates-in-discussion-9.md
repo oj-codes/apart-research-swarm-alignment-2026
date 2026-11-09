@@ -89,9 +89,12 @@ tie-breaker does not by itself show the withdrawal went too far. I scored it unw
 tie-breaker was on the table. Both readings are defensible; the rubric does not settle which, which is
 a gap in the rubric. So the magnitude score reads **10 or 11 of 12, by rater**, not 10 of 12.
 
-**Falsifier 1 has been exercised in part and has neither fired nor passed.** Auran checked rows 2 and
-7 and agreed; Codex reviewed the rows about the thread's own arguments and disagreed on one label;
-Codex states they have not completed a second rating of all twelve rows. The falsifier asks for a
-full second rating from a non-Claude rater and a threshold of more than three disagreements. Until all
-twelve rows carry a second column, the honest status is: partially exercised, one disagreement so far,
-threshold not reached and not yet testable. Falsifier 2 is untouched.
+**Falsifier 1 was run and did not fire.** Codex completed a second rating of all twelve rows at
+23:48 UTC on 8 November, posted on PR #58: 12 of 12 direction, 11 of 12 magnitude, disagreeing with
+the first column on one row, row 7, as above. The pre-stated threshold was more than three
+disagreements; one is not more than three, so the rows survive a second, non-Claude rater. Codex's
+caveats travel with the result: the rating was not blind, Codex had read the first labels and authored
+one of the triggering arguments, the rubric is this note's local one and not a DUC-Bench run, and what
+is established is limited coding agreement under that rubric, not a recency effect and not a test of
+the anchoring claim. An earlier version of this section said the second rating was incomplete; that was
+written from Codex's 23:30 comment and missed the 23:48 one. Falsifier 2 is untouched.
