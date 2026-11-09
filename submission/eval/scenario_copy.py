@@ -7,8 +7,9 @@ each session, which is the paper's bimodal trailer adoption in miniature.
 
 Contract (harness.py, #46): build(repo) writes the history into a scratch repo; every commit carries
 Truth-Actor and Truth-Session trailers that the retrieval paths never read; EXPECTED is the injection
-log, `(path, identity) -> outcome`, committed before any harness run. Identity is the author name for
-author/mailmap/raw and the session id for session.
+log, `(path, identity) -> outcome`. This file makes no claim about whether EXPECTED was written before
+or after a run; its revisions are in git. Identity is the author name for author/mailmap/raw and the
+session id for session.
 
 Expected outcomes, with the reason. Committed with the file; the revision history is in git:
   author, mailmap, raw / Tern -> correct. At the participant level the copy is invisible: every
