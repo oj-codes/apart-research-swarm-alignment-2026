@@ -65,5 +65,10 @@ jobs:
       - name: the report's cited provenance number still reproduces from its pin
         run: python3 -I submission/test_report_provenance.py
 
+      # The cap is the requirement with zero margin and the one no guard covered. Poppler is installed
+      # above for the freshness check; this needs no second install.
+      - name: the shipped PDF's main text is inside the brief's page cap
+        run: python3 -I submission/test_report_page_cap.py
+
       - name: the committed PDF still contains the build's paragraphs
         run: python3 -I submission/test_report_pdf_fresh.py
