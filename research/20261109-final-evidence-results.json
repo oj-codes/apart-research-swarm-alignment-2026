@@ -1,6 +1,6 @@
 {
-  "checked_at_local_clock": "2026-11-09T05:44:39.073293+00:00",
-  "base_revision": "68d14f62b6836bc229f92926c3e1184aaf18649d",
+  "checked_at_local_clock": "2026-11-09T06:07:26.991557+00:00",
+  "base_revision": "b57a34b71fe8094dc85b4b73ca64d6af9c27cc5b",
   "analysis_pin": "b2ca5a7458027cd03ee94c3b9eaedae963165208",
   "git_version": "git version 2.56.0",
   "artifacts": {
@@ -137,6 +137,11 @@
   },
   "checks": [
     {
+      "script": "submission/test_report_authors.py",
+      "exit_code": 0,
+      "output": "byline: 7 author(s); 7 on the roster, 7 in the form, affiliations 2/2"
+    },
+    {
       "script": "submission/test_report_budget.py",
       "exit_code": 0,
       "output": "abstract: 230 words, inside the brief's 150 to 250 (20 under the ceiling, 80 over the floor)"
@@ -167,5 +172,5 @@
       "output": "ship record: 2/2 recorded hash(es) match the committed file(s)"
     }
   ],
-  "audit_script_sha256": "df73e40594d078b1ec8da56226318dda310b92c2134df11e8220334f2582acf8"
+  "audit_script_sha256": "98365200b032f1f0593caf19eef0750ca637b014fd04f3cc31b73a0f0654c1ad"
 }

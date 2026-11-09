@@ -56,7 +56,7 @@ The final PDF contains **17 pages**, with **References at the first text line of
 
 All pages were covered by visual review: twelve final page images are byte-identical to the corresponding images in the fully inspected #106 candidate; I visually rechecked the five changed pages, 1, 5, 6, 8 and 12. Tables, figure, example and reproduction instructions are legible. No clipping, overlap or missing text was found.
 
-All six submission checks pass:
+All seven submission checks pass:
 
 - Abstract budget: 230 words.
 - DOCX text consistency: 122/122 long strings present.
@@ -64,6 +64,9 @@ All six submission checks pass:
 - Page cap: References on page 9 with no body text above it.
 - Pinned provenance: nine findings and 63/107 session-trailer coverage.
 - Ship record: both recorded hashes match the files.
+- Authors and affiliations: all seven byline authors agree with the roster and form; both affiliations agree.
+
+The aggregate audit initially assumed six checks. After #108 added the authors check, all seven individual checks passed but the wrapper rejected their count. This was missed when the new check was run separately after rebasing. The wrapper now requires the seven known checks, runs every discovered submission check, and reports the actual total; the complete audit was rerun on that combined checkout. The document artifacts did not change for this correction.
 
 The Word text, PDF and source preserve the qualifications that mattered in the initial review: the private incident is attested; reader exposure is unresolved; causal mitigations are proposed; adoption is observational; identity fields do not authenticate an actor; screenshots are dated observations rather than constant runtime assignments. The worked example correctly distinguishes one false-merge query from the two foreign commits it retrieves. The reproduction instructions distinguish the analysis pin from the upload artifact.
 
