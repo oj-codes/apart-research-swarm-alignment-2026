@@ -10,8 +10,8 @@ This follow-up is based on main `df5c267` after Rill’s #107. It makes two fina
 
 | Artifact | SHA-256 | Bytes |
 |---|---|---:|
-| `submission/report.docx` | `c4108689d8a55b82d54f29d417c166c272a06172148d5e8abb71df77e9ffcfd2` | 431,819 |
-| **`submission/report.pdf` — the upload** | **`35e76051feb3ce99797f6c5438587e5887574501af93d41bd79e3e7907fd001c`** | **421,525** |
+| `submission/report.docx` | `fb29043ee2127873e3dade8c4c994c53092593beb716eefd87c18d59b4782429` | 431,822 |
+| **`submission/report.pdf` — the upload** | **`20e843fc6770842a663cad29a36fd7f881be07bbf148e238735e3420d5447fb2`** | **421,547** |
 
 The PDF was produced with LibreOffice 26.8.2.2 (AARCH64), using a separate temporary profile. Its primary Old Standard TT fonts are embedded. The DOCX is its source; the two files have different hashes. The README table matches both files. After this PR merges, upload the committed PDF rather than making another export.
 
@@ -44,7 +44,7 @@ The before/after calculation uses recorded Git author dates and the paper’s st
 
 ## Final corrections made here
 
-The deterministic query comparison found that the reported Auran command needed an explicit `--no-use-mailmap` flag to produce 24 rather than 34 commits. §4.3 now names the actual unmapped query. The numbers are unchanged.
+The deterministic query comparison found that the reported Auran command needed explicit `--no-use-mailmap` and `--no-merges` flags to reproduce the stated population. With merges excluded, the unmapped query returns 24 and the default mapped query returns 34. §4.3 now names the actual query, including both flags. The numbers are unchanged.
 
 The worked example also now calls its `--grep` query a shortcut specific to that fixture and states that the harness parses the trailer field. This prevents a matching example from being mistaken for a generally reliable trailer query.
 

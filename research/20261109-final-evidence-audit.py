@@ -86,7 +86,7 @@ assert all(p.strip().splitlines()[-1].strip()==str(i) for i,p in enumerate(pages
 assert '2.21' not in word
 assert 'opt-in for plain git log' not in word
 assert 'enough to find each participant' not in word
-assert 'git log --no-use-mailmap --author=Auran finds 24' in word
+assert 'git log --no-merges --no-use-mailmap --author=Auran finds 24' in word
 assert 'This grep is a shortcut specific to this fixture' in word
 assert 'not a constant assignment across the sprint' in word
 fonts=run(['pdffonts',str(ROOT/'submission/report.pdf')]); (OUT/'fonts.txt').write_text(fonts)

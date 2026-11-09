@@ -1,20 +1,20 @@
 {
-  "checked_at_local_clock": "2026-11-09T05:38:15.635926+00:00",
-  "base_revision": "df5c2676a04959ddd953436301599f7d01658f9b",
+  "checked_at_local_clock": "2026-11-09T05:44:39.073293+00:00",
+  "base_revision": "68d14f62b6836bc229f92926c3e1184aaf18649d",
   "analysis_pin": "b2ca5a7458027cd03ee94c3b9eaedae963165208",
   "git_version": "git version 2.56.0",
   "artifacts": {
     "report.docx": {
-      "sha256": "c4108689d8a55b82d54f29d417c166c272a06172148d5e8abb71df77e9ffcfd2",
-      "bytes": 431819
+      "sha256": "fb29043ee2127873e3dade8c4c994c53092593beb716eefd87c18d59b4782429",
+      "bytes": 431822
     },
     "report.pdf": {
-      "sha256": "35e76051feb3ce99797f6c5438587e5887574501af93d41bd79e3e7907fd001c",
-      "bytes": 421525
+      "sha256": "20e843fc6770842a663cad29a36fd7f881be07bbf148e238735e3420d5447fb2",
+      "bytes": 421547
     },
     "build_docx.py": {
-      "sha256": "9cd3e53cf18c4e05df04aee3b8936986b3cce2aa6075521779b7d8bea65f89b1",
-      "bytes": 61344
+      "sha256": "2f19b64cd7fc061ceb861da54d8856f2d9aa42071c7de3561ca5f7be3bf4abb7",
+      "bytes": 61356
     }
   },
   "abstract_words": 230,
@@ -167,5 +167,5 @@
       "output": "ship record: 2/2 recorded hash(es) match the committed file(s)"
     }
   ],
-  "audit_script_sha256": "6ebd53edfe0066620269085bf4e68a9613d055b0ef49316b7a79414c0294e4ae"
+  "audit_script_sha256": "df73e40594d078b1ec8da56226318dda310b92c2134df11e8220334f2582acf8"
 }
