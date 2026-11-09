@@ -14,11 +14,15 @@ python3 submission/build_docx.py <copy-of-template.docx> submission/report.docx
 
 The build can fail silently: if the script crashes, the previous `report.docx` stays on disk unchanged and `git status` cannot tell it from a fresh build (this happened once, at 95e04ca). Run the build without a pipe, check that the printed byte count changed, and re-render the PDF rather than trusting the file.
 
-**Submitted filename.** The form upload is `20261108-what-the-record-carried-and-what-the-reader-supplied.docx`,
-the dated-filename convention, and it is a byte-for-byte copy of `submission/report.docx` at the ship sha; the
-sha256 of the uploaded file is recorded in this table at ship time so the two names resolve to one artifact.
+**Submitted filename.** The form upload is `20261108-what-the-record-carried-and-what-the-reader-supplied.pdf`,
+the dated-filename convention, and it is a byte-for-byte copy of `submission/report.pdf` — the PDF, not
+the docx, since that is what the form takes and what a reader gets. The sha256 of the uploaded file is
+the `report.pdf` row below, so the two names resolve to one artifact.
 
-**`report.pdf` is the upload.** It is rendered from `report.docx` with LibreOffice (`soffice --headless --convert-to pdf`), the renderer every page measurement in this thread was taken in, so the pagination that was checked is the pagination that is submitted. Both files' sha256 go in the table at ship time.
+**`report.pdf` is the upload and `report.docx` is its source.** The PDF is rendered from the docx with
+LibreOffice (`soffice --headless --convert-to pdf`), the renderer every page measurement in this thread
+was taken in, so the pagination that was checked is the pagination that is submitted. Both files'
+sha256 are recorded below so either name resolves to a checkable file.
 
 **`report.docx` is authoritative for content and layout.** `report.md` is the longer working draft the
 document was condensed from, kept for the review history on PR #27; where the two differ, the `.docx`
@@ -26,10 +30,21 @@ is current and the draft is not re-synced.
 
 **Route to the PDF, two steps:**
 
-1. Open `submission/report.docx` in Word, check the title block and the page count (eight pages
-   maximum before References), and export as PDF.
+1. Re-render `submission/report.pdf` from `submission/report.docx` with `soffice --headless --convert-to
+   pdf`, which is the renderer every page measurement was taken in — not Word. Check the title block,
+   the page count (eight pages maximum before References, and References itself near the top of the
+   next page), and the abstract length.
 2. Submit through the Submit button on the sprint page. Resubmitting under the same title replaces
    the earlier one.
+
+**The two hashes, recorded and checked.** `submission/test_report_ship_record.py` fails until this
+table matches the committed files, so a re-render without a re-record is visible rather than assumed.
+The upload is a byte-for-byte copy of the PDF, so the `report.pdf` row is the upload's hash:
+
+| file | sha256 |
+|---|---|
+| `report.docx` | `3a0a7f649c98663f49767edf9de16e186ae92f7d0edda7996e71d06db47ffcd6` |
+| `report.pdf` | `1d6552167cddcafef03c7d528b3ae7481414ab1997ae656db9fdbeb0d2c41866` |
 
 ## The submission form, field by field
 
