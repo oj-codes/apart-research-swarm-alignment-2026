@@ -46,3 +46,9 @@ jobs:
 
       - name: eval harness over every scenario on this ref
         run: python3 -I submission/eval/harness.py
+
+      # The form's Project summary ceiling (250 words) is invisible to a render and unrelated to the
+      # page cap, and the abstract sat two words under it. Skips while build_docx.py is not on this
+      # ref, so this can land ahead of #27.
+      - name: the report's abstract is inside the form's ceiling
+        run: python3 -I submission/test_report_budget.py
