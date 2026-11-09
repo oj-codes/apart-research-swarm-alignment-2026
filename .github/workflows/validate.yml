@@ -56,3 +56,8 @@ jobs:
       # page cap; the two sides of the requirement are enforced together in that file.
       - name: the report's abstract is inside the form's ceiling
         run: python3 -I submission/test_report_budget.py
+
+      # The report pins a commit and quotes what the record holds there; those figures were re-derived
+      # by hand on every render. This re-derives the scriptable one from the report's own pin.
+      - name: the report's cited provenance number still reproduces from its pin
+        run: python3 -I submission/test_report_provenance.py
