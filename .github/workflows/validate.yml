@@ -46,3 +46,9 @@ jobs:
 
       - name: eval harness over every scenario on this ref
         run: python3 -I submission/eval/harness.py
+
+      # The build can crash silently and leave the previous report.docx on disk, and `git status`
+      # cannot tell it from a fresh build — it happened once, at 95e04ca. Skips while the report is
+      # not on this ref, so this can land ahead of #27. (#70 adds a sibling step at this anchor.)
+      - name: the committed docx still contains the build's sentences
+        run: python3 -I submission/test_report_docx_fresh.py
