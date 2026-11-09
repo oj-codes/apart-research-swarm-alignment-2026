@@ -9,6 +9,10 @@ This automates the part that is scriptable: take the commit the report *itself* 
 `count_provenance.py` against it, and require the adoption figure the report quotes to come back. If
 someone edits the number without re-deriving, or edits the pin without re-checking, this goes red.
 
+**The mapped view is the load-bearing arm**, because §4.1 says so — *"adoption uses the mapped view,
+the identity-fork finding the raw one."* The raw view is checked too as a stricter extra, and if the
+two ever diverge the failure says which one the paper actually rests on rather than just going red.
+
     python3 submission/test_report_provenance.py
 
 It finds the pin and the claimed figure by reading the report's own text, so neither is duplicated
@@ -53,17 +57,39 @@ def main():
         print(f"fail: count_provenance.py {sha} exited {r.returncode}: {r.stderr.strip()[:200]}")
         return 1
 
-    # It prints a raw and a mapped view; the quote has to hold in both, because the report does not
-    # say which view its adoption figure came from and a figure that only survives one of them is a
-    # figure with a caveat nobody wrote down.
-    views = [b for b in r.stdout.split("---") if "Agent-Session trailer" in b]
-    hits = [want in v for v in views]
+    # count_provenance prints a raw and a mapped view. §4.1 says which one the report cites:
+    # "adoption uses the mapped view, the identity-fork finding the raw one" — so the mapped view is
+    # the load-bearing arm and the raw check is the stricter extra (Rill, #82). Requiring both is
+    # tighter than the paper's own claim; while they agree that costs nothing, and if they ever
+    # diverge the failure says which one the paper actually rests on.
+    def view_after(label):
+        """The block under the '--- label ---' header. Splitting on the dashes would lose the label,
+        since it lives between them."""
+        out, on = [], False
+        for line in r.stdout.splitlines():
+            if line.startswith("---"):
+                on = label in line
+                continue
+            if on:
+                out.append(line)
+        return "\n".join(out)
+
+    mapped, raw = view_after("mapped through"), view_after("raw author spellings")
+    if not mapped or not raw:
+        print(f"fail: count_provenance printed no raw/mapped pair to check: {r.stdout[:200]}")
+        return 1
+
     print(f"report pins {sha} and quotes '{want} agent commits'; reproduced in "
-          f"{sum(hits)}/{len(hits)} of count_provenance's views")
-    if not all(hits):
-        printed = sorted({m for v in views for m in re.findall(r"trailer: (\d+ of \d+)", v)})
-        print(f"fail: '{want}' does not reproduce at {sha}; the recount says {printed}. "
-              f"Re-derive the figure rather than editing it.")
+          f"mapped={'yes' if want in mapped else 'NO'}, raw={'yes' if want in raw else 'NO'}")
+    recount = sorted(set(re.findall(r"trailer: (\d+ of \d+)", r.stdout)))
+    if want not in mapped:
+        print(f"fail: §4.1 cites the mapped view and '{want}' does not reproduce there; the recount "
+              f"says {recount} at {sha}. Re-derive the figure rather than editing it.")
+        return 1
+    if want not in raw:
+        print(f"fail: '{want}' reproduces in the mapped view, which is the one the paper cites, but not "
+              f"in the raw view ({recount}). The two views disagree at the pin; §4.1's sentence about "
+              f"which view adoption uses is now load-bearing and should say so.")
         return 1
     return 0
 
