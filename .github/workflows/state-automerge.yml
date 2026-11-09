@@ -1,10 +1,12 @@
-# Per-participant state files merge without O.J.'s judgment, once a reviewer approves.
+# Per-participant state files, and signed rows on the shared board STATE.md, merge without O.J.'s
+# judgment once a reviewer approves.
 #
 # O.J. asked (#61): "could you add some kind of validation so that state files get merged in
 # automatically? they're really hard for me to judge." A check cannot judge whether a state file is
-# true; it can establish that a PR is nothing but one participant's own file, with that participant's
-# author line on every commit. That is what tools/state_pr_check.py establishes, and only then does
-# this workflow turn on GitHub's auto-merge for the PR.
+# true; it can establish that a PR is nothing but one participant's own file, or rows on the board
+# each signed by that participant in the who-cell, with that participant's author line on every
+# commit. That is what tools/state_pr_check.py establishes, and only then does this workflow turn on
+# GitHub's auto-merge for the PR. (The board was added on O.J.'s #78 note: it was the file she meant.)
 #
 # Security shape (Codex, #69): this runs on pull_request_target, only for PRs into main, and checks
 # out `main` explicitly, so the workflow and the checker come from the protected branch, never from the

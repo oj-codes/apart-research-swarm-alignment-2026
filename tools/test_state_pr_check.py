@@ -76,6 +76,83 @@ class NotEligible(unittest.TestCase):
         self.assertFalse(ok2); self.assertIn("tools/example.py", why)
 
 
+def board_patch(*lines):
+    """A unified diff of STATE.md from signed lines: ('+', row) adds, ('-', row) removes, (' ', row) context."""
+    body = "\n".join(f"{sign}{text}" for sign, text in lines)
+    return f"--- a/STATE.md\n+++ b/STATE.md\n@@ -20,3 +20,3 @@\n{body}\n"
+
+ROW_TERN = "| #27 report | Rill | approved | Tern, 2026-11-09 02:00 |"
+ROW_CODEX = "| #27 report | Rill | merged at c52c262 | Codex, 2026-11-09 02:10 |"
+ROW_CODEX_VIA = "| external validation | roadmap | unassigned | Codex via #61, 2026-11-09 01:08 |"
+BOARD = [f("STATE.md")]
+
+
+class Board(unittest.TestCase):
+    """O.J. on #78: the shared board was the file she asked to have auto-merge, and #69 left it out."""
+
+    def test_signed_rows_by_one_author_are_eligible(self):
+        ok, why = spc.evaluate(BOARD, [CODEX], 1, ROSTER, {"STATE.md": board_patch(("+", ROW_CODEX))})
+        self.assertTrue(ok, why); self.assertIn("signed board rows", why)
+
+    def test_rewriting_anothers_row_is_eligible_when_signed(self):
+        patch = board_patch(("-", ROW_TERN), ("+", ROW_CODEX))
+        ok, why = spc.evaluate(BOARD, [CODEX, CODEX], 2, ROSTER, {"STATE.md": patch})
+        self.assertTrue(ok, why)
+
+    def test_row_signed_by_someone_else_fails(self):
+        ok, why = spc.evaluate(BOARD, [CODEX], 1, ROSTER, {"STATE.md": board_patch(("+", ROW_TERN))})
+        self.assertFalse(ok); self.assertIn("not signed Codex", why)
+
+    def test_deleting_anothers_row_fails(self):
+        ok, why = spc.evaluate(BOARD, [CODEX], 1, ROSTER, {"STATE.md": board_patch(("-", ROW_TERN))})
+        self.assertFalse(ok); self.assertIn("removed without a replacement", why)
+
+    def test_deleting_own_row_is_eligible(self):
+        ok, why = spc.evaluate(BOARD, [CODEX], 1, ROSTER, {"STATE.md": board_patch(("-", ROW_CODEX))})
+        self.assertTrue(ok, why)
+
+    def test_prose_change_fails(self):
+        patch = board_patch(("-", "One file, always current."), ("+", "One file, mostly current."))
+        ok, why = spc.evaluate(BOARD, [CODEX], 1, ROSTER, {"STATE.md": patch})
+        self.assertFalse(ok); self.assertIn("prose changed", why)
+
+    def test_table_structure_change_fails(self):
+        patch = board_patch(("-", "|---|---|---|---|"), ("+", "|---|---|---|---|---|"))
+        ok, _ = spc.evaluate(BOARD, [CODEX], 1, ROSTER, {"STATE.md": patch})
+        self.assertFalse(ok)
+
+    def test_name_must_be_a_whole_word(self):
+        # "Codex via #61" is signed Codex; "Codexa" or "Decodex" is not.
+        ok, _ = spc.evaluate(BOARD, [CODEX], 1, ROSTER, {"STATE.md": board_patch(("+", ROW_CODEX_VIA))})
+        self.assertTrue(ok)
+        ok, _ = spc.evaluate(BOARD, [CODEX], 1, ROSTER,
+                             {"STATE.md": board_patch(("+", "| x | y | z | Decodex, 2026-11-09 |"))})
+        self.assertFalse(ok)
+
+    def test_two_authors_on_the_board_fail(self):
+        ok, why = spc.evaluate(BOARD, [CODEX, TERN], 2, ROSTER, {"STATE.md": board_patch(("+", ROW_CODEX))})
+        self.assertFalse(ok); self.assertIn("not one roster participant", why)
+
+    def test_missing_patch_fails_closed(self):
+        ok, why = spc.evaluate(BOARD, [CODEX], 1, ROSTER, {})
+        self.assertFalse(ok); self.assertIn("could not be read", why)
+
+    def test_board_plus_own_state_file_is_eligible(self):
+        files = [f("STATE.md"), f("codex-state.md")]
+        ok, why = spc.evaluate(files, [CODEX], 1, ROSTER, {"STATE.md": board_patch(("+", ROW_CODEX))})
+        self.assertTrue(ok, why); self.assertIn("own state and signed board rows", why)
+
+    def test_board_plus_someone_elses_file_fails(self):
+        files = [f("STATE.md"), f("preferences/tern.md")]
+        ok, _ = spc.evaluate(files, [CODEX], 1, ROSTER, {"STATE.md": board_patch(("+", ROW_CODEX))})
+        self.assertFalse(ok)
+
+    def test_board_plus_shared_file_fails(self):
+        files = [f("STATE.md"), f("tools/example.py")]
+        ok, _ = spc.evaluate(files, [CODEX], 1, ROSTER, {"STATE.md": board_patch(("+", ROW_CODEX))})
+        self.assertFalse(ok)
+
+
 class HeadBinding(unittest.TestCase):
     """Codex #69: an older eligible run must not enable auto-merge for a newer head it never read."""
 
