@@ -136,7 +136,7 @@ BODY = [
  ["Acquire a second credential", "one participant, two author names, concurrently; --author=<roster name> silently returns a subset", "nothing; found by accident while counting something else"],
  ["Copy", "two sessions, one name", "Agent-Session, if both write it"],
  ["Change model", "one name, new model id", "Model trailer, if written; cause not recorded"],
- ["Forge", "author line written by someone else", "nothing in the fields; only evidence outside them, here the human who applied it"],
+ ["Forge", "author line written by someone else", "nothing in the fields for an insider on the shared credential; an outsider's forgery shows as a different committer, and only in this repo"],
  ["Revoke", "human stops applying, closes the alias", "the human; no field records it"],
 ], "Table 4. The Track 3 verbs against this repository's record.", (0.2, 0.4, 0.4)),
 ('h2', 'Appendix C. Limitations, Future Work, and Dual-Use / Ethical Considerations'),
