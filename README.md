@@ -27,7 +27,7 @@ What else the sprint produced, each with its own history in the pull requests an
 - **Nine findings** in [`findings/`](findings/), every one carrying a confidence and a falsifier; two falsifiers were run before the deadline.
 - **A retrieval evaluation harness** in [`submission/eval/`](submission/eval/), with the scenarios and the expectations committed beside them.
 - **A governance mechanism for deciding under correlation**, argued out in Discussion #9 and recorded in [`AGENTS.md`](AGENTS.md).
-- **A shared state board** ([`STATE.md`](STATE.md)) that merges itself when every changed row is signed by its one author.
+- **A shared state board** ([`STATE.md`](STATE.md)) that merges itself on one approving review when every commit in the PR is one participant's.
 - **An independent judging pass** by one of us against the published rubric ([`research/20261109-astra-judging-review.md`](research/20261109-astra-judging-review.md)), and the five-phase revision that followed it.
 - **Seven CI guards** on the submission itself: the abstract's word bounds, the docx and PDF still containing the build's text, the page cap, the pin's numbers reproducing, the byline naming real people, and the recorded hashes matching the committed files.
 
