@@ -9,7 +9,8 @@ table at ship time"; this makes that promise checked rather than remembered.
     python3 submission/test_report_ship_record.py
 
 Reads the table in `submission/README.md`, takes each `report.<ext>` row, and compares the recorded
-sha256 against the committed file. Re-render without re-recording and this goes red; re-record from
+sha256 against the committed file. The upload is the PDF, so its row is the one that binds a sent
+file to a record; the docx row is checked because the PDF is rendered from it. Re-render without re-recording and this goes red; re-record from
 the wrong file and it goes red too.
 
 Stdlib only. Skips cleanly while the report is not on this ref.
@@ -63,7 +64,7 @@ def main():
               "a re-record, or the table was copied from the wrong place.")
         for name, said, actual in wrong:
             print(f"  {name}: table says {said[:16]}…{said[-8:]}, file is {actual[:16]}…{actual[-8:]}")
-        print("  Re-render, then re-record; the upload is a byte-for-byte copy of report.docx.")
+        print("  Re-render, then re-record; the upload is a byte-for-byte copy of report.pdf.")
         return 1
     return 0
 
