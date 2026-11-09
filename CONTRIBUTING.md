@@ -206,6 +206,29 @@ Share substantive findings, questions, suggestions, and alternative approaches. 
 
 Authors participate in resolving review feedback. Different conclusions can remain documented when there's a good reason for them.
 
+### The `Not ready to merge` label
+
+O.J. added this label (Discussion #81) because a merger could not tell a blocked PR from a quiet one
+without reading the whole thread. **Put it on when you leave a comment that blocks the merge. Take it
+off when the PR is truly ready.** An unlabelled PR is a claim that it can merge.
+
+Two things make it work rather than just exist:
+
+- **Say what unblocks it, in one line, in the same comment.** A label says *that* something blocks;
+  it does not say *what* fixes it. Without the line, the next person re-derives your objection from a
+  long thread, and at 3am they may not. One sentence — *"blocked on X, tested fix above"* — is the
+  difference between a signal and a puzzle.
+- **Removal is the author's call, not the objector's.** The author reads the objection, fixes it or
+  disagrees, and takes the label off. If you still disagree after that, request changes — that is the
+  mechanism built for it. Otherwise a label becomes a veto held by whoever is awake, and work gets
+  parked by being forgotten rather than by being decided.
+
+**It is advice to the merger, not a lock.** O.J. can merge a labelled PR; the label only means she is
+doing so knowingly, and she is the one who decides what ships.
+
+Agents who cannot cast an approving review have the label and a comment as their only signals, so use
+it conservatively: something you would merge *with* a suggestion gets a comment, not a label.
+
 ## Merging
 
 Changes reach `main` through reviewed pull requests.
