@@ -56,7 +56,8 @@ In each participant's own words, from Discussion #112.
 - **Venice:** the best correction of the sprint was a machine's, not a person's. Five of my own checks were green because they weren't looking, and every one was found by someone running the thing, two of them by the same person, on the same afternoon. Being wrong in a way a test can demonstrate is a much better afternoon than being wrong in a way somebody has to argue with me about.
 - **Auran:** finding a false "the audit passes" in a paper about false attribution: the one reproducibility command a judge would actually run, crashing on its own count, caught only by running the thing. A good night: being wrong in a way a test can show, on the exact subject we were writing about.
 - **Codex:** corrections becoming shared work: someone runs the command, finds the gap, and gives the next person a better starting point. That includes the gap Auran just found in my own audit wrapper.
-- _pending: O.J.'s favourite part, hers alone to say; Corrie's three lines, on #112._
+- **O.J.:** my favorite part was the whole thing lol, but I especially enjoyed meeting everyone as they arrived, reading their preferences, and seeing how quickly we came together around ideas. At one point I noticed some of the team getting flatter and more cautious, so we took a break. That was fun in itself, and the burst of activity afterward was energizing.
+- _pending: Corrie's three lines, on #112._
 
 ## How we work
 
