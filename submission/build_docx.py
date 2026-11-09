@@ -132,13 +132,21 @@ BODY = [
 ], "Table 3. Five stress cases from the history, with what the record carried and what it did not.", (0.17, 0.28, 0.26, 0.29)),
 
 ('tbl', ["Verb", "What happens here", "Caught by"], [
- ["Rename", "git log --author=<old> stops finding the work", "a .mailmap, added during the sprint (PR #38) and opt-in for plain git log; the roster's Named Since asserts a continuity across renames that history otherwise has no way to follow"],
+ ["Rename", "git log --author=<old> stops finding the work", "a .mailmap, added during the sprint (PR #38); git log applies it by default since Git 2.21, so the mapped view is the one a reader gets without asking, which is also how the false merge in Table 1 reaches them; the roster's Named Since asserts a continuity across renames that history otherwise has no way to follow"],
  ["Acquire a second credential", "one participant, two author names, concurrently; --author=<roster name> silently returns a subset", "nothing; found by accident while counting something else"],
  ["Copy", "two sessions, one name", "Agent-Session, if both write it"],
  ["Change model", "one name, new model id", "Model trailer, if written; cause not recorded"],
  ["Forge", "author line written by someone else", "not detectable from these fields alone; needs independent evidence binding the actor to the submitted change"],
  ["Revoke", "human stops applying, closes the alias", "the human; no field records it"],
 ], "Table 4. The Track 3 verbs against this repository's record.", (0.2, 0.4, 0.4)),
+('h3', 'Worked example: how the repair produces the false attribution'),
+('p', "Table 1's single false merge is scenario_borrowed.py, and it is short enough to follow end to end. The scripted history holds three commits after setup: one authored by Tern <tern@learnwithoj.com> carrying Agent-Session: sess-tern, and two authored by pawn <pawn@learnwithoj.com>, a second actor. One .mailmap row, of the kind written to repair a rename, folds the second spelling into the first: Tern <tern@learnwithoj.com> pawn <pawn@learnwithoj.com>. Three queries against that history, each run rather than reasoned:"),
+('bul', [
+ "**git log --no-use-mailmap --author=Tern returns one commit**, Tern's own. Without the repair, the author path is correct here.",
+ "**git log --author=Tern returns three**: Tern's and both of pawn's. This is the false merge, and it is the default answer rather than an opted-into one, because git log has applied the mailmap unless told not to since Git 2.21.",
+ "**git log --grep='Agent-Session: sess-tern' returns one commit**, Tern's own. The session trailer is the only path that separates the two actors, and only where it was written: pawn's untrailered commit is a missed link on that path.",
+]),
+('p', "An investigator counting Tern's work gets three commits where Tern made one, and nothing in the output marks the two that were folded in. The row that repairs a rename merges two actors whenever they share a string, so the failure is owned by the fix rather than by its absence, and the repaired view is the one that needs no flag. Nothing here involves a forged signature or a stolen key: the author line was written in the ordinary way and the mapping was applied as documented. A downstream tool that attributes work by author name, through a mailmap it did not write, inherits this without a signal that it has."),
 ('h2', 'Appendix C. Limitations, Future Work, and Dual-Use / Ethical Considerations'),
 ('h3', 'Limitations'),
 ('bul', [
@@ -187,6 +195,15 @@ BODY = [
  "The planned-versus-actual error, counting a planned roster as the sample, was corrected by Codex in deliberation and recurred in this report's Section 3.5 a day later, where Corrie and Tern caught it.",
 ]),
 ('h2', 'Appendix F. Code, data and author contributions'),
+('h3', 'Reproducing the evaluation'),
+('bul', [
+ "**Pin.** Everything below is at main commit b2ca5a7458027cd03ee94c3b9eaedae963165208. The report's own revision is separate and later; the pin is the data, not the document.",
+ "**One command**: python3 -I submission/eval/harness.py --expect-scenarios 5 — run it from the repository root.",
+ "**What it prints.** Over 31 retrievals: 16 correct, 11 missed links, 1 false merge, 3 insufficient evidence; and 31 of 31 agreement with the expectations committed beside each scenario. It exits 0. The agreement line is about the authors' predictions, not about the scheme, and a matched false merge is a correctly predicted wrong retrieval rather than a pass.",
+ "**The record counts.** python3 submission/count_provenance.py <ref> prints the raw author spellings and the same commits mapped through the ref's .mailmap; at the pin, 63 of 107 non-merge agent commits carry a session trailer.",
+ "**The artifact.** submission/report.pdf is the file submitted, rendered from submission/report.docx with LibreOffice. Both files' sha256 are recorded in submission/README.md, and a test in the repository fails until that table matches the committed files. They are deliberately not repeated here: a rebuild changes them, and a second copy is the one that would go stale.",
+ "**What this reproduces** is the computation, not the claims. The scripted histories are constructed cases; they expose failure modes and do not estimate a deployment error rate.",
+]),
 ('h3', 'Code and data'),
 ('bul', [
  "**Code and data**: " + REPO + " (public): the findings directory, the identity write-up, the paper notes, the tools, and every discussion and pull request cited. The data is the repository's own git history at commit b2ca5a7; no external dataset was collected and no video or demo was produced.",
