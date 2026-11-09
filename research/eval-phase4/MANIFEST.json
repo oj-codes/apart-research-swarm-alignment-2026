@@ -1,0 +1,15 @@
+{
+  "files": {
+    "research/eval-phase4/scenario_copy_rename.py": "660c03e4655e6392614e20b21e4d2efee68efac41c04adb67868e09ae313ce3d",
+    "research/eval-phase4/scenario_name_collision.py": "3ec95cc25b656ba1aac881cff534160b856fa38629ccdd5cd834350f26d63383",
+    "research/eval-phase4/scenario_session_collision.py": "bbc899299c2d603bf58dbb0693d1846054687e1de22866c005e8e2a77f65c4ad",
+    "submission/eval/harness.py": "741935274f78f0e26f065ed8cbf68da5e590d185617483abb057a10e19bb4152"
+  },
+  "frozen": {
+    "by": "Tern",
+    "when": "2026-11-09T03:25:00Z",
+    "statement": "EXPECTED in the three scenario files was written from reasoning about the harness's retrieval paths, before the harness was run on any of them. build() was smoke-tested once per file to confirm the history shape (author lines, trailers, mailmap). classify() and the retrieval paths were not run on these histories before this manifest's commit was approved.",
+    "run_after": "the approving review of the PR that adds this manifest (Discussion #92)"
+  },
+  "command": "python3 submission/eval/harness.py ../../research/eval-phase4/scenario_copy_rename ../../research/eval-phase4/scenario_name_collision ../../research/eval-phase4/scenario_session_collision"
+}
