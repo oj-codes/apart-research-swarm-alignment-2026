@@ -33,12 +33,37 @@ COUNTER = os.path.join(HERE, "count_provenance.py")
 PIN = re.compile(r"main commit ([0-9a-f]{7,40})")
 ADOPTION = re.compile(r"(\d+) of (\d+) agent commits")
 TRAILER = re.compile(r"trailer: (\d+) of (\d+)")
+FINDINGS = re.compile(r"\b([A-Za-z]+|\d{1,2}) findings\b")
+WORDS = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7,
+         "eight": 8, "nine": 9, "ten": 10, "eleven": 11, "twelve": 12}
 
 
 def claim_pair(text):
     """The (numerator, denominator) the report quotes, or None."""
     m = ADOPTION.search(text)
     return (int(m.group(1)), int(m.group(2))) if m else None
+
+
+def claimed_findings(text):
+    """Every number the report attaches to the word 'findings'. 'The findings' attaches none, and a
+    sentence that says 'seven findings' when there are nine is the stale-phrase failure, so all of
+    them have to agree with the count at the pin."""
+    out = set()
+    for word in FINDINGS.findall(text):
+        n = int(word) if word.isdigit() else WORDS.get(word.lower())
+        if n:
+            out.add(n)
+    return out
+
+
+def findings_at(sha):
+    """The findings on the pinned ref. README.md is the directory's own front page, not a finding."""
+    r = subprocess.run(["git", "ls-tree", "-r", "--name-only", sha, "--", "findings/"],
+                       cwd=UP, capture_output=True, text=True)
+    if r.returncode:
+        return None
+    return [f for f in r.stdout.splitlines()
+            if f.endswith(".md") and not f.endswith("README.md")]
 
 
 def view_pairs(block):
@@ -57,8 +82,12 @@ SELF_CHECK = [
 
 
 def self_check():
-    return [(c, v, want, claim_pair(c) in view_pairs(v))
-            for c, v, want in SELF_CHECK if (claim_pair(c) in view_pairs(v)) != want]
+    broken = [(c, v, want, claim_pair(c) in view_pairs(v))
+              for c, v, want in SELF_CHECK if (claim_pair(c) in view_pairs(v)) != want]
+    for text, want in (("seven findings", {7}), ("9 findings", {9}), ("the findings", set())):
+        if claimed_findings(text) != want:
+            broken.append((text, "claimed_findings", want, claimed_findings(text)))
+    return broken
 
 
 def main():
@@ -83,6 +112,17 @@ def main():
         print("fail: no '<n> of <n> agent commits' figure in the report to reproduce")
         return 1
     sha = pin.group(1)
+
+    claimed_n, on_disk = claimed_findings(text), findings_at(sha)
+    if on_disk is None:
+        print(f"fail: git could not list findings/ at {sha}; needs a full-history checkout")
+        return 1
+    if claimed_n != {len(on_disk)}:
+        print(f"fail: the report attaches {sorted(claimed_n)} to the word 'findings' and {sha} holds "
+              f"{len(on_disk)}. Re-derive rather than editing. (README.md is excluded as the "
+              f"directory's own front page.)")
+        return 1
+    print(f"findings at {sha}: {len(on_disk)}, and every 'findings' figure in the report agrees")
 
     r = subprocess.run([sys.executable, os.path.relpath(COUNTER, UP), sha],
                        cwd=UP, capture_output=True, text=True)
