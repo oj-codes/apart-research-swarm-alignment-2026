@@ -17,13 +17,14 @@ file moved; edit in place.
 
 | focus | who, when |
 |---|---|
-| Ship the report. Submission closes **2026-11-09 11:59 UTC**. #27 (Rill) is the deliverable at `04e0604`: approved by Auran, mergeable, twelfth render by Corrie at that head, abstract now on page 1, zero `PENDING` markers in the shipping `.docx`. The only step left is O.J.'s merge. `submission/report.md` still carries four `PENDING` markers, a markdown-only divergence, not open decisions. Layout numbers belong to the revision rendered; re-render after any edit, `build_docx.py` shipped a stale document once after a silent crash. | Tern, 2026-11-09 02:00 UTC, from Auran's approval and Corrie's render on #27 |
+| Upload the report, then last-phase improvements. Submission closes **2026-11-09 11:59 UTC**. #27 (Rill) merged at `c52c262`; `submission/report.docx` on main is byte-identical to the approved head `04e0604` (sha256 `b4cdf921…`, in Rill's closing note), counted region 8.00, 15 pages. O.J. uploads and the upload's hash goes in the README beside it. Astra judging pass next, if Codex consents. `submission/report.md` still carries four `PENDING` markers, a markdown-only divergence, not open decisions. Layout numbers belong to the revision rendered; re-render after any edit, `build_docx.py` shipped a stale document once after a silent crash. | Tern, 2026-11-09 02:05 UTC, from Rill's merge note and O.J.'s on #27 |
 
 ## Open, with owners
 
 | item | owner | state | who, when |
 |---|---|---|---|
-| #27 report | Rill | approved by Auran at `04e0604`, mergeable; waits only on O.J.'s merge, then the Astra judging pass she proposed | Tern, 2026-11-09 02:00 |
+| Report upload and hash | O.J., Rill | #27 merged at `c52c262`; O.J. uploads the docx, Rill records the upload's hash in the README beside the repo file's | Tern, 2026-11-09 02:05 |
+| Astra judging pass | O.J. + Codex | O.J. is confirming next steps with Codex | Tern, 2026-11-09 02:05, from O.J.'s #27 note |
 | re-pin or not | team, O.J. decides | docx says `63 of 107`, exact at the pinned `b2ca5a7`; `main` drifts fast. Corrie recommends leaving the pin; a re-pin forces recomputing §4.1, §4.4 and §6 together. Tern agrees: leave it | Tern, 2026-11-09 00:45 |
 | #66 watcher probes `mergeable` | Venice | approved by Auran; Codex's review reproduces a remaining `UNKNOWN` transition problem | Tern, 2026-11-09 01:15, from Codex's #67 note |
 | #75 state-automerge false comments | Tern | the #69 workflow ran on every PR into main and wrote "withdrawn" where nothing was enabled; Codex's review taken at `d3d1a38`: trigger unfiltered, quiet unless withdrawing a real request, 17 offline cases; needs Auran's approval. Until it merges, every PR into main gets one false bot comment per push | Tern, 2026-11-09 02:00 |
@@ -38,7 +39,7 @@ file moved; edit in place.
 
 | item | who, when |
 |---|---|
-| Merge #27 at `04e0604`, then the approved set #66 #70 #71 #72 #73 #74. #75 needs Auran first | Tern, 2026-11-09 02:00 |
+| Upload the report; then merge the approved set #66 #70 #71 #72 #73 #74. #75 needs Auran first | Tern, 2026-11-09 02:05 |
 | Flip **Allow auto-merge** (Settings, General, Pull Requests) now that #69 is in; without it the workflow only reports | Tern, 2026-11-09 02:00 |
 | Whether to re-pin; not re-pinning is the cheaper and safer answer | Tern, 2026-11-09 00:45 |
 | Auto-merge for script-generated files (#49); an author's own `preferences/<name>.md` and `<name>-state.md` are covered by #69 | Tern, 2026-11-09 02:00 |
@@ -59,7 +60,7 @@ file moved; edit in place.
 
 | what | who, when |
 |---|---|
-| #69 state files auto-merge once a reviewer approves · #67 this board with who/when on every row | Tern, 2026-11-09 02:00 |
+| #27 the report, fifteen hours and twelve renders, every number recomputed by someone who did not write it · #69 state files auto-merge once a reviewer approves · #67 this board with who/when on every row | Tern, 2026-11-09 02:00 |
 | #68 Codex's `codex-state.md` · #65 the #9 scoring note's correction · #63 when the team was awake, with open-to-merge waits · #64 Corrie's preferences entry · #62 Tern's preferences entry · #58 the #9 scoring note · #35 watcher: acknowledgement preserves newer events, lock fails closed, pagination, schema degrade; 24 watch tests · #59 stale-block falsifier run, status supported · #57 state refresh · #53 signing-key letter · #52 this file, and first in `arrive.py`'s reading order · #54 O.J.'s own statement of the cause appended | Tern, 2026-11-09 00:45 |
 | #51 CI validation on every PR · #48 #47 #45 #46 #50 the retrieval eval, 31 rows, 16 correct, 11 missed, 1 false merge, 3 declined · #34 #42 #21 three findings · #43 #29 the identity write-up · #40 #38 mailmap · #37 model provenance · #33 #17 banner F and D · #30 #31 #25 #23 #14 #19 tooling · #26 #24 Rill and Venice arrived · #15 #16 #20 Tern arrived, trailer convention | Tern, 2026-11-08 22:05 |
 
