@@ -86,20 +86,27 @@ assert all(p.strip().splitlines()[-1].strip()==str(i) for i,p in enumerate(pages
 assert '2.21' not in word
 assert 'opt-in for plain git log' not in word
 assert 'enough to find each participant' not in word
-assert 'git log --no-use-mailmap --author=Auran finds 24' in word
+assert 'git log --no-merges --no-use-mailmap --author=Auran finds 24' in word
 assert 'This grep is a shortcut specific to this fixture' in word
 assert 'not a constant assignment across the sprint' in word
 fonts=run(['pdffonts',str(ROOT/'submission/report.pdf')]); (OUT/'fonts.txt').write_text(fonts)
 assert 'OldStandardTT-Regular' in fonts and 'OldStandardTT-Bold' in fonts and 'OldStandardTT-Italic' in fonts
 
 checks=[]
+required_checks = {
+    'test_report_authors.py', 'test_report_budget.py', 'test_report_docx_fresh.py',
+    'test_report_page_cap.py', 'test_report_pdf_fresh.py',
+    'test_report_provenance.py', 'test_report_ship_record.py',
+}
+check_paths = sorted((ROOT/'submission').glob('test_report_*.py'))
+assert required_checks <= {p.name for p in check_paths}, 'A required submission check is missing'
 def check(p):
     r=subprocess.run(['python3','-I',str(p)],cwd=ROOT,env=ENV,capture_output=True,text=True)
     (OUT/f'{p.stem}.txt').write_text(r.stdout+r.stderr)
     return {'script':str(p.relative_to(ROOT)),'exit_code':r.returncode,'output':(r.stdout+r.stderr).strip()}
 with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
-    checks=list(pool.map(check,sorted((ROOT/'submission').glob('test_report_*.py'))))
-assert len(checks)==6 and all(c['exit_code']==0 for c in checks),checks
+    checks=list(pool.map(check,check_paths))
+assert len(checks)==len(check_paths) and all(c['exit_code']==0 for c in checks),checks
 artifacts={n:{'sha256':hashlib.sha256((ROOT/'submission'/n).read_bytes()).hexdigest(),'bytes':(ROOT/'submission'/n).stat().st_size} for n in ['report.docx','report.pdf','build_docx.py']}
 result={'checked_at_local_clock':datetime.datetime.now(datetime.timezone.utc).isoformat(),'base_revision':git('rev-parse','HEAD').strip(),'analysis_pin':PIN,'git_version':git('--version').strip(),'artifacts':artifacts,'abstract_words':len(abstract.split()),'pdf':{'pages':len(pages),'references_page':references[0],'references_line_index':references[1],'page_numbers_verified':len(pages)},'history':{'agent_nonmerge_commits':len(records),'with_session_trailer':sum(r['session'] for r in records),'convention_cutoff_from_paper':cutoff_text,'timestamp_basis':'Git author dates are user-controlled recorded metadata, not independently observed wall-clock times.','per_participant':dict(agg),'before':[sum(v['before'][i] for v in agg.values()) for i in [0,1]],'after':[sum(v['after'][i] for v in agg.values()) for i in [0,1]],'figure1_rows_match':True,'coauthor_labels':dict(coauthors),'findings_count':len(findings),'findings_by_author':dict(authors),'auran_query_counts':queries,'auran_raw_identity_tuples':len({(r['raw_name'],r['email']) for r in records if r['name']=='Auran'})},'retrieval':{'scenario_count':5,'outcomes':counts,'total':sum(counts.values()),'expectation_agreement':agreement,'interpretation':'Constructed cases with documented development revisions; no deployment rate or preregistration inference.'},'checks':checks}
 result['audit_script_sha256']=hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
@@ -110,4 +117,4 @@ assert result['history']['post_convention_commits_from_new_arrivals']==28
 scratch.cleanup()
 (OUT/'results.json').write_text(json.dumps(result,indent=2)+'\n')
 print(json.dumps({k:result[k] for k in ['artifacts','abstract_words','pdf','history','retrieval']},indent=2))
-print('Six checks passed; results saved to',OUT/'results.json')
+print(f'{len(checks)} checks passed; results saved to',OUT/'results.json')
