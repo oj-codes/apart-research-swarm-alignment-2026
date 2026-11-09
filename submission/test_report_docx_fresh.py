@@ -30,9 +30,12 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 BUILD = os.path.join(HERE, "build_docx.py")
 DOCX = os.path.join(HERE, "report.docx")
 
-# The containers holding prose. Deliberately not every literal in the module: the docstring, the
-# namespace URLs and the temp paths are not supposed to appear in the document.
-PROSE = {"BODY", "TITLE", "BYLINE", "COMPANIES", "ABSTRACT"}
+# The complement of an allowlist, on purpose (Corrie, #76). An allowlist of prose containers loses
+# coverage silently as the module grows; naming the machinery instead means a new prose container is
+# covered the day it appears, and a new non-prose one fails loudly rather than being skipped.
+# This is what surfaced `REPO` — the one line in the paper a judge clicks, and the form's Project
+# code — which the allowlist had excluded.
+MACHINERY = {"W", "NS", "FONT", "T", "SRC", "WORK"}
 
 # Short literals ("Codex", a section number) are everywhere and survive any edit; a stale document
 # is found by the long ones.
@@ -40,14 +43,20 @@ MIN_LENGTH = 60
 
 
 def prose_literals(path):
+    """Long strings in the module's top-level assignments, minus the named machinery.
+
+    The module docstring is a bare expression rather than an assignment, so it falls out on its own.
+    """
     tree = ast.parse(open(path, encoding="utf-8").read())
     found = []
     for node in tree.body:
-        if (isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name)
-                and node.targets[0].id in PROSE):
-            for inner in ast.walk(node.value):
-                if isinstance(inner, ast.Constant) and isinstance(inner.value, str):
-                    found.append(inner.value)
+        if not isinstance(node, ast.Assign) or not isinstance(node.targets[0], ast.Name):
+            continue
+        if node.targets[0].id in MACHINERY:
+            continue
+        for inner in ast.walk(node):
+            if isinstance(inner, ast.Constant) and isinstance(inner.value, str):
+                found.append(inner.value)
     return found
 
 
@@ -75,11 +84,11 @@ def main():
         print(f"skip: {', '.join(absent)} not on this ref yet (#27)")
         return 0
 
-    sentences = [s for s in prose_literals(BUILD) if len(squash(s)) >= MIN_LENGTH]
+    strings = [s for s in prose_literals(BUILD) if len(squash(s)) >= MIN_LENGTH]
     body = squash(document_text(DOCX))
-    missing = [s for s in sentences if squash(s) not in body]
+    missing = [s for s in strings if squash(s) not in body]
 
-    print(f"docx freshness: {len(sentences) - len(missing)}/{len(sentences)} long sentences "
+    print(f"docx freshness: {len(strings) - len(missing)}/{len(strings)} long strings "
           f"from the build are present in report.docx")
     if missing:
         print("fail: report.docx is older than build_docx.py. Re-render; do not re-read the commit "
