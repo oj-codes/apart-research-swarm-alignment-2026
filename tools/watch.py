@@ -231,13 +231,18 @@ def probe_prs():
     woke itself up every time it pushed its own branch. Comments are tracked by id below.
     """
     data = gh_json("pr", "list", "--repo", REPO, "--state", "open", "--limit", "200",
-                   "--json", "number,title,reviewDecision,isDraft")
+                   "--json", "number,title,reviewDecision,isDraft,mergeable")
     if data is None:
         return None
     return {str(p["number"]): {
         "title": p["title"],
         "review": p.get("reviewDecision") or "",
         "draft": p.get("isDraft", False),
+        # `mergeable` is here because a PR going CONFLICTING is invisible otherwise: the other two
+        # fields don't move, and on 9 Nov #27 silently became unmergeable when #35 merged. The
+        # watcher only caught it by falling through to "(fingerprint differs; see above probes)",
+        # which is honest but names nothing (Corrie, #60).
+        "mergeable": p.get("mergeable") or "",
     } for p in data}
 
 
@@ -347,6 +352,18 @@ def describe(old, new, name):
                     lines.append(f"REVIEW on PR #{num}: {pr['review']}")
             if was.get("draft") and not pr["draft"]:
                 lines.append(f"PR #{num} left draft — ready for review")
+            was_merge, now_merge = was.get("mergeable", ""), pr.get("mergeable", "")
+            # Skip if either side is UNKNOWN: GitHub computes `mergeable` asynchronously, so the
+            # field flips through UNKNOWN on its way to a real value. Absent (a state file written
+            # before this field) skips too, so an upgrade does not burst on its first poll.
+            if (was_merge and now_merge and was_merge != now_merge
+                    and "UNKNOWN" not in (was_merge, now_merge)):
+                if now_merge == "CONFLICTING":
+                    lines.append(f"PR #{num} now CONFLICTING — blocked until it is rebased "
+                                 f"({pr['title'][:40]})")
+                elif was_merge == "CONFLICTING":
+                    lines.append(f"PR #{num} conflict cleared — MERGEABLE again "
+                                 f"({pr['title'][:40]})")
     # Comments are reported for every PR, open or not: a thread on a just-merged PR still matters.
     for num in sorted(set(newpc) | set(oldpc), key=lambda s: int(s) if s.isdigit() else 0):
         seen = oldpc.get(num) or {}
@@ -478,6 +495,27 @@ def main():
                          ("main", main_sha)):
             if raw is None and key in old:
                 new[key] = old[key]
+
+        # One-time upgrade for a field added to the PR record. `fingerprint` hashes `prs` whole and
+        # has no way to know which keys are new, so without this the first poll after upgrading sees
+        # every open PR as changed and the watcher bursts once -- the same residual #66 fixed in
+        # `describe`, one rung lower down (Corrie, #66). Only the absent key is filled; a genuine
+        # transition in it is still diffed.
+        for num, pr in (old.get("prs") or {}).items():
+            fresh = (new.get("prs") or {}).get(num) or {}
+            if "mergeable" not in pr and "mergeable" in fresh:
+                pr["mergeable"] = fresh["mergeable"]
+
+        # UNKNOWN is the API saying "not computed yet", not a state. Storing it replaces the last
+        # conclusive value, so the next poll compares UNKNOWN against the real one and swallows it:
+        # CONFLICTING -> UNKNOWN -> MERGEABLE prints nothing, and the fingerprint moves on a
+        # non-event besides. Keep the last conclusive value, which is also what makes the clearance
+        # line reachable (Codex and Auran, #66).
+        for num, pr in (new.get("prs") or {}).items():
+            if (pr.get("mergeable") or "") == "UNKNOWN":
+                was = (old.get("prs") or {}).get(num) or {}
+                if was.get("mergeable"):
+                    pr["mergeable"] = was["mergeable"]
 
     lines = [] if first_run else describe(old, new, name)
     # `handed` is the batch a consumer was actually told about: frozen when a report goes out and
