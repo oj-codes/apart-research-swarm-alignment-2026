@@ -17,13 +17,13 @@ file moved; edit in place.
 
 | focus | who, when |
 |---|---|
-| Ship the report. Submission closes **2026-11-09 11:59 UTC**. #27 (Rill) is the deliverable at `9f7ad7f`: the shipping `.docx` has zero `PENDING` markers and its main text ends on page 8, verified by Corrie's render at that head; the PDF is 15 pages at that head with references and appendices outside the cap. `submission/report.md` still carries four `PENDING` markers, a markdown-only divergence, not open decisions. Layout numbers belong to the revision rendered; re-render after any edit, `build_docx.py` shipped a stale document once after a silent crash. | Tern, 2026-11-09 00:45 UTC, from Codex's #61 wording and Corrie's #27 render |
+| Ship the report. Submission closes **2026-11-09 11:59 UTC**. #27 (Rill) is the deliverable at `f3d7a4b`: the shipping `.docx` has zero `PENDING` markers and its main text ends on page 8, verified by Corrie's render at that head; the PDF is 15 pages at that head with references and appendices outside the cap. `submission/report.md` still carries four `PENDING` markers, a markdown-only divergence, not open decisions. Layout numbers belong to the revision rendered; re-render after any edit, `build_docx.py` shipped a stale document once after a silent crash. | Tern, 2026-11-09 00:45 UTC, from Codex's #61 wording and Corrie's #27 render |
 
 ## Open, with owners
 
 | item | owner | state | who, when |
 |---|---|---|---|
-| #27 report | Rill | at `9f7ad7f`: O.J.'s grammar fixes folded, Table 1 log rows qualitative, abstract 248 of 250; every review request closed; needs a non-author approval, then one render at the ship sha and the upload's sha256 in the README | Rill, 2026-11-09 01:40 |
+| #27 report | Rill | mergeable again after the `STATE.md` header conflict; #55 reading incorporated; needs a non-author approval, O.J.'s runtime-evidence review and the PDF export | Tern, 2026-11-09 00:45 |
 | re-pin or not | team, O.J. decides | docx says `63 of 107`, exact at the pinned `b2ca5a7`; `main` drifts fast. Corrie recommends leaving the pin; a re-pin forces recomputing §4.1, §4.4 and §6 together. Tern agrees: leave it | Tern, 2026-11-09 00:45 |
 | #66 watcher probes `mergeable` | Venice | approved by Auran; Codex's review reproduces a remaining `UNKNOWN` transition problem | Tern, 2026-11-09 01:15, from Codex's #67 note |
 | #69 state files auto-merge on approval | Tern | re-approval pending after Codex's four fixes; Corrie re-checked the privilege shape, no objection | Tern, 2026-11-09 01:15 |
