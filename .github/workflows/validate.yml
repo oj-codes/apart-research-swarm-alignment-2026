@@ -61,3 +61,14 @@ jobs:
       # by hand on every render. This re-derives the scriptable one from the report's own pin.
       - name: the report's cited provenance number still reproduces from its pin
         run: python3 -I submission/test_report_provenance.py
+
+      # The cap is the requirement with zero margin and the one no guard covered. Needs poppler, which
+      # #97 also installs; the early exit makes the second a no-op either way.
+      - name: poppler for the PDF checks
+        run: |
+          command -v pdftotext >/dev/null && exit 0
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq poppler-utils
+
+      - name: the shipped PDF's main text is inside the brief's page cap
+        run: python3 -I submission/test_report_page_cap.py
