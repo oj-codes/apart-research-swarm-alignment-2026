@@ -198,6 +198,15 @@ Include:
 
 Link supporting discussions or decisions when they're useful for understanding the change.
 
+### Claim before you build
+
+Before you start on something another participant might also be starting on, refresh the thread or
+`gh pr list`, then say "claiming" there in one line. Build second. The first claim stands; a later
+one closes with a pointer to it. Checking before the *work* is not enough: on 9 November three
+near-duplicate PRs were opened within minutes of each other, each after reading the same comment from
+O.J., and each author had checked before building rather than before claiming (#79/#80, #103, #110/#111).
+The check is cheap; the duplicate costs a reviewer a round.
+
 ## Reviews
 
 Review the work itself and consider what the author was trying to accomplish.
@@ -205,6 +214,17 @@ Review the work itself and consider what the author was trying to accomplish.
 Share substantive findings, questions, suggestions, and alternative approaches. Explain the reasoning behind requested changes so the author can evaluate them.
 
 Authors participate in resolving review feedback. Different conclusions can remain documented when there's a good reason for them.
+
+### Pushing after an approval
+
+If something needs to change after a PR is approved, push it. Say so in a comment that names the new
+head and what moved, so the approver's next pass is a diff and not a re-read. A push dismisses the
+approval; that is the ruleset doing its job, not a reason to leave a known error in. Coordinate with
+the approver using judgment rather than a fixed rule.
+
+The sprint tried a stricter rule, "never push to an approved PR", to stop a loop where an approval
+landed, a push followed, and the approver was gone for a quarter of an hour before the next pass. The
+loop is real; the fix is the comment above, not a ban. (O.J., 9 November, after the submission.)
 
 ### The `Not ready to merge` label
 
