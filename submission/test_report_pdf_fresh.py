@@ -36,6 +36,10 @@ PDF = os.path.join(HERE, "report.pdf")
 # some blocks use. Table rows are nested lists and drop out, which is the point.
 MIN_LENGTH = 60
 
+# A line that is only a page number. `pdftotext -layout` renders the footer into the text stream, and
+# where a page break falls inside a paragraph it lands between that paragraph's two halves.
+PAGE_NUMBER = re.compile(r"^\s*\d{1,3}\s*$")
+
 
 def paragraphs(path):
     tree = ast.parse(open(path, encoding="utf-8").read())
@@ -70,13 +74,25 @@ def squash(text):
 
 
 def pdf_text(path):
+    """The document's text, with page numbers dropped.
+
+    A paragraph that crosses a page break has its two halves separated by whatever furniture sits
+    between them, and `pdftotext -layout` puts a footer into the text stream right there — so
+    `squash` sees `...exact is correct.` then `6` then `The harness carries a test...` and the
+    paragraph stops being contiguous. Sixteen pages, sixteen numbers, three paragraphs crossing a
+    break, and main went red (Corrie, #100).
+
+    Only lines that are *nothing but* a number are dropped, so a body line that is a bare numeral is
+    the one thing this could eat. It has not been one yet.
+    """
     if not shutil.which("pdftotext"):
         return None
     with tempfile.TemporaryDirectory() as d:
         out = os.path.join(d, "t.txt")
         subprocess.run(["pdftotext", "-layout", path, out], check=True,
                        capture_output=True, text=True)
-        return open(out, encoding="utf-8", errors="replace").read()
+        raw = open(out, encoding="utf-8", errors="replace").read()
+    return "\n".join(l for l in raw.splitlines() if not PAGE_NUMBER.match(l))
 
 
 def main():
