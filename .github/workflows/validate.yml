@@ -78,3 +78,7 @@ jobs:
       # re-record is visible rather than assumed.
       - name: the recorded hashes match the files in the repo
         run: python3 -I submission/test_report_ship_record.py
+
+      # The brief asks for author names and affiliations, and the list is hand-kept in three places.
+      - name: the byline names real people and the two lists agree
+        run: python3 -I submission/test_report_authors.py
