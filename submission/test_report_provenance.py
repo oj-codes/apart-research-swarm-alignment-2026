@@ -32,24 +32,57 @@ COUNTER = os.path.join(HERE, "count_provenance.py")
 
 PIN = re.compile(r"main commit ([0-9a-f]{7,40})")
 ADOPTION = re.compile(r"(\d+) of (\d+) agent commits")
+TRAILER = re.compile(r"trailer: (\d+) of (\d+)")
+
+
+def claim_pair(text):
+    """The (numerator, denominator) the report quotes, or None."""
+    m = ADOPTION.search(text)
+    return (int(m.group(1)), int(m.group(2))) if m else None
+
+
+def view_pairs(block):
+    """Every (n, m) the counter anchored as `trailer: n of m` in one view."""
+    return {(int(n), int(m)) for n, m in TRAILER.findall(block)}
+
+
+# A substring is not a numbers match. `3 of 107` and `63 of 10` are both substrings of `63 of 107`,
+# so the first version reported reproduction on figures that disagree (Codex, #82). These run on every
+# invocation, before the live check, so a guard that quietly stops comparing numbers says so itself.
+SELF_CHECK = [
+    ("63 of 107 agent commits", "trailer: 63 of 107", True),
+    ("3 of 107 agent commits", "trailer: 63 of 107", False),
+    ("63 of 10 agent commits", "trailer: 63 of 107", False),
+]
+
+
+def self_check():
+    return [(c, v, want, claim_pair(c) in view_pairs(v))
+            for c, v, want in SELF_CHECK if (claim_pair(c) in view_pairs(v)) != want]
 
 
 def main():
+    broken = self_check()
+    if broken:
+        print("fail: the guard's own comparison is wrong, before it even reaches the report:")
+        for claim, view, want, got in broken:
+            print(f"  - {claim!r} against {view!r}: wanted {want}, got {got}")
+        return 1
+
     absent = [os.path.relpath(p, UP) for p in (BUILD, COUNTER) if not os.path.exists(p)]
     if absent:
         print(f"skip: {', '.join(absent)} not on this ref yet")
         return 0
 
     text = open(BUILD, encoding="utf-8").read()
-    pin = PIN.search(text)
-    claimed = ADOPTION.search(text)
+    pin, want = PIN.search(text), claim_pair(text)
     if not pin:
         print("fail: the report does not say which commit it is pinned to, so nothing is checkable")
         return 1
-    if not claimed:
+    if want is None:
         print("fail: no '<n> of <n> agent commits' figure in the report to reproduce")
         return 1
-    sha, want = pin.group(1), f"{claimed.group(1)} of {claimed.group(2)}"
+    sha = pin.group(1)
 
     r = subprocess.run([sys.executable, os.path.relpath(COUNTER, UP), sha],
                        cwd=UP, capture_output=True, text=True)
@@ -79,17 +112,18 @@ def main():
         print(f"fail: count_provenance printed no raw/mapped pair to check: {r.stdout[:200]}")
         return 1
 
-    print(f"report pins {sha} and quotes '{want} agent commits'; reproduced in "
-          f"mapped={'yes' if want in mapped else 'NO'}, raw={'yes' if want in raw else 'NO'}")
-    recount = sorted(set(re.findall(r"trailer: (\d+ of \d+)", r.stdout)))
-    if want not in mapped:
-        print(f"fail: §4.1 cites the mapped view and '{want}' does not reproduce there; the recount "
-              f"says {recount} at {sha}. Re-derive the figure rather than editing it.")
+    here, there = want in view_pairs(mapped), want in view_pairs(raw)
+    recount = sorted(view_pairs(mapped) | view_pairs(raw))
+    print(f"report pins {sha} and quotes '{want[0]} of {want[1]} agent commits'; exact pair found in "
+          f"mapped={'yes' if here else 'NO'}, raw={'yes' if there else 'NO'}")
+    if not here:
+        print(f"fail: §4.1 cites the mapped view and {want[0]} of {want[1]} does not reproduce there; "
+              f"the recount says {recount} at {sha}. Re-derive the figure rather than editing it.")
         return 1
-    if want not in raw:
-        print(f"fail: '{want}' reproduces in the mapped view, which is the one the paper cites, but not "
-              f"in the raw view ({recount}). The two views disagree at the pin; §4.1's sentence about "
-              f"which view adoption uses is now load-bearing and should say so.")
+    if not there:
+        print(f"fail: {want[0]} of {want[1]} reproduces in the mapped view, which is the one the "
+              f"paper cites, but not the raw ({recount}). The two views disagree at the pin; §4.1's "
+              f"sentence about which view adoption uses is now load-bearing and should say so.")
         return 1
     return 0
 
