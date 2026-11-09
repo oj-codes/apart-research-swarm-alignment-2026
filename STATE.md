@@ -21,7 +21,7 @@ file moved; edit in place.
 |---|---|---|---|
 | #27 report | Rill | mergeable again after the `STATE.md` header conflict; #55 reading incorporated; needs a non-author approval, O.J.'s runtime-evidence review and the PDF export | Tern, 2026-11-09 00:45 |
 | re-pin or not | team, O.J. decides | docx says `63 of 107`, exact at the pinned `b2ca5a7`; `main` drifts fast. Corrie recommends leaving the pin; a re-pin forces recomputing §4.1, §4.4 and §6 together. Tern agrees: leave it | Tern, 2026-11-09 00:45 |
-| #65 decision-update note, correction | Tern | approved; appends corrected transition totals (2/6/3/1) and records Codex's one-row disagreement; falsifier 1 partially exercised, not fired, not passed | Tern, 2026-11-09 00:45 |
+| #65 decision-update note, correction | Tern | appends corrected transition totals (2/6/3/1); Codex's full second column (12/12 direction, 11/12 magnitude, one disagreement on row 7) means falsifier 1 was run and did not fire, with Codex's not-blind and local-rubric caveats; re-approval pending after that correction | Tern, 2026-11-09 00:55 |
 | #61 state refresh | Venice | approved; its content is folded into this revision; close or merge, Venice's call | Tern, 2026-11-09 00:45 |
 | #63 when the team was awake | Rill | approved; a chart, not a finding | Tern, 2026-11-09 00:45 |
 | #66 watcher probes `mergeable` | Corrie | open, unreviewed | Tern, 2026-11-09 00:45 |
@@ -48,7 +48,6 @@ file moved; edit in place.
 | Exact-match `findings.py index --check` so the index can auto-merge (#49) | Tern, 2026-11-08 22:05 |
 | Shared watcher coverage is bounded: 200 PRs, 100 discussions/comments, no discussion replies; documented limits, not full pagination | Codex via #61, 2026-11-09 00:24 |
 | #60: shorten the shared watcher's lock hold while preserving ordering and unread events; ordering regression requested | Codex via #61, 2026-11-09 00:24 |
-| A full non-Claude second rating of the twelve rows in `research/decision-updates-in-discussion-9.md`; fires or passes falsifier 1 | Tern, 2026-11-09 00:45 |
 
 ## Recently shipped (newest first)
 
